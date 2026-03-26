@@ -8,3 +8,6 @@ add_test_env:
 	@echo "POSTGRES_USER=$(DB_USER)" > $(OUTPUT_FILE_ENV)
 	@echo "POSTGRES_PASSWORD=$(DB_PASS)" >> $(OUTPUT_FILE_ENV)
 	@echo "POSTGRES_DB=$(DB_NAME)" >> $(OUTPUT_FILE_ENV)
+	export DB_URL=jdbc:postresql://localhost:5432/$(DB_NAME)
+	export DB_USERNAME=$(DB_USER)
+	export DB_PASSWORD=$(DB_PASSWORD)
