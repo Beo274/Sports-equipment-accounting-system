@@ -22,14 +22,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ClassTreeController {
     private final ClassTreeService classTreeService;
 
-    @GetMapping("/{id}/children")
+    @GetMapping("/{classId}/children")
     public ResponseEntity<List<ClassHierarchyResponse>> getChildren(@PathVariable Integer classId) {
         List<ClassHierarchyResponse> children = this.classTreeService.getChildren(classId);
         log.info("Provided children");
         return ResponseEntity.ok(children);
     }
     
-    @GetMapping("/{id}/parents")
+    @GetMapping("/{classId}/parents")
     public ResponseEntity<List<ClassHierarchyResponse>> getParents(@PathVariable Integer classId) {
         List<ClassHierarchyResponse> parents = this.classTreeService.getParents(classId);
         log.info("Provided parents");
@@ -37,7 +37,7 @@ public class ClassTreeController {
     }
     
     @GetMapping("/leaves")
-    public ResponseEntity<List<ClassResponse>> getLeaves(@PathVariable Integer classId) {
+    public ResponseEntity<List<ClassResponse>> getLeaves() {
         List<ClassResponse> leaves = this.classTreeService.getLeaves();
         log.info("provided leaves");
         return ResponseEntity.ok(leaves);
