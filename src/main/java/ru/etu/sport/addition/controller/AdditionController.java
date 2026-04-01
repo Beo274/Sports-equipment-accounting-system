@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.etu.sport.addition.service.AdditionService;
 import ru.etu.sport.model.entity.ClassEntity;
+import ru.etu.sport.model.entity.Product;
 
 @RestController
 public class AdditionController {
@@ -20,5 +21,10 @@ public class AdditionController {
     @PostMapping("/class")
     public ResponseEntity<?> addClass(@RequestBody ClassEntity classEntity) {
         return ResponseEntity.status(HttpStatus.CREATED).body(additionService.addClass(classEntity));
+    }
+
+    @PostMapping("/product")
+    public ResponseEntity<?> addProduct(@RequestBody Product product) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(additionService.addProduct(product));
     }
 }
