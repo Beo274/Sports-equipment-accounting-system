@@ -11,4 +11,10 @@ public interface ClassTreeService {
     List<ClassHierarchyResponse> getParents(Integer classId);
 
     List<ClassResponse> getLeaves();
+
+    void deleteProduct(Integer id);
+
+    void deleteClass(Integer id);
+
+    void updateClassMeasure(Integer classId, Integer measureId);
 }

@@ -53,4 +53,25 @@ public class ClassTreeServiceImpl implements ClassTreeService {
         log.info("Got leaves");
         return leaves;
     }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Integer id) {
+        log.info("Service: deleting product {}", id);
+        classTreeDao.deleteProduct(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteClass(Integer id) {
+        log.info("Service: deleting class {}", id);
+        classTreeDao.deleteClass(id);
+    }
+
+    @Override
+    @Transactional
+    public void updateClassMeasure(Integer classId, Integer measureId) {
+        log.info("Service: updating measure for class {} to {}", classId, measureId);
+        classTreeDao.updateClassMeasure(classId, measureId);
+    }
 }
