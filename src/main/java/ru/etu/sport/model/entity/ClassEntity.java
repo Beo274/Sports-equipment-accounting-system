@@ -20,10 +20,10 @@ public class ClassEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "name", length = 256)
+    @Column(name = "name", length = 256, nullable = false)
     private String name;
 
-    @Column(name = "short_name", length = 128)
+    @Column(name = "short_name", length = 128, nullable = false)
     private String shortName;
 
     @Column(name = "base_class_id")

@@ -1,4 +1,4 @@
-package ru.etu.sport.service;
+package ru.etu.sport.print.service;
 
 import java.util.List;
 
