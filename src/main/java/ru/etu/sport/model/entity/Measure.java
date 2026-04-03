@@ -13,6 +13,9 @@ public class Measure {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 128)
     private String name;
+
+    @Column(name = "short_name", nullable = false, length = 64)
+    private String shortName;
 }

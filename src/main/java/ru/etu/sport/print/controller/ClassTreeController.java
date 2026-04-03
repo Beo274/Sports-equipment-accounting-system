@@ -1,4 +1,4 @@
-package ru.etu.sport.controller;
+package ru.etu.sport.print.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
-import ru.etu.sport.service.ClassTreeService;
+import ru.etu.sport.print.service.ClassTreeService;
 
 import java.util.List;
 
