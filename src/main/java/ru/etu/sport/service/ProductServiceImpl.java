@@ -1,25 +1,31 @@
-package ru.etu.sport.print.service;
+package ru.etu.sport.service;
 
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.entity.Product;
-import ru.etu.sport.model.repository.ProductRepository;
+import ru.etu.sport.repository.ProductRepository;
+
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
-public class ProductsListServiceImpl implements ProductsListService {
+public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+
+    @Override
+    public void deleteProduct(Integer id) {
+        productRepository.delete(id);
+    }
 
     @Override
     public ProductList getProducts(Integer classId, Integer limit, Integer offset) {
@@ -37,5 +43,15 @@ public class ProductsListServiceImpl implements ProductsListService {
         }
 
         return new ProductList(count, limit, offset, products);
+    }
+
+    @Override
+    public void updateClassId(Integer id, Integer parentId) {
+        productRepository.updateParentId(id, parentId);
+    }
+
+    @Override
+    public Integer addProduct(Product product) {
+        return productRepository.save(product).getId();
     }
 }
