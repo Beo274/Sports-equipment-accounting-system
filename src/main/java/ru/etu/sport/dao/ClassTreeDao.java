@@ -79,4 +79,38 @@ public class ClassTreeDao {
             throw new RuntimeException("Failed to find leaves: {}", e);
         }
     }
+
+    public void deleteProduct(Integer id) {
+        String sql = "DELETE FROM product WHERE id = ?";
+        try {
+            jdbcTemplate.update(sql, id);
+            log.info("Deleted product with id: {}", id);
+        } catch (Exception e) {
+            log.error("Error deleting product: {}", e.getMessage());
+            throw new RuntimeException("Failed to delete product: " + id, e);
+        }
+    }
+
+    public void deleteClass(Integer id) {
+        String sql = "DELETE FROM class WHERE id = ?";
+        try {
+            jdbcTemplate.update(sql, id);
+            log.info("Deleted class with id: {}", id);
+        } catch (Exception e) {
+            log.error("Error deleting class: {}", e.getMessage());
+            throw new RuntimeException("Failed to delete class: " + id, e);
+        }
+    }
+
+    public void updateClassMeasure(Integer id, Integer measureId) {
+        String sql = "UPDATE class SET m_unit_id = ? WHERE id = ?";
+        try {
+            jdbcTemplate.update(sql, measureId, id);
+            log.info("Updated measure for class id: {}", id);
+        } catch (Exception e) {
+            log.error("Error updating class measure: {}", e.getMessage());
+            throw new RuntimeException("Failed to update measure for class: " + id, e);
+        }
+    }
+
 }

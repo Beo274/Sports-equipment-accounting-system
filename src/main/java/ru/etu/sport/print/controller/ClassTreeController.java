@@ -14,6 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/class")
@@ -42,5 +46,24 @@ public class ClassTreeController {
         log.info("provided leaves");
         return ResponseEntity.ok(leaves);
     }
-    
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Integer id) {
+        classTreeService.deleteProduct(id);
+        return ResponseEntity.ok(Map.of("message", "deleted"));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteClass(@PathVariable Integer id) {
+        classTreeService.deleteClass(id);
+        return ResponseEntity.ok(Map.of("message", "deleted"));
+    }
+
+    @PutMapping("/{id}/measure")
+    public ResponseEntity<?> updateMeasure(@PathVariable Integer id, @RequestBody Map<String, Integer> payload) {
+        Integer measureId = payload.get("measure_id");
+        classTreeService.updateClassMeasure(id, measureId);
+        return ResponseEntity.ok(Map.of("message", "updated"));
+    }
+
 }
