@@ -13,6 +13,24 @@ services:
     networks:
       - data_network
 
+  sports-api:
+    container_name: sports_eq_api
+    build:
+      context: ../
+      dockerfile: ./deploy/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms512m
+    volumes:
+      - ./.env:/app/deploy/.env:ro
+    ports:
+      - 8080:8080
+    networks:
+      - data_network
+    depends_on:
+      - postgres
+
+
 volumes:
   sports_pgdata:
     driver: local
