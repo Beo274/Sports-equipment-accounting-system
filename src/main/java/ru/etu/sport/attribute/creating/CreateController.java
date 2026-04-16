@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.etu.sport.model.entity.Attribute;
 
 @RestController
-@RequestMapping("/class")
+@RequestMapping
 public class CreateController {
 
     CreatingService creatingService;
