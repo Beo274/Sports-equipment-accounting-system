@@ -28,6 +28,9 @@ public class Attribute {
     @Column(name = "int_value")
     private Integer intValue;
 
+    @Column(name = "image_value")
+    private String imageValue;
+
     @Column(name = "position")
     private Integer position;
 
