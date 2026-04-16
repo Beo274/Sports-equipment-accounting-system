@@ -1,5 +1,6 @@
 package ru.etu.sport.attribute;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,30 +22,26 @@ public class AttributeService {
 
     @Transactional
     public void deleteValue(Integer id) {
-        if (this.attributeRepository.getAttributeById(id).getIntValue() != null) {
-            this.attributeRepository.deleteIntValueById(id);
-            return;
-        }
-        if (this.attributeRepository.getAttributeById(id).getStringValue() != null) {
-            this.attributeRepository.deleteStringValueById(id);
-            return;
-        }
-        if (this.attributeRepository.getAttributeById(id).getImageValue() != null) {
-            this.attributeRepository.deleteImageValueById(id);
-            return;
-        }
+        Attribute currentAttribute = attributeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
+        currentAttribute.setStringValue(null);
+        currentAttribute.setIntValue(null);
     }
 
     @Transactional
     public void updateValue(Integer val, Integer id) {
-        log.info("Update attribute id {}, value {}", id, val);
-        this.attributeRepository.updateValue(val, id);
+        Attribute currentAttribute = attributeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
+
+        currentAttribute.setIntValue(val);
     }
 
     @Transactional
     public void updateValue(String val, Integer id) {
-        log.info("Update attribute id {}, value {}", id, val);
-        this.attributeRepository.updateValue(val, id);
+        Attribute currentAttribute = attributeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
+
+        currentAttribute.setStringValue(val);
     }
 
 //    // image

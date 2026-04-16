@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import ru.etu.sport.model.entity.Product;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Modifying
     @Query("UPDATE Product p SET p.classId = :newParentId WHERE p.id =:id")
     void updateParentId(Integer id, Integer newParentId);

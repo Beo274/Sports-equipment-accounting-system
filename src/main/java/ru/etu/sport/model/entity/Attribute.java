@@ -14,7 +14,8 @@ public class Attribute {
     private Integer id;
 
     @JoinColumn(name = "class_id", nullable = false)
-    private Integer classId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private ClassEntity classId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -34,7 +35,9 @@ public class Attribute {
     @Column(name = "position")
     private Integer position;
 
-    @Column(name = "measure_id")
-    private Integer measureId;
+
+    @JoinColumn(name = "measure_id", unique = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    private Measure measureId;
 
 }

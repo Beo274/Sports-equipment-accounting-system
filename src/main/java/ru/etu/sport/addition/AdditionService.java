@@ -1,4 +1,4 @@
-package ru.etu.sport.addition.service;
+package ru.etu.sport.addition;
 
 import org.springframework.stereotype.Service;
 import ru.etu.sport.model.entity.ClassEntity;
