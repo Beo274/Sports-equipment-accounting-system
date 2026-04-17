@@ -1,8 +1,8 @@
 -- Managing
 CREATE OR REPLACE FUNCTION insert_class(
     p_name VARCHAR(256),
-    p_m_unit_id INTEGER,
-    p_short_name VARCHAR(128) DEFAULT NULL,
+    p_short_name VARCHAR(128),
+    p_m_unit_id INTEGER DEFAULT NULL,
     p_base_class_id INTEGER DEFAULT NULL
 )
 RETURNS INTEGER AS 

@@ -1,13 +1,13 @@
 CREATE TABLE IF NOT EXISTS measure_unit (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(128) NOT NULL,
-    short_name VARCHAR(64)
+    name VARCHAR(128) NOT NULL UNIQUE,
+    short_name VARCHAR(64) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS class (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL UNIQUE,
-    short_name VARCHAR(128) UNIQUE,
+    short_name VARCHAR(128) NOT NULL UNIQUE,
     base_class_id INTEGER REFERENCES class(id) ON DELETE SET NULL,
     m_unit_id INTEGER REFERENCES measure_unit(id) ON DELETE SET NULL
 );
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS class (
 CREATE TABLE IF NOT EXISTS product (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
-    short_name VARCHAR(128),
+    short_name VARCHAR(128) NOT NULL,
     class_id INTEGER REFERENCES class(id) ON DELETE SET NULL
 );
 

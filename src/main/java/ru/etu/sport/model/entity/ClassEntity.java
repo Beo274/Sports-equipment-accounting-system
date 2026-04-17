@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ClassEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", length = 256)
+    @Column(name = "name", length = 256, nullable = false)
     private String name;
 
-    @Column(name = "short_name", length = 128)
+    @Column(name = "short_name", length = 128, nullable = false)
     private String shortName;
 
     @JoinColumn(name = "base_class_id")
@@ -30,4 +30,7 @@ public class ClassEntity {
     @JoinColumn(name = "m_unit_id")
     @OneToOne(fetch = FetchType.LAZY)
     private Measure mUnitId;
+
+    @Transient
+    private Integer level;
 }
