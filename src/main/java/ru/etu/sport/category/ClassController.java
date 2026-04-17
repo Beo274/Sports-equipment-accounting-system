@@ -1,4 +1,4 @@
-package ru.etu.sport.controller;
+package ru.etu.sport.category;
 
 import org.springframework.web.bind.annotation.RestController;
 
@@ -8,7 +8,6 @@ import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.entity.ClassEntity;
-import ru.etu.sport.service.ClassService;
 
 import java.util.List;
 

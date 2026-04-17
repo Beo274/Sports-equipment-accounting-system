@@ -1,4 +1,4 @@
-package ru.etu.sport.service;
+package ru.etu.sport.product;
 
 import java.util.List;
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
-import ru.etu.sport.model.projection.ClassHierarchyProjection;
+import ru.etu.sport.product.projection.ClassHierarchyProjection;
 
 @Repository
 public interface ClassRepository extends JpaRepository<ClassEntity, Integer> {

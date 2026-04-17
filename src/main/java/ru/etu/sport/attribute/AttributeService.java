@@ -5,7 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.model.entity.Attribute;
-import ru.etu.sport.model.repository.AttributeRepository;
+import ru.etu.sport.repository.AttributeRepository;
 
 @Service
 @Slf4j
