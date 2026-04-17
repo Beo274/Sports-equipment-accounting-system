@@ -20,5 +20,6 @@ public class Product {
     private String shortName;
 
     @JoinColumn(name = "class_id", nullable = false)
-    private Integer classId;
+    @OneToOne(fetch = FetchType.LAZY)
+    private ClassEntity classId;
 }

@@ -1,8 +1,9 @@
-package ru.etu.sport.service;
+package ru.etu.sport.category;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
-import ru.etu.sport.model.projection.ClassHierarchyProjection;
+import ru.etu.sport.product.projection.ClassHierarchyProjection;
 import ru.etu.sport.repository.ClassRepository;
 
 @Service
@@ -65,7 +66,11 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public void swapBaseClass(Integer id, Integer parentId) {
-        classRepository.updateParentId(id, parentId);
+        ClassEntity currentClass = this.classRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Class not found"));
+        ClassEntity newParentClass = this.classRepository.findById(parentId)
+                        .orElseThrow(() -> new EntityNotFoundException("Parent class not found"));
+        currentClass.setBaseClassId(newParentClass);
     }
 
     @Override

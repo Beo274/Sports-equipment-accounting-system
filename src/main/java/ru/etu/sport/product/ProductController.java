@@ -1,4 +1,4 @@
-package ru.etu.sport.controller;
+package ru.etu.sport.product;
 
 import java.util.Map;
 
@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.entity.Product;
-import ru.etu.sport.service.ProductService;
 
 
 @RestController

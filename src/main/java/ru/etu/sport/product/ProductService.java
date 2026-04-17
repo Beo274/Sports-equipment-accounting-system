@@ -1,4 +1,4 @@
-package ru.etu.sport.service;
+package ru.etu.sport.product;
 
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.entity.Product;
