@@ -40,9 +40,18 @@ public class AttributeService {
     public void updateValue(String val, Integer id) {
         Attribute currentAttribute = attributeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-
         currentAttribute.setStringValue(val);
     }
+
+    @Transactional
+    public void updateValue(String val, Integer id, boolean isImage) {
+        Attribute currentAttribute = attributeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
+        currentAttribute.setImageValue(val);
+    }
+
+
+
 
 //    // image
 //    public void updateValue(String val) {

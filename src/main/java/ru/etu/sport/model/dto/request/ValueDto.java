@@ -20,6 +20,8 @@ public class ValueDto {
             attributeService.updateValue(this.intValue, id);
         } else if (stringValue != null) {
             attributeService.updateValue(this.stringValue, id);
+        } else if (imageValue != null) {
+            attributeService.updateValue(this.imageValue, id, true);
         }
     }
 }
