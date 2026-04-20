@@ -1,4 +1,4 @@
-package ru.etu.sport.product.projection;
+package ru.etu.sport.category.projection;
 
 public interface ClassHierarchyProjection {
     Integer getId();

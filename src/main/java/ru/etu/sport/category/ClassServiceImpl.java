@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
-import ru.etu.sport.product.projection.ClassHierarchyProjection;
+import ru.etu.sport.category.projection.ClassHierarchyProjection;
 import ru.etu.sport.repository.ClassRepository;
 
 @Service
