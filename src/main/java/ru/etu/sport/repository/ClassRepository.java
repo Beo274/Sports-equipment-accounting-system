@@ -1,38 +1,35 @@
 package ru.etu.sport.repository;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
+import ru.etu.sport.model.dto.response.ClassResponse;
+
+import java.util.List;
 
 @Repository
 public interface ClassRepository extends JpaRepository<ClassEntity, Integer> {
-    @Query(value = "SELECT * FROM find_children(:classId)", nativeQuery = true)
-    List<ClassHierarchyProjection> findChildren(@Param("classId") Integer classId);
 
-    @Query(value = "SELECT * FROM find_parents(:classId)", nativeQuery = true)
-    List<ClassHierarchyProjection> findParents(@Param("classId") Integer classId);
-    
-    @Query(value = "SELECT * FROM find_leaves()", nativeQuery = true)
+    @Query(nativeQuery = true, value = "SELECT * FROM find_children(:id)")
+    List<ClassHierarchyProjection> findChildren(@Param("id") Integer id);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM find_parents(:id)")
+    List<ClassHierarchyProjection> findParents(@Param("id") Integer id);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM find_leaves()")
     List<ClassResponse> findLeaves();
 
-    @Modifying
-    @Query("UPDATE ClassEntity c SET c.baseClassId = :newParentId WHERE c.id =:id")
-    void updateParentId(@Param("id") Integer id, @Param("newParentId") Integer newParentId);
-
-    @Modifying
-    @Query("DELETE FROM ClassEntity c WHERE c.id = :id")
+    @Query(nativeQuery = true, value = "SELECT delete_class(:id)")
     void deleteClass(@Param("id") Integer id);
 
-    @Modifying
-    @Query("UPDATE ClassEntity c SET c.mUnitId = :measureId WHERE c.id = :classId")
-    void updateClassMeasure(@Param("classId") Integer classId, @Param("measureId") Integer measureId);
-}
+    @Query(nativeQuery = true, value = "SELECT swap_base_class(:id, :newParent)")
+    void swapBaseClass(@Param("id") Integer id, @Param("newParent") Integer newParent);
 
+    @Query(nativeQuery = true, value = "UPDATE class SET m_unit_id = :measureId WHERE id = :classId")
+    void updateClassMeasure(@Param("classId") Integer classId, @Param("measureId") Integer measureId);
+
+    List<ClassEntity> findByBaseClassId(ClassEntity baseClassId);
+}

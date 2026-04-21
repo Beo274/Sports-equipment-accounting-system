@@ -35,9 +35,7 @@ public class Attribute {
     @Column(name = "position")
     private Integer position;
 
-
     @JoinColumn(name = "measure_id")
-    @OneToOne(fetch = FetchType.LAZY)
-    private Measure measureId;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Measure measure;
 }

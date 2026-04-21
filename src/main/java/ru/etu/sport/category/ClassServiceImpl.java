@@ -27,9 +27,7 @@ public class ClassServiceImpl implements ClassService {
         if (classId == null) {
             throw new IllegalArgumentException("ClassId cannot be null");
         }
-
         List<ClassHierarchyProjection> projections = this.classRepository.findChildren(classId);
-
         log.info("Got children for classId: {}", classId);
         return projections.stream().map(this::convertToHierarchyResponse).collect(Collectors.toList());
     }
@@ -39,7 +37,6 @@ public class ClassServiceImpl implements ClassService {
         if (classId == null) {
             throw new IllegalArgumentException("ClassId cannot be null");
         }
-
         List<ClassHierarchyProjection> projections = this.classRepository.findParents(classId);
         log.info("Got parents for classId: {}", classId);
         return projections.stream().map(this::convertToHierarchyResponse).collect(Collectors.toList());
@@ -55,6 +52,15 @@ public class ClassServiceImpl implements ClassService {
     @Override
     public void deleteClass(Integer id) {
         log.info("Service: deleting class {}", id);
+        ClassEntity classToDelete = classRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Class not found with id: " + id));
+        ClassEntity parentClass = classToDelete.getBaseClassId();
+        List<ClassEntity> children = classRepository.findByBaseClassId(classToDelete);
+
+        for (ClassEntity child : children) {
+            child.setBaseClassId(parentClass);
+            classRepository.save(child);
+        }
         classRepository.deleteClass(id);
     }
 
@@ -69,7 +75,7 @@ public class ClassServiceImpl implements ClassService {
         ClassEntity currentClass = this.classRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found"));
         ClassEntity newParentClass = this.classRepository.findById(parentId)
-                        .orElseThrow(() -> new EntityNotFoundException("Parent class not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Parent class not found"));
         currentClass.setBaseClassId(newParentClass);
     }
 
@@ -80,12 +86,12 @@ public class ClassServiceImpl implements ClassService {
 
     private ClassHierarchyResponse convertToHierarchyResponse(ClassHierarchyProjection projection) {
         return ClassHierarchyResponse.builder()
-            .id(projection.getId())
-            .name(projection.getName())
-            .shortName(projection.getShortName())
-            .baseClassId(projection.getBaseClassId())
-            .level(projection.getLevel())
-            .mUnitId(projection.getMUnitId())
-            .build();
+                .id(projection.getId())
+                .name(projection.getName())
+                .shortName(projection.getShortName())
+                .baseClassId(projection.getBaseClassId())
+                .level(projection.getLevel())
+                .mUnitId(projection.getMUnitId())
+                .build();
     }
 }

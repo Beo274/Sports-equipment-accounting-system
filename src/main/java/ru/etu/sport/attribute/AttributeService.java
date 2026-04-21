@@ -5,12 +5,18 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.model.entity.Attribute;
+import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.repository.AttributeRepository;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class AttributeService {
-    private AttributeRepository attributeRepository;
+    private final AttributeRepository attributeRepository;
 
     public AttributeService(AttributeRepository attributeRepository) {
         this.attributeRepository = attributeRepository;
@@ -32,7 +38,6 @@ public class AttributeService {
     public void updateValue(Integer val, Integer id) {
         Attribute currentAttribute = attributeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-
         currentAttribute.setIntValue(val);
     }
 
@@ -50,11 +55,22 @@ public class AttributeService {
         currentAttribute.setImageValue(val);
     }
 
+    public List<Map<String, Object>> getAttributesByClassId(Integer classId) {
+        List<Attribute> attributes = attributeRepository.findByClassId_Id(classId);
+        return attributes.stream().map(attr -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", attr.getName());
+            Object val = attr.getStringValue() != null ? attr.getStringValue() :
+                    (attr.getIntValue() != null ? attr.getIntValue() : attr.getImageValue());
+            map.put("val", val);
+            return map;
+        }).collect(Collectors.toList());
+    }
 
-
-
-//    // image
-//    public void updateValue(String val) {
-//
-//    }
+    @Transactional
+    public void setMeasure(Integer id, Measure measure) {
+        Attribute currentAttribute = attributeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
+        currentAttribute.setMeasure(measure);
+    }
 }

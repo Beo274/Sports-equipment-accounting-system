@@ -3,8 +3,12 @@ package ru.etu.sport.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import ru.etu.sport.model.entity.Attribute;
 
+import java.util.List;
+
+@Repository
 public interface AttributeRepository extends JpaRepository<Attribute, Integer> {
 
     public Attribute getAttributeById(Integer id);
@@ -28,4 +32,6 @@ public interface AttributeRepository extends JpaRepository<Attribute, Integer> {
     @Modifying
     @Query("UPDATE Attribute a SET a.stringValue = :val WHERE a.id =:id")
     void updateValue(String val, Integer id);
+
+    List<Attribute> findByClassId_Id(Integer id);
 }

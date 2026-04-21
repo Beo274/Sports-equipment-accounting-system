@@ -5,12 +5,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.etu.sport.model.dto.request.ValueDto;
 import ru.etu.sport.model.entity.Attribute;
+import ru.etu.sport.model.entity.Measure;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/attribute")
 public class AttributeController {
 
-    AttributeService attributeService;
+    private final AttributeService attributeService;
 
     public AttributeController(AttributeService attributeService) {
         this.attributeService = attributeService;
@@ -33,4 +37,14 @@ public class AttributeController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> getAttributesByClassId(@RequestParam Integer classId) {
+        return ResponseEntity.ok(attributeService.getAttributesByClassId(classId));
+    }
+
+    @PutMapping("/{id}/measure")
+    public ResponseEntity<?> setMeasure(@PathVariable Integer id, @RequestBody Measure measure) {
+        attributeService.setMeasure(id, measure);
+        return ResponseEntity.ok().build();
+    }
 }
