@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "measure")
+@Table(name = "measure_unit")
 @NoArgsConstructor
 public class Measure {
     @Id
