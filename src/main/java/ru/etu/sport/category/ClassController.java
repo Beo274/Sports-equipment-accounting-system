@@ -40,6 +40,7 @@ public class ClassController {
     @PostMapping
     public ResponseEntity<IdResponse> addClass(@RequestBody ClassEntity classEntity) {
         Integer id = classService.addClass(classEntity);
+        log.info("Class added");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }
 
@@ -60,6 +61,7 @@ public class ClassController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteClass(@PathVariable("id") Integer id) {
         classService.deleteClass(id);
+        log.info("Class with id: {} deleted", id);
         return ResponseEntity.ok(Map.of("message", "deleted"));
     }
 
@@ -67,12 +69,14 @@ public class ClassController {
     public ResponseEntity<Map<String, String>> updateMeasure(@PathVariable("id") Integer id, @RequestBody Map<String, Integer> payload) {
         Integer measureId = payload.get("measure_id");
         classService.updateClassMeasure(id, measureId);
+        log.info("Class measure unit updated");
         return ResponseEntity.ok(Map.of("message", "updated"));
     }
 
     @PutMapping("/{id}/swap")
     public ResponseEntity<Map<String, String>> updateClass(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         classService.swapBaseClass(id, parentId);
+        log.info("Base class updated");
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "update successful"));
     }
 }

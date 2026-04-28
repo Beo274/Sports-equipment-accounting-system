@@ -31,12 +31,14 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<IdResponse> addProduct(@RequestBody Product product) {
         Integer id = productService.addProduct(product);
+        log.info("Product created");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable("id") Integer id) {
         productService.deleteProduct(id);
+        log.info("Product deleted");
         return ResponseEntity.ok(Map.of("message", "deleted"));
     }
 

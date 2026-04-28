@@ -2,75 +2,146 @@ package ru.etu.sport.attribute;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import ru.etu.sport.model.entity.Attribute;
-import ru.etu.sport.model.entity.Measure;
-import ru.etu.sport.repository.AttributeRepository;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import ru.etu.sport.model.dto.request.CreateAttributeDto;
+import ru.etu.sport.model.dto.request.CreateAttributeValueDto;
+import ru.etu.sport.model.entity.Attribute;
+import ru.etu.sport.model.entity.AttributeValue;
+import ru.etu.sport.model.entity.Measure;
+import ru.etu.sport.repository.AttributeRepository;
+import ru.etu.sport.repository.AttributeValueRepository;
+import ru.etu.sport.repository.MeasureRepository;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AttributeService {
     private final AttributeRepository attributeRepository;
+    private final AttributeValueRepository attributeValueRepository;
+    private final MeasureRepository measureRepository;
 
-    public AttributeService(AttributeRepository attributeRepository) {
-        this.attributeRepository = attributeRepository;
-    }
-
-    public Attribute create(Attribute attribute) {
-        return this.attributeRepository.save(attribute);
+    public Attribute create(CreateAttributeDto createAttributeDto) {
+        return this.attributeRepository.save(createAttributeDto.toAttribute());
     }
 
     @Transactional
-    public void deleteValue(Integer id) {
-        Attribute currentAttribute = attributeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-        currentAttribute.setStringValue(null);
-        currentAttribute.setIntValue(null);
+    public AttributeValue createValue(CreateAttributeValueDto createAttributeValueDto) {
+        AttributeValue value = new AttributeValue();
+        value.setName(createAttributeValueDto.getName());
+        value.setShortName(createAttributeValueDto.getShortName());
+
+        Attribute attributeProxy = attributeRepository.getReferenceById(createAttributeValueDto.getAttributeId());
+        value.setAttribute(attributeProxy);
+
+        if (createAttributeValueDto.getIntValue() != null) {
+            value.setIntValue(createAttributeValueDto.getIntValue());
+        } else if (createAttributeValueDto.getStringValue() != null) {
+            value.setStringValue(createAttributeValueDto.getStringValue());
+        } else if (createAttributeValueDto.getImageValue() != null) {
+            value.setImageValue(createAttributeValueDto.getImageValue());
+        }
+
+        if (createAttributeValueDto.getMeasureId() != null) {
+            Measure measureProxy = measureRepository.getReferenceById(createAttributeValueDto.getMeasureId());
+            value.setMeasure(measureProxy);
+        }
+        
+        return this.attributeValueRepository.save(value);
+    }
+
+    public List<AttributeValue> listAttributeValues(Integer attributeId) {
+        return this.attributeValueRepository.findByAtributeId(attributeId);
+    }
+
+    public void delete(Integer id) {
+        this.attributeRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteValue(Integer id, DeleteValueOption option) {
+        AttributeValue value = this.attributeValueRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("AttributeValue not found with id: " + id));
+        switch (option) {
+            case FULL:
+                this.attributeValueRepository.deleteById(id);
+                break;
+            case INT:
+                value.setIntValue(null);
+                break;
+            case STRING:
+                value.setStringValue(null);
+                break;
+            case IMAGE:
+                value.setImageValue(null);
+                break;
+        }
+    }
+
+    public void deleteAttribute(Integer id) {
+        this.attributeRepository.deleteById(id);
     }
 
     @Transactional
     public void updateValue(Integer val, Integer id) {
-        Attribute currentAttribute = attributeRepository.findById(id)
+        AttributeValue value = this.attributeValueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-        currentAttribute.setIntValue(val);
+        value.setIntValue(val);
     }
 
     @Transactional
     public void updateValue(String val, Integer id) {
-        Attribute currentAttribute = attributeRepository.findById(id)
+        AttributeValue value = this.attributeValueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-        currentAttribute.setStringValue(val);
+        value.setStringValue(val);
     }
 
     @Transactional
     public void updateValue(String val, Integer id, boolean isImage) {
-        Attribute currentAttribute = attributeRepository.findById(id)
+        AttributeValue value = this.attributeValueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-        currentAttribute.setImageValue(val);
-    }
-
-    public List<Map<String, Object>> getAttributesByClassId(Integer classId) {
-        List<Attribute> attributes = attributeRepository.findByClassId_Id(classId);
-        return attributes.stream().map(attr -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("name", attr.getName());
-            Object val = attr.getStringValue() != null ? attr.getStringValue() :
-                    (attr.getIntValue() != null ? attr.getIntValue() : attr.getImageValue());
-            map.put("val", val);
-            return map;
-        }).collect(Collectors.toList());
+        value.setImageValue(val);
     }
 
     @Transactional
     public void setMeasure(Integer id, Measure measure) {
-        Attribute currentAttribute = attributeRepository.findById(id)
+        AttributeValue value = this.attributeValueRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Attribute not found with id: " + id));
-        currentAttribute.setMeasure(measure);
+        value.setMeasure(measure);
+    }
+
+    public List<Attribute> listAttributes() {
+        return this.attributeRepository.findAll();
+    }
+
+    public AttributeValue getAttributeValue(Integer id) {
+        AttributeValue value = this.attributeValueRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Attribute value with id: %d not found", id)));
+        return value;
+    }
+
+    @Transactional
+    public void reorderValues(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return;
+        }
+
+        List<AttributeValue> values = this.attributeValueRepository.findAllById(ids);
+
+        Map<Integer, Integer> idToPosition = new HashMap<>();
+        for (Integer i = 0; i < ids.size(); i++) {
+            idToPosition.put(ids.get(i), i + 1);
+        }
+
+        for (AttributeValue value : values) {
+            value.setPosition(idToPosition.get(value.getId()));
+        }
     }
 }

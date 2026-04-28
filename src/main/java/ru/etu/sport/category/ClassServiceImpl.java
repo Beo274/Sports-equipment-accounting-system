@@ -18,7 +18,6 @@ import ru.etu.sport.repository.ClassRepository;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class ClassServiceImpl implements ClassService {
     private final ClassRepository classRepository;
 
@@ -71,6 +70,7 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
+    @Transactional
     public void swapBaseClass(Integer id, Integer parentId) {
         ClassEntity currentClass = this.classRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found"));

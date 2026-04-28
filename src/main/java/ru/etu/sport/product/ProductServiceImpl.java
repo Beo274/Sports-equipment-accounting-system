@@ -15,7 +15,6 @@ import ru.etu.sport.repository.ProductRepository;
 
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class ProductServiceImpl implements ProductService {
@@ -28,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductList getProducts(Integer classId, Integer limit, Integer offset) {
         List<Product> products;
         Integer count;
