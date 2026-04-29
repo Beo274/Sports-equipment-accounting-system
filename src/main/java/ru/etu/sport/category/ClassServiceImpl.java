@@ -9,17 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateClassDto;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
+import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
 import ru.etu.sport.repository.ClassRepository;
+import ru.etu.sport.repository.MeasureRepository;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ClassServiceImpl implements ClassService {
     private final ClassRepository classRepository;
+    private final MeasureRepository measureRepository;
 
     @Override
     public List<ClassHierarchyResponse> getChildren(Integer classId) {
@@ -53,13 +57,16 @@ public class ClassServiceImpl implements ClassService {
         log.info("Service: deleting class {}", id);
         ClassEntity classToDelete = classRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id: " + id));
-        ClassEntity parentClass = classToDelete.getBaseClassId();
-        List<ClassEntity> children = classRepository.findByBaseClassId(classToDelete);
+        ClassEntity parentClass = classToDelete.getBaseClass();
+        if (parentClass != null) {
+            List<ClassEntity> children = classRepository.findByBaseClassId(classToDelete);
 
-        for (ClassEntity child : children) {
-            child.setBaseClassId(parentClass);
-            classRepository.save(child);
+            for (ClassEntity child : children) {
+                child.setBaseClass(parentClass);
+                classRepository.save(child);
+            }
         }
+        
         classRepository.deleteClass(id);
     }
 
@@ -74,14 +81,27 @@ public class ClassServiceImpl implements ClassService {
     public void swapBaseClass(Integer id, Integer parentId) {
         ClassEntity currentClass = this.classRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found"));
-        ClassEntity newParentClass = this.classRepository.findById(parentId)
-                .orElseThrow(() -> new EntityNotFoundException("Parent class not found"));
-        currentClass.setBaseClassId(newParentClass);
+        ClassEntity newParentClass = this.classRepository.getReferenceById(parentId);
+        currentClass.setBaseClass(newParentClass);
     }
 
     @Override
-    public Integer addClass(ClassEntity classEntity) {
-        return classRepository.save(classEntity).getId();
+    public Integer addClass(CreateClassDto createClassDto) {
+        ClassEntity newClass =  new ClassEntity();
+        newClass.setName(createClassDto.getName());
+        newClass.setShortName(createClassDto.getShortName());
+
+        if (createClassDto.getBaseClassId() != null) {
+            ClassEntity baseClass = this.classRepository.getReferenceById(createClassDto.getBaseClassId());
+            newClass.setBaseClass(baseClass);
+        }
+
+        if (createClassDto.getMeasureUnitId() != null) {
+            Measure measure = this.measureRepository.getReferenceById(createClassDto.getMeasureUnitId());
+            newClass.setMeasure(measure);
+        }
+
+        return classRepository.save(newClass).getId();
     }
 
     private ClassHierarchyResponse convertToHierarchyResponse(ClassHierarchyProjection projection) {

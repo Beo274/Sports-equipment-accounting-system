@@ -14,11 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.ProductList;
-import ru.etu.sport.model.entity.Product;
 
 
 @RestController
@@ -29,8 +30,8 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<IdResponse> addProduct(@RequestBody Product product) {
-        Integer id = productService.addProduct(product);
+    public ResponseEntity<IdResponse> addProduct(@Valid @RequestBody CreateProductDto createProductDto) {
+        Integer id = productService.addProduct(createProductDto);
         log.info("Product created");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }

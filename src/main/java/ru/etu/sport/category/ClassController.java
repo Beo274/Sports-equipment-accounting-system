@@ -2,12 +2,13 @@ package ru.etu.sport.category;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateClassDto;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.dto.response.IdResponse;
-import ru.etu.sport.model.entity.ClassEntity;
 
 import java.util.List;
 
@@ -38,8 +39,8 @@ public class ClassController {
     }
 
     @PostMapping
-    public ResponseEntity<IdResponse> addClass(@RequestBody ClassEntity classEntity) {
-        Integer id = classService.addClass(classEntity);
+    public ResponseEntity<IdResponse> addClass(@Valid @RequestBody CreateClassDto createClassDto) {
+        Integer id = classService.addClass(createClassDto);
         log.info("Class added");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }

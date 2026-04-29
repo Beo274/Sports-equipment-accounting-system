@@ -25,11 +25,11 @@ public class ClassEntity {
 
     @JoinColumn(name = "base_class_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private ClassEntity baseClassId;
+    private ClassEntity baseClass;
 
     @JoinColumn(name = "m_unit_id")
     @OneToOne(fetch = FetchType.LAZY)
-    private Measure mUnitId;
+    private Measure measure;
 
     @Transient
     private Integer level;

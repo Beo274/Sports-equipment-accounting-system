@@ -8,18 +8,20 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
+import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.model.entity.Product;
+import ru.etu.sport.repository.ClassRepository;
 import ru.etu.sport.repository.ProductRepository;
 
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ClassRepository classRepository;
 
     @Override
     public void deleteProduct(Integer id) {
@@ -51,7 +53,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Integer addProduct(Product product) {
+    public Integer addProduct(CreateProductDto createProductDto) {
+        Product product = new Product();
+
+        product.setName(createProductDto.getName());
+        product.setShortName(createProductDto.getShortName());
+        ClassEntity baseClass = this.classRepository.getReferenceById(createProductDto.getClassId());
+        product.setProductClass(baseClass);
+
         return productRepository.save(product).getId();
     }
 }
