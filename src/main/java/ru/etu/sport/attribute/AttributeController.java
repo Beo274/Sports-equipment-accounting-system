@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.model.dto.request.CreateAttributeDto;
@@ -11,11 +12,11 @@ import ru.etu.sport.model.dto.request.CreateAttributeValueDto;
 import ru.etu.sport.model.dto.request.ReorderDto;
 import ru.etu.sport.model.dto.request.ValueDto;
 import ru.etu.sport.model.dto.response.IdResponse;
+import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.entity.Attribute;
 import ru.etu.sport.model.entity.AttributeValue;
 
 import java.util.List;
-import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -23,6 +24,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/attribute")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "attributes", description = "Attribute managing endpoints")
 public class AttributeController {
 
     private final AttributeService attributeService;
@@ -42,10 +44,10 @@ public class AttributeController {
     }
     
     @PatchMapping("/value/{id}")
-    public ResponseEntity<Map<String, String>> updateValue(@Valid @RequestBody ValueDto valueDto, @PathVariable("id") Integer id) {
+    public ResponseEntity<MessageResponse> updateValue(@Valid @RequestBody ValueDto valueDto, @PathVariable("id") Integer id) {
         valueDto.updateValue(attributeService, id);
         log.info("Value with id: {} updated", id);
-        return ResponseEntity.ok(Map.of("message", "updated"));
+        return ResponseEntity.ok(new MessageResponse("updated"));
     }
 
     @GetMapping("/{id}/values")
@@ -70,23 +72,23 @@ public class AttributeController {
     }
     
     @PatchMapping("/{id}/reorder")
-    public ResponseEntity<Map<String, String>> reorderValues(@RequestBody ReorderDto reorderDto) {
+    public ResponseEntity<MessageResponse> reorderValues(@RequestBody ReorderDto reorderDto) {
         this.attributeService.reorderValues(reorderDto.getOrder());
         log.info("Values reordered");
-        return ResponseEntity.ok(Map.of("message", "reordered"));
+        return ResponseEntity.ok(new MessageResponse("reordered"));
     }
 
     @DeleteMapping("/value/{id}")
-    public ResponseEntity<Map<String, String>> deleteAttributeValue(@PathVariable("id") Integer id, @RequestParam DeleteValueOption option) {
+    public ResponseEntity<MessageResponse> deleteAttributeValue(@PathVariable("id") Integer id, @RequestParam DeleteValueOption option) {
         this.attributeService.deleteValue(id, option);
         log.info("Attribute value deleted, option: {}", option);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "deleted"));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("deleted"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteAttribute(@PathVariable("id") Integer id) {
+    public ResponseEntity<MessageResponse> deleteAttribute(@PathVariable("id") Integer id) {
         this.attributeService.deleteAttribute(id);
         log.info("Attribute deleted");
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(Map.of("message", "deleted"));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(new MessageResponse("deleted"));
     }
 }
