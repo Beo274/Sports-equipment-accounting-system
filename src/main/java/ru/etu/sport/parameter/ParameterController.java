@@ -1,5 +1,6 @@
 package ru.etu.sport.parameter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -8,6 +9,7 @@ import ru.etu.sport.model.entity.Parameter;
 
 @Controller
 @RequestMapping("/param")
+@Slf4j
 public class ParameterController {
     private final ParameterService parameterService;
 
@@ -16,7 +18,8 @@ public class ParameterController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createParam(Parameter parameter) {
+    public ResponseEntity<?> createParam(@RequestBody Parameter parameter) {
+        log.debug("Creating parameter: {}", parameter);
         Integer id = parameterService.create(parameter);
         return ResponseEntity.status(HttpStatus.CREATED).body(id);
     };
@@ -26,12 +29,12 @@ public class ParameterController {
 //
 //
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateParam(@PathVariable Integer id, Parameter parameter) {
+    public ResponseEntity<?> updateParam(@PathVariable Integer id, @RequestBody Parameter parameter) {
         parameterService.update(id, parameter);
         return ResponseEntity.status(HttpStatus.OK).body("updated");
     }
 
-    @DeleteMapping("/id")
+    @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteParam(@PathVariable Integer id) {
         parameterService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body("deleted");
