@@ -12,8 +12,7 @@ import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.model.entity.Product;
-import ru.etu.sport.repository.ClassRepository;
-import ru.etu.sport.repository.ProductRepository;
+import ru.etu.sport.category.ClassRepository;
 
 
 @Service

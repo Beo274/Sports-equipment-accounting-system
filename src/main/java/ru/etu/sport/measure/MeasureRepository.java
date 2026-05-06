@@ -1,4 +1,4 @@
-package ru.etu.sport.repository;
+package ru.etu.sport.measure;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

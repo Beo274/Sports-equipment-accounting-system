@@ -3,7 +3,6 @@ package ru.etu.sport.measure;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.model.entity.Measure;
-import ru.etu.sport.repository.MeasureRepository;
 
 @Service
 @RequiredArgsConstructor
