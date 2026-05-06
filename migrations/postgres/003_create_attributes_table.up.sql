@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS enumeration (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL UNIQUE,
-    short_name VARCHAR(128) NOT NULL UNIQUE,
+    short_name VARCHAR(128) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS enumeration_value (
