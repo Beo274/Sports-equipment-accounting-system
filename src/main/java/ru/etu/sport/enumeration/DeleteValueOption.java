@@ -1,4 +1,4 @@
-package ru.etu.sport.attribute;
+package ru.etu.sport.enumeration;
 
 public enum DeleteValueOption {
     FULL ("full"),

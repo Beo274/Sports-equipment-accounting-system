@@ -13,23 +13,17 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Entity
-@Table(name = "attribute_value")
+@Table(name = "enumeration_value")
 @Data
 @RequiredArgsConstructor
-public class AttributeValue {
+public class EnumerationValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer Id;
 
-    @JoinColumn(name = "attribute_id", nullable = false)
+    @JoinColumn(name = "enumeration_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Attribute attribute;
-
-    @Column(name = "name", length = 256, nullable = false)
-    private String name;
-
-    @Column(name = "short_name", length = 128, nullable = false)
-    private String shortName;
+    private Enumeration enumeration;
 
     @Column(name = "int_value")
     private Integer intValue;

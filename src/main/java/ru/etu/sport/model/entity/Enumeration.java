@@ -5,10 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "attribute")
+@Table(name = "enumeration")
 @Data
 @NoArgsConstructor
-public class Attribute {
+public class Enumeration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

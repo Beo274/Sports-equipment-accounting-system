@@ -1,6 +1,5 @@
 package ru.etu.sport.model.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,15 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateAttributeValueDto {
-    @NotBlank
-    private String name;
-
-    @NotBlank
-    private String shortName;
-
+public class CreateEnumerationValueDto {
     @NotNull
-    private Integer attributeId;
+    private Integer enumerationId;
 
     private Integer intValue;
     private String stringValue;

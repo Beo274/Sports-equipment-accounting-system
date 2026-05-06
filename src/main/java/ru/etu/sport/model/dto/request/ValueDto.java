@@ -3,7 +3,7 @@ package ru.etu.sport.model.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.etu.sport.attribute.AttributeService;
+import ru.etu.sport.enumeration.EnumerationService;
 
 @Data
 @NoArgsConstructor
@@ -13,13 +13,13 @@ public class ValueDto {
     String stringValue;
     String imageValue;
 
-    public void updateValue(AttributeService attributeService, Integer id) {
+    public void updateValue(EnumerationService enumerationService, Integer id) {
         if (intValue != null) {
-            attributeService.updateValue(this.intValue, id);
+            enumerationService.updateValue(this.intValue, id);
         } else if (stringValue != null) {
-            attributeService.updateValue(this.stringValue, id);
+            enumerationService.updateValue(this.stringValue, id);
         } else if (imageValue != null) {
-            attributeService.updateValue(this.imageValue, id, true);
+            enumerationService.updateValue(this.imageValue, id, true);
         }
     }
 }
