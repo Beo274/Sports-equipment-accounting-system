@@ -5,21 +5,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "Product")
+@Table(name = "enumeration")
 @Data
 @NoArgsConstructor
-public class Product {
+public class Enumeration {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(name = "short_name", nullable = false)
+    @Column(name = "short_name", nullable = false, unique = true)
     private String shortName;
-
-    @JoinColumn(name = "class_id", nullable = false)
-    @OneToOne(fetch = FetchType.LAZY)
-    private ClassEntity productClass;
 }

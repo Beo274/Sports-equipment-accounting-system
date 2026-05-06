@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class IdResponse {
+public class MessageResponse {
 
-    @Schema(example = "1")
-    private Integer id;
+    @Schema(example = "updated, deleted, ...")
+    private String message;
 }

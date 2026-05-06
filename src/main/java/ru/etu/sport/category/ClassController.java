@@ -2,12 +2,15 @@ package ru.etu.sport.category;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateClassDto;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.dto.response.IdResponse;
-import ru.etu.sport.model.entity.ClassEntity;
+import ru.etu.sport.model.dto.response.MessageResponse;
 
 import java.util.List;
 
@@ -21,12 +24,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/class")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "classes", description = "Managing classes endpoints")
 public class ClassController {
     private final ClassService classService;
 
@@ -38,8 +41,9 @@ public class ClassController {
     }
 
     @PostMapping
-    public ResponseEntity<IdResponse> addClass(@RequestBody ClassEntity classEntity) {
-        Integer id = classService.addClass(classEntity);
+    public ResponseEntity<IdResponse> addClass(@Valid @RequestBody CreateClassDto createClassDto) {
+        Integer id = classService.addClass(createClassDto);
+        log.info("Class added");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }
 
@@ -58,21 +62,23 @@ public class ClassController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteClass(@PathVariable("id") Integer id) {
+    public ResponseEntity<MessageResponse> deleteClass(@PathVariable("id") Integer id) {
         classService.deleteClass(id);
-        return ResponseEntity.ok(Map.of("message", "deleted"));
+        log.info("Class with id: {} deleted", id);
+        return ResponseEntity.ok(new MessageResponse("deleted"));
     }
 
     @PutMapping("/{id}/measure")
-    public ResponseEntity<Map<String, String>> updateMeasure(@PathVariable("id") Integer id, @RequestBody Map<String, Integer> payload) {
-        Integer measureId = payload.get("measure_id");
+    public ResponseEntity<MessageResponse> updateMeasure(@PathVariable("id") Integer id, @RequestParam Integer measureId) {
         classService.updateClassMeasure(id, measureId);
-        return ResponseEntity.ok(Map.of("message", "updated"));
+        log.info("Class measure unit updated");
+        return ResponseEntity.ok(new MessageResponse("updated"));
     }
 
     @PutMapping("/{id}/swap")
-    public ResponseEntity<Map<String, String>> updateClass(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
+    public ResponseEntity<MessageResponse> updateClass(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         classService.swapBaseClass(id, parentId);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "update successful"));
+        log.info("Base class updated");
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
 }

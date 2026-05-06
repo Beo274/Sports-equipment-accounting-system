@@ -1,7 +1,5 @@
 package ru.etu.sport.product;
 
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,30 +12,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.IdResponse;
+import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ProductList;
-import ru.etu.sport.model.entity.Product;
 
 
 @RestController
 @RequestMapping("/product")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "products", description = "Products managing endpoints")
 public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<IdResponse> addProduct(@RequestBody Product product) {
-        Integer id = productService.addProduct(product);
+    public ResponseEntity<IdResponse> addProduct(@Valid @RequestBody CreateProductDto createProductDto) {
+        Integer id = productService.addProduct(createProductDto);
+        log.info("Product created");
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable("id") Integer id) {
+    public ResponseEntity<MessageResponse> deleteProduct(@PathVariable("id") Integer id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok(Map.of("message", "deleted"));
+        log.info("Product deleted");
+        return ResponseEntity.ok(new MessageResponse("deleted"));
     }
 
     @GetMapping
@@ -59,9 +63,9 @@ public class ProductController {
     }
 
     @PutMapping("/{id}/swap")
-    public ResponseEntity<?> updateProduct(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
+    public ResponseEntity<MessageResponse> updateProduct(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         productService.updateClassId(id, parentId);
         log.info("class id for product found successful");
-        return ResponseEntity.status(HttpStatus.OK).body("update successful");
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
 }

@@ -1,7 +1,7 @@
 package ru.etu.sport.product;
 
+import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
-import ru.etu.sport.model.entity.Product;
 
 public interface ProductService {
     
@@ -11,5 +11,5 @@ public interface ProductService {
 
     void updateClassId(Integer id, Integer parentId);
 
-    Integer addProduct(Product product);
+    Integer addProduct(CreateProductDto createProductDto);
 }

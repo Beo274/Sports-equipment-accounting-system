@@ -13,18 +13,19 @@ import ru.etu.sport.model.entity.Product;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
-    @Query("UPDATE Product p SET p.classId = :newParentId WHERE p.id =:id")
+    @Query(value = "UPDATE product SET class_id = :newParentId WHERE id =:id", nativeQuery = true)
     void updateParentId(Integer id, Integer newParentId);
 
     @Query("SELECT p FROM Product p")
     List<Product> getProducts(Pageable pageable);
 
+    @Query(value = "SELECT * FROM product WHERE class_id = :classId", nativeQuery = true)
     List<Product> findByClassId(Integer classId, Pageable pageable);
 
     @Query("SELECT COUNT(p) FROM Product p")
     Integer countProducts();
 
-    @Query("SELECT COUNT(p) FROM Product p WHERE p.classId = :classId")
+    @Query(value = "SELECT COUNT(*) FROM product WHERE class_id = :classId", nativeQuery = true)
     Integer countProducts(Integer classId);
 
     @Query("DELETE FROM Product p WHERE p.id = :id")
