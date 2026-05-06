@@ -15,8 +15,7 @@ import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
-import ru.etu.sport.repository.ClassRepository;
-import ru.etu.sport.repository.MeasureRepository;
+import ru.etu.sport.measure.MeasureRepository;
 
 @Service
 @RequiredArgsConstructor

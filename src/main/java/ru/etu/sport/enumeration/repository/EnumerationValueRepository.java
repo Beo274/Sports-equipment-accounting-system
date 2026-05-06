@@ -1,4 +1,4 @@
-package ru.etu.sport.repository;
+package ru.etu.sport.enumeration.repository;
 
 import java.util.List;
 

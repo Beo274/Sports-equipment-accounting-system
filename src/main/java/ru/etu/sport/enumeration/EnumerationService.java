@@ -11,14 +11,14 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import ru.etu.sport.enumeration.repository.EnumerationRepository;
+import ru.etu.sport.enumeration.repository.EnumerationValueRepository;
 import ru.etu.sport.model.dto.request.CreateEnumerationValueDto;
 import ru.etu.sport.model.dto.request.CreateEnumerationDto;
 import ru.etu.sport.model.entity.Enumeration;
 import ru.etu.sport.model.entity.EnumerationValue;
 import ru.etu.sport.model.entity.Measure;
-import ru.etu.sport.repository.EnumerationRepository;
-import ru.etu.sport.repository.EnumerationValueRepository;
-import ru.etu.sport.repository.MeasureRepository;
+import ru.etu.sport.measure.MeasureRepository;
 
 @Service
 @Slf4j
