@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS enumeration (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL UNIQUE,
-    short_name VARCHAR(128) NOT NULL UNIQUE,
+    short_name VARCHAR(128) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS enumeration_value (
@@ -13,3 +13,4 @@ CREATE TABLE IF NOT EXISTS enumeration_value (
     position INTEGER,
     measure_id INTEGER REFERENCES measure_unit(id) ON DELETE SET NULL
 );
+
