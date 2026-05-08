@@ -1,5 +1,7 @@
 package ru.etu.sport.product;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +22,7 @@ import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ProductList;
+import ru.etu.sport.parameter.ClassProductParameterService;
 
 
 @RestController
@@ -29,6 +32,7 @@ import ru.etu.sport.model.dto.response.ProductList;
 @Tag(name = "products", description = "Products managing endpoints")
 public class ProductController {
     private final ProductService productService;
+    private final ClassProductParameterService classProductParameterService;
 
     @PostMapping
     public ResponseEntity<IdResponse> addProduct(@Valid @RequestBody CreateProductDto createProductDto) {
@@ -68,4 +72,10 @@ public class ProductController {
         log.info("class id for product found successful");
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
+
+    @GetMapping("/params")
+    public ResponseEntity<Map<String, Object>> getProductsWithParams(@RequestParam("classId") Integer classId) {
+        return ResponseEntity.ok(classProductParameterService.getProductsWithParamsByClass(classId));
+    }
+    
 }

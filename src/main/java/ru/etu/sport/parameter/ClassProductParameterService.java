@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 import ru.etu.sport.category.ClassRepository;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
 import ru.etu.sport.enumeration.repository.EnumerationValueRepository;
-import ru.etu.sport.model.dto.request.ParamBindingDto;
-import ru.etu.sport.model.dto.response.ParamBindingResponseDto;
+import ru.etu.sport.model.dto.request.ClassParamBindingDto;
+import ru.etu.sport.model.dto.request.ProductParamBindingDto;
+import ru.etu.sport.model.dto.response.ClassParamBindingResponseDto;
+import ru.etu.sport.model.dto.response.ProductParamBindingResponseDto;
 import ru.etu.sport.model.entity.*;
 import ru.etu.sport.product.ProductRepository;
 
@@ -27,10 +29,10 @@ public class ClassProductParameterService {
     private final EnumerationValueRepository enumValueRepository;
 
     @Transactional
-    public Integer createClassParam(ParamBindingDto dto) {
-        ClassEntity mainClass = classRepository.findById(dto.getClassId()).orElseThrow(EntityNotFoundException::new);
-        Parameter param = parameterRepository.findById(dto.getParamId()).orElseThrow(EntityNotFoundException::new);
-        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.findById(dto.getEnumValueId()).orElse(null) : null;
+    public Integer createClassParam(ClassParamBindingDto dto) {
+        ClassEntity mainClass = classRepository.getReferenceById(dto.getClassId());
+        Parameter param = parameterRepository.getReferenceById(dto.getParamId());
+        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.getReferenceById(dto.getEnumValueId()) : null;
 
         ClassParameter cp = new ClassParameter();
         cp.setClassEntity(mainClass);
@@ -47,7 +49,7 @@ public class ClassProductParameterService {
 
         for (ClassHierarchyProjection childProj : children) {
             if (childProj.getId().equals(mainClass.getId())) continue;
-            ClassEntity childClass = classRepository.findById(childProj.getId()).orElseThrow(EntityNotFoundException::new);
+            ClassEntity childClass = classRepository.getReferenceById(childProj.getId());
 
             ClassParameter childCp = new ClassParameter();
             childCp.setClassEntity(childClass);
@@ -76,8 +78,8 @@ public class ClassProductParameterService {
         return cp.getId();
     }
 
-    public List<ParamBindingResponseDto> getAllClassParams() {
-        return classParameterRepository.findAll().stream().map(cp -> ParamBindingResponseDto.builder()
+    public List<ClassParamBindingResponseDto> getAllClassParams() {
+        return classParameterRepository.findAll().stream().map(cp -> ClassParamBindingResponseDto.builder()
                 .id(cp.getId())
                 .classId(cp.getClassEntity().getId())
                 .paramId(cp.getParameter().getId())
@@ -94,7 +96,7 @@ public class ClassProductParameterService {
     }
 
     @Transactional
-    public void updateClassParam(Integer id, ParamBindingDto dto) {
+    public void updateClassParam(Integer id, ClassParamBindingDto dto) {
         ClassParameter cp = classParameterRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         if (dto.getEnumValueId() != null) {
             cp.setEnumerationValue(enumValueRepository.findById(dto.getEnumValueId()).orElse(null));
@@ -105,10 +107,10 @@ public class ClassProductParameterService {
     }
 
     @Transactional
-    public Integer createProductParam(ParamBindingDto dto) {
-        Product product = productRepository.findById(Long.valueOf(dto.getProductId())).orElseThrow(EntityNotFoundException::new);
-        Parameter param = parameterRepository.findById(dto.getParamId()).orElseThrow(EntityNotFoundException::new);
-        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.findById(dto.getEnumValueId()).orElse(null) : null;
+    public Integer createProductParam(ProductParamBindingDto dto) {
+        Product product = productRepository.getReferenceById(Long.valueOf(dto.getProductId()));
+        Parameter param = parameterRepository.getReferenceById(dto.getParamId());
+        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.getReferenceById(dto.getEnumValueId()) : null;
 
         ProductParameter pp = new ProductParameter();
         pp.setProduct(product);
@@ -120,8 +122,8 @@ public class ClassProductParameterService {
         return productParameterRepository.save(pp).getId();
     }
 
-    public List<ParamBindingResponseDto> getAllProductParams() {
-        return productParameterRepository.findAll().stream().map(pp -> ParamBindingResponseDto.builder()
+    public List<ProductParamBindingResponseDto> getAllProductParams() {
+        return productParameterRepository.findAll().stream().map(pp -> ProductParamBindingResponseDto.builder()
                 .id(pp.getId())
                 .productId(pp.getProduct().getId())
                 .paramId(pp.getParameter().getId())
@@ -132,13 +134,12 @@ public class ClassProductParameterService {
                 .build()).collect(Collectors.toList());
     }
 
-    @Transactional
     public void deleteProductParam(Integer id) {
         productParameterRepository.deleteById(id);
     }
 
     @Transactional
-    public void updateProductParam(Integer id, ParamBindingDto dto) {
+    public void updateProductParam(Integer id, ProductParamBindingDto dto) {
         ProductParameter pp = productParameterRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         if (dto.getEnumValueId() != null) {
             pp.setEnumerationValue(enumValueRepository.findById(dto.getEnumValueId()).orElse(null));
@@ -148,6 +149,7 @@ public class ClassProductParameterService {
         pp.setIntVal(dto.getIntVal());
     }
 
+    @Transactional
     public Map<String, Object> getProductsWithParamsByClass(Integer classId) {
         List<ProductParameter> allParams = productParameterRepository.findByProduct_ProductClass_Id(classId);
 
@@ -163,7 +165,7 @@ public class ClassProductParameterService {
             productInfo.put("short_name", product.getShortName());
             productInfo.put("class_id", product.getProductClass().getId());
 
-            List<ParamBindingResponseDto> params = entry.getValue().stream().map(pp -> ParamBindingResponseDto.builder()
+            List<ProductParamBindingResponseDto> params = entry.getValue().stream().map(pp -> ProductParamBindingResponseDto.builder()
                     .id(pp.getId())
                     .productId(pp.getProduct().getId())
                     .paramId(pp.getParameter().getId())
@@ -178,6 +180,7 @@ public class ClassProductParameterService {
         return Map.of("items", items);
     }
 
+    @Transactional
     public Map<String, Object> getProductsByParamValue(Integer productParamId) {
         ProductParameter sourceParam = productParameterRepository.findById(productParamId).orElseThrow(EntityNotFoundException::new);
         Integer enumId = sourceParam.getEnumerationValue() != null ? sourceParam.getEnumerationValue().getId() : null;

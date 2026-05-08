@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.etu.sport.model.dto.request.ParamBindingDto;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ru.etu.sport.model.dto.request.ClassParamBindingDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 
@@ -13,12 +15,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/param/class")
 @RequiredArgsConstructor
+@Tag(name = "class parameters", description = "Managing class parameters")
 public class ClassParameterController {
 
     private final ClassProductParameterService service;
 
     @PostMapping
-    public ResponseEntity<IdResponse> create(@RequestBody ParamBindingDto dto) {
+    public ResponseEntity<IdResponse> create(@RequestBody ClassParamBindingDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(service.createClassParam(dto)));
     }
 
@@ -34,7 +37,7 @@ public class ClassParameterController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody ParamBindingDto dto) {
+    public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody ClassParamBindingDto dto) {
         service.updateClassParam(id, dto);
         return ResponseEntity.ok(new MessageResponse("updated"));
     }

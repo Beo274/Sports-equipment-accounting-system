@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.etu.sport.model.dto.request.ParamBindingDto;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ru.etu.sport.model.dto.request.ProductParamBindingDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 
@@ -12,12 +14,13 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "product parameters", description = "Managing product parameters")
 public class ProductParameterController {
 
     private final ClassProductParameterService service;
 
     @PostMapping("/param/product")
-    public ResponseEntity<IdResponse> create(@RequestBody ParamBindingDto dto) {
+    public ResponseEntity<IdResponse> create(@RequestBody ProductParamBindingDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(service.createProductParam(dto)));
     }
 
@@ -33,14 +36,9 @@ public class ProductParameterController {
     }
 
     @PatchMapping("/param/product/{id}")
-    public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody ParamBindingDto dto) {
+    public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody ProductParamBindingDto dto) {
         service.updateProductParam(id, dto);
         return ResponseEntity.ok(new MessageResponse("updated"));
-    }
-
-    @GetMapping("/product/params")
-    public ResponseEntity<Map<String, Object>> getProductsWithParams(@RequestParam("class_id") Integer classId) {
-        return ResponseEntity.ok(service.getProductsWithParamsByClass(classId));
     }
 
     @GetMapping("/param/{id}/products")
