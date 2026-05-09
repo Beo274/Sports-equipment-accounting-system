@@ -10,6 +10,7 @@ import ru.etu.sport.enumeration.repository.EnumerationValueRepository;
 import ru.etu.sport.model.dto.request.ClassParamBindingDto;
 import ru.etu.sport.model.dto.request.ProductParamBindingDto;
 import ru.etu.sport.model.dto.response.ClassParamBindingResponseDto;
+import ru.etu.sport.model.dto.response.ParameterGroupDto;
 import ru.etu.sport.model.dto.response.ProductParamBindingResponseDto;
 import ru.etu.sport.model.entity.*;
 import ru.etu.sport.product.ProductRepository;
@@ -201,5 +202,48 @@ public class ClassProductParameterService {
                 }).collect(Collectors.toList());
 
         return Map.of("items", items);
+    }
+
+    @Transactional
+    public List<ParameterGroupDto> getParamsGroups() {
+        List<Parameter> parameters = this.parameterRepository.findAllWithMeasure();
+
+        if (parameters.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> paramIds = parameters.stream()
+            .map(Parameter::getId)
+            .collect(Collectors.toList());
+
+        List<ClassParameter> classParameters = this.classParameterRepository.findByParamIds(paramIds);
+        List<ProductParameter> productParameters = this.productParameterRepository.findByParamIds(paramIds);
+
+        Map<Integer, List<ClassParameter>> classParamsByParamId = classParameters.stream()
+            .collect(Collectors.groupingBy(cp -> cp.getParameter().getId()));
+        Map<Integer, List<ProductParameter>> productParamsByParamId = productParameters.stream()
+            .collect(Collectors.groupingBy(pp -> pp.getParameter().getId()));
+
+        return parameters.stream()
+            .map(param -> buildParamGroup(
+                param, 
+                classParamsByParamId.getOrDefault(param.getId(), Collections.emptyList()), 
+                productParamsByParamId.getOrDefault(param.getId(), Collections.emptyList())
+            ))
+            .collect(Collectors.toList());
+    }
+
+    private ParameterGroupDto buildParamGroup(
+        Parameter parameter, 
+        List<ClassParameter> classParameters, 
+        List<ProductParameter> productParameters
+    ) {
+        return ParameterGroupDto.builder()
+            .id(parameter.getId())
+            .name(parameter.getName())
+            .shortName(parameter.getShortName())
+            .classes(ClassParameter.mapClassParameter(classParameters))
+            .products(ProductParameter.mapProductParameter(productParameters))
+            .build();
     }
 }

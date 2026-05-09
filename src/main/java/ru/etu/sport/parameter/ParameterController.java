@@ -1,6 +1,9 @@
 package ru.etu.sport.parameter;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import ru.etu.sport.model.dto.request.CreateParamDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
-import ru.etu.sport.model.entity.Parameter;
+import ru.etu.sport.model.dto.response.ParameterGroupDto;
+
 
 @RestController
 @RequestMapping("/param")
@@ -17,9 +21,11 @@ import ru.etu.sport.model.entity.Parameter;
 @Slf4j
 public class ParameterController {
     private final ParameterService parameterService;
+    private final ClassProductParameterService classProductParameterService;
 
-    public ParameterController(ParameterService parameterService) {
+    public ParameterController(ParameterService parameterService, ClassProductParameterService classProductParameterService) {
         this.parameterService = parameterService;
+        this.classProductParameterService = classProductParameterService;
     }
 
     @PostMapping
@@ -42,4 +48,12 @@ public class ParameterController {
         log.info("Parameter deleted with id: {}", id);
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("deleted"));
     }
+
+    @GetMapping("/group")
+    public ResponseEntity<List<ParameterGroupDto>> getParameterGroups() {
+        List<ParameterGroupDto> groups = this.classProductParameterService.getParamsGroups();
+        log.info("Parameter groups provided");
+        return ResponseEntity.ok(groups);
+    }
+    
 }
