@@ -11,6 +11,7 @@ import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
+import ru.etu.sport.parameter.ClassProductParameterService;
 
 import java.util.List;
 
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 @Tag(name = "classes", description = "Managing classes endpoints")
 public class ClassController {
     private final ClassService classService;
+    private final ClassProductParameterService classProductParameterService;
 
     @GetMapping("/{id}/children")
     public ResponseEntity<List<ClassHierarchyResponse>> getChildren(@PathVariable("id") Integer id) {
@@ -44,6 +46,7 @@ public class ClassController {
     public ResponseEntity<IdResponse> addClass(@Valid @RequestBody CreateClassDto createClassDto) {
         Integer id = classService.addClass(createClassDto);
         log.info("Class added");
+        this.classProductParameterService.inheritParametersForClass(id);
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     }
 

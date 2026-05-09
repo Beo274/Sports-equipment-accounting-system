@@ -1,6 +1,7 @@
 package ru.etu.sport.parameter;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,4 +19,7 @@ public interface ProductParameterRepository extends JpaRepository<ProductParamet
            "LEFT JOIN FETCH pp.enumerationValue ev " +
            "WHERE pp.parameter.id IN :paramIds")
     List<ProductParameter> findByParamIds(@Param("paramIds") List<Integer> paramIds);
+
+    @Query("SELECT pp FROM ProductParameter pp WHERE pp.product.id = :productId")
+    List<ProductParameter> findByProductId(@Param("productId") Integer productId);
 }

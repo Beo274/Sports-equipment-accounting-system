@@ -26,12 +26,13 @@ public class ParameterServiceImpl implements ParameterService {
         parameter.setName(createParamDto.getName());
         parameter.setShortName(createParamDto.getShortName());
 
-        Measure measureRef = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
-        if (measureRef != null) {
-            parameter.setMeasure(measureRef);
+        if (createParamDto.getMeasureId() != null) {
+             Measure measureRef = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
+            if (measureRef != null) {
+                parameter.setMeasure(measureRef);
+            }
         }
-
-
+       
         return parameterRepository.save(parameter).getId();
     }
 

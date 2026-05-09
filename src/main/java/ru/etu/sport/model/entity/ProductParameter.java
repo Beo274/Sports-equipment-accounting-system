@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.etu.sport.model.dto.response.ProductWithParamDto;
@@ -11,7 +13,9 @@ import ru.etu.sport.model.dto.response.ProductWithParamDto;
 @Entity
 @Table(name = "product_parameter")
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProductParameter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

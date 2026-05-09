@@ -25,8 +25,12 @@ public class ProductParameterController {
     }
 
     @GetMapping("/param/product")
-    public ResponseEntity<Map<String, Object>> getAll() {
-        return ResponseEntity.ok(Map.of("items", service.getAllProductParams()));
+    public ResponseEntity<Map<String, Object>> getProductParams(@RequestParam(required = false) Integer productId) {
+        if (productId == null) {
+            return ResponseEntity.ok(Map.of("items", service.getAllProductParams()));
+        } else {
+            return ResponseEntity.ok(Map.of("items", service.getProductParams(productId)));
+        }
     }
 
     @DeleteMapping("/param/product/{id}")

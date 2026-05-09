@@ -33,7 +33,8 @@ public class ClassProductParameterService {
     public Integer createClassParam(ClassParamBindingDto dto) {
         ClassEntity mainClass = classRepository.getReferenceById(dto.getClassId());
         Parameter param = parameterRepository.getReferenceById(dto.getParamId());
-        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.getReferenceById(dto.getEnumValueId()) : null;
+        EnumerationValue enumVal = dto.getEnumValueId() != null ? enumValueRepository.findById(dto.getEnumValueId())
+            .orElseThrow(() -> new EntityNotFoundException("Enumeration not found with id: " + dto.getEnumValueId())) : null;
 
         ClassParameter cp = new ClassParameter();
         cp.setClassEntity(mainClass);
@@ -135,6 +136,19 @@ public class ClassProductParameterService {
                 .build()).collect(Collectors.toList());
     }
 
+    public List<ProductParamBindingResponseDto> getProductParams(Integer productId) {
+        return productParameterRepository.findByProductId(productId).stream()
+            .map(pp -> ProductParamBindingResponseDto.builder()
+                .id(pp.getId())
+                .productId(pp.getProduct().getId())
+                .paramId(pp.getParameter().getId())
+                .enumValueId(pp.getEnumerationValue() != null ? pp.getEnumerationValue().getId() : null)
+                .maxVal(pp.getMaxVal())
+                .minVal(pp.getMinVal())
+                .intVal(pp.getIntVal())
+                .build()).collect(Collectors.toList());
+    }
+
     public void deleteProductParam(Integer id) {
         productParameterRepository.deleteById(id);
     }
@@ -225,7 +239,7 @@ public class ClassProductParameterService {
             .collect(Collectors.groupingBy(pp -> pp.getParameter().getId()));
 
         return parameters.stream()
-            .map(param -> buildParamGroup(
+            .map(param -> ParameterGroupDto.buildParamGroup(
                 param, 
                 classParamsByParamId.getOrDefault(param.getId(), Collections.emptyList()), 
                 productParamsByParamId.getOrDefault(param.getId(), Collections.emptyList())
@@ -233,17 +247,95 @@ public class ClassProductParameterService {
             .collect(Collectors.toList());
     }
 
-    private ParameterGroupDto buildParamGroup(
-        Parameter parameter, 
-        List<ClassParameter> classParameters, 
-        List<ProductParameter> productParameters
-    ) {
-        return ParameterGroupDto.builder()
-            .id(parameter.getId())
-            .name(parameter.getName())
-            .shortName(parameter.getShortName())
-            .classes(ClassParameter.mapClassParameter(classParameters))
-            .products(ProductParameter.mapProductParameter(productParameters))
-            .build();
+    @Transactional
+    public void inheritParametersForClass(Integer classId) {
+        List<ClassHierarchyProjection> parents = this.classRepository.findParents(classId);
+        if (parents.isEmpty()) {
+            return;
+        }
+
+        ClassEntity currentClass = this.classRepository.findById(classId)
+            .orElseThrow(() -> new EntityNotFoundException("Class not found with id: " + classId));
+
+        List<ClassParameter> existingParameters = classParameterRepository.findByClassIdWithParam(classId);
+        Set<Integer> existingParamsIds = existingParameters.stream()
+            .map(cp -> cp.getParameter().getId())
+            .collect(Collectors.toSet());
+        
+        List<ClassParameter> newParameters = new ArrayList<>();
+
+        for (ClassHierarchyProjection parent : parents) {
+            if (parent.getId() == currentClass.getId()) {
+                continue;
+            }
+
+            List<ClassParameter> parentParameters = classParameterRepository.findByClassIdWithParam(parent.getId());
+            
+            for (ClassParameter parentParam: parentParameters) {
+                if (!existingParamsIds.contains(parentParam.getId())) {
+                    ClassParameter newParam = ClassParameter.builder()
+                        .classEntity(currentClass)
+                        .parameter(parentParam.getParameter())
+                        .enumerationValue(parentParam.getEnumerationValue())
+                        .maxVal(parentParam.getMaxVal())
+                        .minVal(parentParam.getMinVal())
+                        .intVal(parentParam.getIntVal())
+                        .build();
+                    
+                    newParameters.add(newParam);
+                    existingParamsIds.add(parentParam.getId());
+                }
+            }
+        }
+
+        if (!newParameters.isEmpty()) {
+            classParameterRepository.saveAll(newParameters);
+        }
+    }
+
+    @Transactional
+    public void inheritParametersForProduct(Integer productId) {
+        Product product = this.productRepository.findById(productId.longValue())
+            .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+
+        if (product.getProductClass() == null) {
+            return;
+        }
+
+        Integer classId = product.getProductClass().getId();
+        List<ClassHierarchyProjection> parents = this.classRepository.findParents(classId);
+        if (parents.isEmpty()) {
+            return;
+        }
+
+        List<ClassParameter> existingParameters = classParameterRepository.findByClassIdWithParam(classId);
+        Set<Integer> existingParamsIds = existingParameters.stream()
+            .map(cp -> cp.getParameter().getId())
+            .collect(Collectors.toSet());
+        List<ProductParameter> newParameters = new ArrayList<>();
+
+        for (ClassHierarchyProjection parent : parents) {
+            List<ClassParameter> parentParameters = classParameterRepository.findByClassIdWithParam(parent.getId());
+            
+            for (ClassParameter parentParam: parentParameters) {
+                if (!existingParamsIds.contains(parentParam.getId())) {
+                    ProductParameter newParam = ProductParameter.builder()
+                        .product(product)
+                        .parameter(parentParam.getParameter())
+                        .enumerationValue(parentParam.getEnumerationValue())
+                        .maxVal(parentParam.getMaxVal())
+                        .minVal(parentParam.getMinVal())
+                        .intVal(parentParam.getIntVal())
+                        .build();
+                    
+                    newParameters.add(newParam);
+                    existingParamsIds.add(parentParam.getId());
+                }
+            }
+        }
+
+        if (!newParameters.isEmpty()) {
+            this.productParameterRepository.saveAll(newParameters);
+        }
     }
 }
