@@ -30,4 +30,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("DELETE FROM Product p WHERE p.id = :id")
     void delete(Integer id);
+
+    List<Product> findByProductClass_IdIn(List<Integer> classIds);
 }

@@ -3,29 +3,49 @@ package ru.etu.sport.parameter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import ru.etu.sport.measure.MeasureRepository;
+import ru.etu.sport.model.dto.request.CreateParamDto;
+import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Parameter;
 
 @Service
 public class ParameterServiceImpl implements ParameterService {
     private final ParameterRepository parameterRepository;
+    private final MeasureRepository measureRepository;
 
-    ParameterServiceImpl(ParameterRepository parameterRepository) {
+    ParameterServiceImpl(ParameterRepository parameterRepository, MeasureRepository measureRepository) {
         this.parameterRepository = parameterRepository;
+        this.measureRepository = measureRepository;
     }
 
     @Override
-    public Integer create(Parameter parameter) {
+    public Integer create(CreateParamDto createParamDto) {
+        Parameter parameter = new Parameter();
+
+        parameter.setName(createParamDto.getName());
+        parameter.setShortName(createParamDto.getShortName());
+
+        if (createParamDto.getMeasureId() != null) {
+             Measure measureRef = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
+            if (measureRef != null) {
+                parameter.setMeasure(measureRef);
+            }
+        }
+       
         return parameterRepository.save(parameter).getId();
     }
 
     @Transactional
     @Override
-    public void update(Integer id,  Parameter parameter) {
+    public void update(Integer id,  CreateParamDto createParamDto) {
         Parameter currParam = parameterRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity with id " + id + "not found"));
-        currParam.setName(parameter.getName());
-        currParam.setShortName(parameter.getShortName());
-        currParam.setMeasure(parameter.getMeasure());
+        currParam.setName(createParamDto.getName());
+        currParam.setShortName(createParamDto.getShortName());
+
+        Measure measure = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
+        currParam.setMeasure(measure);
     }
 
     @Override

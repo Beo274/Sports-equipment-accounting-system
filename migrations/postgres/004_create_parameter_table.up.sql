@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS parameter (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL UNIQUE ,
-        short_name VARCHAR(128) NOT NULL UNIQUE,
-        measure_id INTEGER REFERENCES measure_unit(id) ON DELETE SET NULL
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE ,
+    short_name VARCHAR(128) NOT NULL UNIQUE,
+    measure_id INTEGER REFERENCES measure_unit(id) ON DELETE SET NULL
 );

@@ -1,46 +1,59 @@
 package ru.etu.sport.parameter;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import ru.etu.sport.model.dto.request.CreateParamDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
-import ru.etu.sport.model.entity.Parameter;
+import ru.etu.sport.model.dto.response.ParameterGroupDto;
 
-@Controller
+
+@RestController
 @RequestMapping("/param")
+@Tag(name = "parameters", description = "Managing parameters")
 @Slf4j
 public class ParameterController {
     private final ParameterService parameterService;
+    private final ClassProductParameterService classProductParameterService;
 
-    public ParameterController(ParameterService parameterService) {
+    public ParameterController(ParameterService parameterService, ClassProductParameterService classProductParameterService) {
         this.parameterService = parameterService;
+        this.classProductParameterService = classProductParameterService;
     }
 
     @PostMapping
-    public ResponseEntity<?> createParam(@RequestBody Parameter parameter) {
-        Integer id = parameterService.create(parameter);
+    public ResponseEntity<IdResponse> createParam(@RequestBody CreateParamDto createParamDto) {
+        Integer id = parameterService.create(createParamDto);
         log.info("Parameter created with id: {}", id);
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));
     };
 
-//    @GetMapping
-//    public ResponseEntity<> getParam(@PathVariable param_id) {
-//
-//
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateParam(@PathVariable Integer id, @RequestBody Parameter parameter) {
-        parameterService.update(id, parameter);
+    public ResponseEntity<MessageResponse> updateParam(@PathVariable Integer id, @RequestBody CreateParamDto createParamDto) {
+        parameterService.update(id, createParamDto);
         log.info("Parameter updated with id: {}", id);
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteParam(@PathVariable Integer id) {
+    public ResponseEntity<MessageResponse> deleteParam(@PathVariable Integer id) {
         parameterService.delete(id);
         log.info("Parameter deleted with id: {}", id);
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("deleted"));
     }
+
+    @GetMapping("/group")
+    public ResponseEntity<List<ParameterGroupDto>> getParameterGroups() {
+        List<ParameterGroupDto> groups = this.classProductParameterService.getParamsGroups();
+        log.info("Parameter groups provided");
+        return ResponseEntity.ok(groups);
+    }
+    
 }

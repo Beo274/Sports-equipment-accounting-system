@@ -1,10 +1,11 @@
 package ru.etu.sport.parameter;
 
-import ru.etu.sport.model.entity.Parameter;
+import ru.etu.sport.model.dto.request.CreateParamDto;
 
 public interface ParameterService {
-    Integer create(Parameter parameter);
-    void update(Integer id, Parameter parameter);
+    Integer create(CreateParamDto createParamDto);
+
+    void update(Integer id, CreateParamDto createParamDto);
 
     void delete(Integer id);
 }
