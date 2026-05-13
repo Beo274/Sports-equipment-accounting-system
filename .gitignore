@@ -39,8 +39,8 @@ build/
 
 # frontend
 # dependencies
-web/node_modules
-web/.pnp
+node_modules
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -52,11 +52,11 @@ web/.pnp
 web/coverage
 
 # next.js
-web/.next
-web/out
+.next/
+out
 
 # production
-web/build
+build
 
 # misc
 .DS_Store

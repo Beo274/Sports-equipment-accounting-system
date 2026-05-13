@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///C:/University/MISPRIS/Sports-equipment-accounting-system/web/app/home/page.tsx"],"sourcesContent":["export default function MainPage() {\n  return (\n    <div className=\"flex flex-col flex-1 items-center justify-center\">\n      <p className=\"font-sans\">Главная страница</p>\n    </div>\n  );\n}\n"],"names":["MainPage","className"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBACE,8OAAC;QAAIC,WAAU;kBACb,cAAA,8OAAC;YAAEA,WAAU;sBAAY;;;;;;;;;;;AAG/B"}}]
-}
