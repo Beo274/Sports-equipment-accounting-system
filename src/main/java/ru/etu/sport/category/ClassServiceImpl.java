@@ -113,4 +113,8 @@ public class ClassServiceImpl implements ClassService {
                 .mUnitId(projection.getMUnitId())
                 .build();
     }
+
+    public List<ClassEntity> getAll() {
+        return this.classRepository.findAll();
+    }
 }
