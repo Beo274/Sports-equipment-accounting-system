@@ -1,20 +1,41 @@
 "use client";
 
 import MeasureUnit from "@/types/measureUnit";
-import { Item, ItemDescription, ItemGroup, ItemTitle } from "../ui/item";
+import {
+  Item,
+  ItemActions,
+  ItemDescription,
+  ItemGroup,
+  ItemHeader,
+  ItemTitle,
+} from "../ui/item";
 import useCategories from "@/hooks/use-categories";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Field, FieldContent, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { EditIcon, TrashIcon } from "lucide-react";
+import {
+  Command,
+  CommandDialog,
+  CommandGroup,
+  CommandItem,
+} from "../ui/command";
 
 export function CategoriesList() {
-  const { items, fetchCategories, isLoading, listType, setListType } =
-    useCategories();
+  const {
+    items,
+    fetchCategories,
+    isLoading,
+    listType,
+    setListType,
+    deleteCategory,
+  } = useCategories();
   const [parentId, setParentId] = useState("");
   const [childId, setChildId] = useState("");
 
-  useEffect(() => {
+  const refreshList = useCallback(() => {
     switch (listType) {
       case "all":
       case "leaves":
@@ -29,7 +50,18 @@ export function CategoriesList() {
           fetchCategories(listType, Number(parentId));
         }
     }
-  }, [fetchCategories, listType, childId, parentId]);
+  }, [listType, fetchCategories, childId, parentId]);
+
+  useEffect(() => {
+    refreshList();
+  }, [listType, childId, parentId, refreshList]);
+
+  const onDeleteCategory = (classId: number) => {
+    return async function () {
+      await deleteCategory(classId);
+      refreshList();
+    };
+  };
 
   return (
     <div className="h-full flex flex-col gap-2">
@@ -138,7 +170,7 @@ export function CategoriesList() {
         <Item>Загрузка категорий...</Item>
       ) : items.length ? (
         <div className="p-2 border-2 border-accent rounded-lg">
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto p-2">
             <ItemGroup className="flex flex-col max-h-96">
               {items.map((c) => (
                 <CategoriesListItem
@@ -153,6 +185,7 @@ export function CategoriesList() {
                         ? c.baseClassId
                         : null
                   }
+                  handleDelete={onDeleteCategory(c.id)}
                 />
               ))}
             </ItemGroup>
@@ -175,16 +208,44 @@ interface CategoriesListItemProps {
   measureUnit?: MeasureUnit;
   measureUnitId?: number;
   level?: number;
+
+  handleDelete: () => void;
 }
 
 export function CategoriesListItem(props: CategoriesListItemProps) {
+  const [isEditOpen, setEditOpen] = useState(false);
+
   return (
-    <Item className="flex flex-col border border-accent rounded-lg max-w-xs hover:-translate-y-0.5 hover:shadow hover:shadow-foreground transition-all">
-      <ItemTitle>{`${props.id}: ${props.name} (${props.shortName})`}</ItemTitle>
-      <ItemDescription>
-        {props.baseClassId &&
-          `Идентификатор базовой категории: ${props.baseClassId}`}
+    <Item className="grid grid-cols-2 items-start gap-1 border border-accent rounded-lg max-w-sm p-0 hover:-translate-y-0.5 hover:shadow hover:shadow-foreground transition-all">
+      <ItemHeader className="col-span-2 p-0 border border-accent rounded-t-md bg-accent">
+        <ItemTitle className="p-1 w-full font-bold">{`${props.id}: ${props.name} (${props.shortName})`}</ItemTitle>
+      </ItemHeader>
+      <ItemDescription className="col-start-1 p-1">
+        {props.baseClassId
+          ? `Идентификатор базовой категории: ${props.baseClassId}`
+          : "Корневая категория"}
       </ItemDescription>
+      <ItemActions className="col-start-2 justify-self-end p-1">
+        <Button
+          onClick={props.handleDelete}
+          variant={"ghost"}
+          className="hover:bg-accent"
+        >
+          <TrashIcon />
+        </Button>
+        <Button
+          onClick={() => setEditOpen(true)}
+          variant={"ghost"}
+          className="hover:bg-accent"
+        >
+          <EditIcon />
+        </Button>
+      </ItemActions>
+      <CommandDialog open={isEditOpen} onOpenChange={setEditOpen}>
+        <Command>
+          <CommandGroup heading="Редактирование"></CommandGroup>
+        </Command>
+      </CommandDialog>
     </Item>
   );
 }

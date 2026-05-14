@@ -133,7 +133,7 @@ export default function AddCategory() {
         </Field>
       </FieldGroup>
       <Button
-        className="w-full disabled:opacity-40"
+        className="w-full disabled:opacity-40 hover:bg-accent"
         variant="secondary"
         type="submit"
         disabled={isLoadingCategory}

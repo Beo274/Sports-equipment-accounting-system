@@ -75,10 +75,24 @@ export default function useCategories() {
     [],
   );
 
+  const deleteCategory = useCallback(async (classId: number) => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/class/${classId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new ApiError(response.status, "Error deleting class");
+      }
+    } catch (error) {
+      console.error(`Error deleting class: ${error}`);
+    }
+  }, []);
+
   return {
     isLoading,
     createCategory,
     fetchCategories,
+    deleteCategory,
     items,
     listType,
     setListType,
