@@ -11,6 +11,7 @@ import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
+import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.parameter.ClassProductParameterService;
 
 import java.util.List;
@@ -84,4 +85,11 @@ public class ClassController {
         log.info("Base class updated");
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
+
+    @GetMapping
+    public ResponseEntity<List<ClassEntity>> getAllClasses() {
+        log.info("All classes provided");
+        return ResponseEntity.ok().body(this.classService.getAll());
+    }
+    
 }
