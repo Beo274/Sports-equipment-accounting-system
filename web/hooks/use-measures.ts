@@ -6,6 +6,7 @@ import { useCallback, useState } from "react";
 export default function useMeasures() {
   const [items, setItems] = useState<MeasureUnit[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
 
   const fetchMeasures = useCallback(async () => {
     try {
@@ -20,6 +21,11 @@ export default function useMeasures() {
       setItems(data);
     } catch (error) {
       console.error(`Fetching measure units error: ${error}`);
+      setError(
+        error instanceof ApiError
+          ? error
+          : new ApiError(0, `Unexpected error: ${error}`),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -29,5 +35,6 @@ export default function useMeasures() {
     items,
     fetchMeasures,
     isLoading,
+    error,
   };
 }

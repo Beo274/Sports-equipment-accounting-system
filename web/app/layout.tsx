@@ -37,7 +37,7 @@ export default function RootLayout({
         ubuntuMono.variable,
       )}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+      <body className="min-h-screen flex flex-col bg-background text-foreground font-sans">
         <header className="flex flex-col items-start p-2 bg-dimmedblue">
           <h1 className="text-3xl py-1 font-bold text-background">
             Спортивный инвентарь

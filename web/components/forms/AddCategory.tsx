@@ -12,12 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import useMeasures from "@/hooks/use-measures";
 import { Item, ItemContent } from "../ui/item";
 import { Button } from "../ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { CreateCategoryDto } from "@/lib/dto/createCategoryDto";
 import useCategories from "@/hooks/use-categories";
+import { useStore } from "@/lib/store/store";
 
 const NullMeasureUnit = null;
 
@@ -29,7 +29,10 @@ interface CreateCategoryFormData {
 }
 
 export default function AddCategory() {
-  const { items, isLoading: isLoadingMeasures, fetchMeasures } = useMeasures();
+  const {
+    measures: { items, isLoading: isLoadingMeasures, fetchMeasures },
+    categories: { isLoading: isLoadingCategory, createCategory },
+  } = useStore();
   const { register, handleSubmit, control } = useForm({
     defaultValues: {
       name: "",
@@ -38,13 +41,12 @@ export default function AddCategory() {
       baseClassId: "",
     },
   });
-  const { isLoading: isLoadingCategory, createCategory } = useCategories();
 
   useEffect(() => {
     fetchMeasures();
   }, [fetchMeasures]);
 
-  const handleCreate = (data: CreateCategoryFormData) => {
+  const handleCreate = async (data: CreateCategoryFormData) => {
     const dto: CreateCategoryDto = {
       name: data.name,
       shortName: data.shortName,
@@ -68,6 +70,7 @@ export default function AddCategory() {
             placeholder="Имя"
             required
             {...register("name", { required: true })}
+            className="placeholder:text-gray-400"
           ></Input>
         </Field>
         <Field>
@@ -77,6 +80,7 @@ export default function AddCategory() {
             placeholder="Короткое имя"
             {...register("shortName", { required: true })}
             required
+            className="placeholder:text-gray-400"
           ></Input>
         </Field>
         {isLoadingMeasures ? (
@@ -93,7 +97,10 @@ export default function AddCategory() {
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Единица измерения"></SelectValue>
+                    <SelectValue
+                      placeholder="Единица измерения"
+                      className="text-gray-400"
+                    ></SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -120,6 +127,7 @@ export default function AddCategory() {
             type="number"
             min={1}
             placeholder="Нет базовой категории"
+            className="placeholder:text-gray-400"
             {...register("baseClassId", {
               valueAsNumber: true,
               setValueAs: (value) => {

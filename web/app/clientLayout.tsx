@@ -1,6 +1,7 @@
 "use client";
 import { RouteDescrioption } from "@/components/NavSidebar/NavSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { StoreProvider } from "@/lib/store/store";
 import dynamic from "next/dynamic";
 import { ReactNode } from "react";
 
@@ -33,10 +34,12 @@ const appRoutes: RouteDescrioption[] = [
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider defaultOpen={false}>
-      <NavSidebar routes={appRoutes} />
-      <SidebarTrigger className="hover:bg-accent" />
-      {children}
-    </SidebarProvider>
+    <StoreProvider>
+      <SidebarProvider defaultOpen={false}>
+        <NavSidebar routes={appRoutes} />
+        <SidebarTrigger className="hover:bg-accent" />
+        {children}
+      </SidebarProvider>
+    </StoreProvider>
   );
 }

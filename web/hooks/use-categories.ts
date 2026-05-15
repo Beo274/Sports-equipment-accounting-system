@@ -1,23 +1,20 @@
 import { API_CONFIG } from "@/lib/api";
 import { CreateCategoryDto } from "@/lib/dto/createCategoryDto";
 import ApiError from "@/types/apiError";
-import {
-  Category,
-  CategoryWithLevel,
-  CategoryWithMeasure,
-} from "@/types/category";
+import { Category, CategoryWithLevel } from "@/types/category";
 import { useCallback, useState } from "react";
 
-type CategoryListType = "all" | "leaves" | "parents" | "children";
-type CategoryArrayType =
+export type CategoryListType = "all" | "leaves" | "parents" | "children";
+
+export type CategoryArrayType =
   | ReadonlyArray<Category>
-  | ReadonlyArray<CategoryWithLevel>
-  | ReadonlyArray<CategoryWithMeasure>;
+  | ReadonlyArray<CategoryWithLevel>;
 
 export default function useCategories() {
   const [isLoading, setIsLoading] = useState(false);
   const [items, setItems] = useState<CategoryArrayType>([]);
   const [listType, setListType] = useState<CategoryListType>("all");
+  const [error, setError] = useState<ApiError | null>(null);
 
   const createCategory = useCallback(async (cat: CreateCategoryDto) => {
     try {
@@ -35,6 +32,11 @@ export default function useCategories() {
       }
     } catch (error) {
       console.error(`Creating class error: ${error}`);
+      setError(
+        error instanceof ApiError
+          ? error
+          : new ApiError(0, `Unexpected error: ${error}`),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +70,11 @@ export default function useCategories() {
         setItems(list);
       } catch (error) {
         console.error(`Error getting all classes: ${error}`);
+        setError(
+          error instanceof ApiError
+            ? error
+            : new ApiError(0, `Unexpected error: ${error}`),
+        );
       } finally {
         setIsLoading(false);
       }
@@ -77,6 +84,7 @@ export default function useCategories() {
 
   const deleteCategory = useCallback(async (classId: number) => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${API_CONFIG.BASE_URL}/class/${classId}`, {
         method: "DELETE",
       });
@@ -85,6 +93,113 @@ export default function useCategories() {
       }
     } catch (error) {
       console.error(`Error deleting class: ${error}`);
+      setError(
+        error instanceof ApiError
+          ? error
+          : new ApiError(0, `Unexpected error: ${error}`),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const changeBaseClass = useCallback(
+    async (classId: number, newBaseClassId: number) => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/class/${classId}/parent?new=${newBaseClassId}`,
+          { method: "PUT" },
+        );
+
+        if (!response.ok) {
+          throw new ApiError(response.status, "Error changing base class");
+        }
+      } catch (error) {
+        console.error(`Error changing base class: ${error}`);
+        setError(
+          error instanceof ApiError
+            ? error
+            : new ApiError(0, `Unexpected error: ${error}`),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const deleteBaseClass = useCallback(async (classId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/class/${classId}/parent`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) {
+        throw new ApiError(response.status, "Error deleting base class");
+      }
+    } catch (error) {
+      console.error(`Error deleting base class: ${error}`);
+      setError(
+        error instanceof ApiError
+          ? error
+          : new ApiError(0, `Unexpected error: ${error}`),
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const changeMeasure = useCallback(
+    async (classId: number, measureId: number) => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/class/${classId}/measure?measureId=${measureId}`,
+          {
+            method: "PUT",
+          },
+        );
+        if (!response.ok) {
+          throw new ApiError(response.status, "Error changing measure");
+        }
+      } catch (error) {
+        console.error(`Error changing measure: ${error}`);
+        setError(
+          error instanceof ApiError
+            ? error
+            : new ApiError(0, `Unexpected error: ${error}`),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const deleteMeasure = useCallback(async (classId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/class/${classId}/measure`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Error deleting class measure unit",
+        );
+      }
+    } catch (error) {
+      console.error(`Error deleting class measure unit: ${error}`);
+      setError(
+        error instanceof ApiError
+          ? error
+          : new ApiError(0, `Unexpected error: ${error}`),
+      );
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -93,8 +208,13 @@ export default function useCategories() {
     createCategory,
     fetchCategories,
     deleteCategory,
+    changeBaseClass,
+    changeMeasure,
+    deleteBaseClass,
+    deleteMeasure,
     items,
     listType,
     setListType,
+    error,
   };
 }
