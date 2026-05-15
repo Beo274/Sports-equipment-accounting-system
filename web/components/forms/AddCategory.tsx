@@ -16,7 +16,6 @@ import { Item, ItemContent } from "../ui/item";
 import { Button } from "../ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { CreateCategoryDto } from "@/lib/dto/createCategoryDto";
-import useCategories from "@/hooks/use-categories";
 import { useStore } from "@/lib/store/store";
 
 const NullMeasureUnit = null;

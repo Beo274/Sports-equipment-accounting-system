@@ -1,12 +1,14 @@
 "use client";
 
 import useCategories from "@/hooks/use-categories";
+import useEnumerations from "@/hooks/use-enumerations";
 import useMeasures from "@/hooks/use-measures";
 import { createContext, ReactNode, useContext } from "react";
 
 interface CategoriesState {
   categories: ReturnType<typeof useCategories>;
   measures: ReturnType<typeof useMeasures>;
+  enumerations: ReturnType<typeof useEnumerations>;
 }
 
 const StoreContext = createContext<CategoriesState | null>(null);
@@ -18,8 +20,9 @@ interface CategoriesProviderProps {
 export function StoreProvider({ children }: CategoriesProviderProps) {
   const categories = useCategories();
   const measures = useMeasures();
+  const enumerations = useEnumerations();
 
-  const values = { categories, measures };
+  const values = { categories, measures, enumerations };
 
   return (
     <StoreContext.Provider value={values}>{children}</StoreContext.Provider>
