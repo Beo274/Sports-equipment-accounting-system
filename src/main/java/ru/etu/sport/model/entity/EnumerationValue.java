@@ -20,7 +20,7 @@ import ru.etu.sport.model.dto.response.EnumerationValueDto;
 public class EnumerationValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer Id;
+    private Integer id;
 
     @JoinColumn(name = "enumeration_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
