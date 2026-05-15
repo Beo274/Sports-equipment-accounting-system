@@ -5,7 +5,6 @@ import java.util.List;
 import ru.etu.sport.model.dto.request.CreateClassDto;
 import ru.etu.sport.model.dto.response.ClassHierarchyResponse;
 import ru.etu.sport.model.dto.response.ClassResponse;
-import ru.etu.sport.model.entity.ClassEntity;
 
 public interface ClassService {
     List<ClassHierarchyResponse> getChildren(Integer classId);
@@ -18,9 +17,13 @@ public interface ClassService {
 
     void updateClassMeasure(Integer classId, Integer measureId);
 
+    void deleteClassMeasure(Integer classId);
+
     void swapBaseClass(Integer id, Integer parentId);
+
+    void deleteBaseClass(Integer classId);
 
     Integer addClass(CreateClassDto classEntity);
 
-    List<ClassEntity> getAll();
+    List<ClassResponse> getAll();
 }
