@@ -28,15 +28,16 @@ export default function useCategories() {
       });
 
       if (!response.ok) {
-        throw new ApiError(response.status, "Error creating class");
+        throw new ApiError(
+          response.status,
+          "Ошибка при создании: проверьте уникальность имен или повторите попытку",
+        );
       }
     } catch (error) {
       console.error(`Creating class error: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -63,18 +64,19 @@ export default function useCategories() {
         }
         const response = await fetch(url);
         if (!response.ok) {
-          throw new ApiError(response.status, "Error getting all classes");
+          throw new ApiError(
+            response.status,
+            "Ошибка при получении списка категорий: повторите попытку",
+          );
         }
 
         const list: CategoryArrayType = await response.json();
         setItems(list);
       } catch (error) {
         console.error(`Error getting all classes: ${error}`);
-        setError(
-          error instanceof ApiError
-            ? error
-            : new ApiError(0, `Unexpected error: ${error}`),
-        );
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
       } finally {
         setIsLoading(false);
       }
@@ -89,15 +91,16 @@ export default function useCategories() {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new ApiError(response.status, "Error deleting class");
+        throw new ApiError(
+          response.status,
+          "Ошибка удаления: проверьте наличие класса или повторите попытку",
+        );
       }
     } catch (error) {
       console.error(`Error deleting class: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -113,15 +116,16 @@ export default function useCategories() {
         );
 
         if (!response.ok) {
-          throw new ApiError(response.status, "Error changing base class");
+          throw new ApiError(
+            response.status,
+            "Ошибка обновления: проверьте существование базового класса",
+          );
         }
       } catch (error) {
         console.error(`Error changing base class: ${error}`);
-        setError(
-          error instanceof ApiError
-            ? error
-            : new ApiError(0, `Unexpected error: ${error}`),
-        );
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
       } finally {
         setIsLoading(false);
       }
@@ -137,15 +141,16 @@ export default function useCategories() {
         { method: "DELETE" },
       );
       if (!response.ok) {
-        throw new ApiError(response.status, "Error deleting base class");
+        throw new ApiError(
+          response.status,
+          "Ошибка удаления: проверьте существование класса",
+        );
       }
     } catch (error) {
       console.error(`Error deleting base class: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -162,15 +167,16 @@ export default function useCategories() {
           },
         );
         if (!response.ok) {
-          throw new ApiError(response.status, "Error changing measure");
+          throw new ApiError(
+            response.status,
+            "Ошибка обновления: проверьте существование е.и.",
+          );
         }
       } catch (error) {
         console.error(`Error changing measure: ${error}`);
-        setError(
-          error instanceof ApiError
-            ? error
-            : new ApiError(0, `Unexpected error: ${error}`),
-        );
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
       } finally {
         setIsLoading(false);
       }
@@ -188,16 +194,14 @@ export default function useCategories() {
       if (!response.ok) {
         throw new ApiError(
           response.status,
-          "Error deleting class measure unit",
+          "Ошибка удаления: проверьте существование класса",
         );
       }
     } catch (error) {
       console.error(`Error deleting class measure unit: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoading(false);
     }

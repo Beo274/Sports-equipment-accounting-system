@@ -14,18 +14,19 @@ export default function useMeasures() {
 
       const response = await fetch(`${API_CONFIG.BASE_URL}/measure`);
       if (!response.ok) {
-        throw new ApiError(response.status, "get measures error");
+        throw new ApiError(
+          response.status,
+          "Ошибка при получении е. и.: повторите попытку",
+        );
       }
 
       const data: MeasureUnit[] = await response.json();
       setItems(data);
     } catch (error) {
       console.error(`Fetching measure units error: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoading(false);
     }

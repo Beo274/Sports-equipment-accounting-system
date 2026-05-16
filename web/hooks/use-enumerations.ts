@@ -1,4 +1,5 @@
 import { API_CONFIG } from "@/lib/api";
+import { CreateEnumerationDto } from "@/lib/dto/createEnumerationDto";
 import { Enumeration, EnumerationValue } from "@/types/enumeration";
 import { ApiError } from "next/dist/server/api-utils";
 import { useCallback, useState } from "react";
@@ -23,7 +24,10 @@ export default function useEnumerations() {
       setIsLoadingEnums(true);
       const response = await fetch(`${API_CONFIG.BASE_URL}/enumeration`);
       if (!response.ok) {
-        throw new ApiError(response.status, "Error getting enumerations list");
+        throw new ApiError(
+          response.status,
+          "Ошибка при получении перечислений, повторите попытку",
+        );
       }
 
       const data: Enumeration[] = await response.json();
@@ -32,11 +36,9 @@ export default function useEnumerations() {
       return data;
     } catch (error) {
       console.error(`Error getting enumerations: ${error}`);
-      setError(
-        error instanceof ApiError
-          ? error
-          : new ApiError(0, `Unexpected error: ${error}`),
-      );
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
     } finally {
       setIsLoadingEnums(false);
     }
@@ -61,7 +63,7 @@ export default function useEnumerations() {
           if (!response.ok) {
             throw new ApiError(
               response.status,
-              `Error fetching values for enumeration ${e.id}`,
+              `Ошибка при получении значения, повторите попытку`,
             );
           }
           const values: EnumerationValue[] = await response.json();
@@ -73,17 +75,40 @@ export default function useEnumerations() {
         setEnumValues(newValuesMap);
       } catch (error) {
         console.error(`Error fetching values: ${error}`);
-        setError(
-          error instanceof ApiError
-            ? error
-            : new ApiError(0, `Unexpected error: ${error}`),
-        );
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
       } finally {
         setIsLoadingValues(false);
       }
     },
     [enums],
   );
+
+  const createEnumeration = useCallback(async (dto: CreateEnumerationDto) => {
+    try {
+      setIsLoadingEnums(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/enumeration`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      });
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка при создании перечисления: проверьте уникальность или повторите попытку",
+        );
+      }
+    } catch (error) {
+      console.error(`Error creating enumeration: ${error}`);
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
+    } finally {
+      setIsLoadingEnums(false);
+    }
+  }, []);
 
   return {
     enums,
@@ -94,5 +119,6 @@ export default function useEnumerations() {
     clearError,
     fetchEnumerations,
     fetchEnumerationValues,
+    createEnumeration,
   };
 }

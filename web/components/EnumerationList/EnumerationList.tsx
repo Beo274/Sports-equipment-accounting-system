@@ -4,8 +4,8 @@ import { useStore } from "@/lib/store/store";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "../ui/item";
 import { useCallback, useEffect, useMemo } from "react";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
-import { Loader } from "lucide-react";
 import { EnumerationValue } from "@/types/enumeration";
+import Loader from "../Loader/Loader";
 
 export default function EnumerationsList() {
   const {
@@ -21,7 +21,7 @@ export default function EnumerationsList() {
 
   const fetchList = useCallback(async () => {
     const fetchedEnums = await fetchEnumerations();
-    if (fetchedEnums!.length > 0) {
+    if (fetchedEnums && fetchedEnums.length > 0) {
       await fetchEnumerationValues(fetchedEnums);
     }
   }, [fetchEnumerationValues, fetchEnumerations]);
@@ -31,7 +31,7 @@ export default function EnumerationsList() {
   }, []);
 
   return (
-    <div className="h-full border-2 border-accent rounded-md">
+    <div className="h-full">
       <h3 className="p-1 text-xl">Список перечислений</h3>
       <div className="flex justify-center items-center p-1 overflow-y-auto">
         {error ? (
@@ -46,7 +46,9 @@ export default function EnumerationsList() {
           <div className="w-full max-h-140">
             <ItemGroup>
               {isLoadingEnums ? (
-                <Item>Загрузка списка...</Item>
+                <Item className="h-full w-full justify-center items-center">
+                  <Loader />
+                </Item>
               ) : (
                 enums.map((e) => (
                   <EnumerationItem
