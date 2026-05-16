@@ -1,7 +1,10 @@
 package ru.etu.sport.product;
 
+import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import org.hibernate.annotations.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,6 +25,7 @@ import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ProductList;
+import ru.etu.sport.model.dto.response.ProductWithParamDto;
 import ru.etu.sport.parameter.ClassProductParameterService;
 
 
@@ -49,7 +53,7 @@ public class ProductController {
         return ResponseEntity.ok(new MessageResponse("deleted"));
     }
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<ProductList> listProducts(
         @RequestParam(required = false) Integer limit,
         @RequestParam(required = false) Integer offset,
@@ -77,6 +81,30 @@ public class ProductController {
     @GetMapping("/params")
     public ResponseEntity<Map<String, Object>> getProductsWithParams(@RequestParam("classId") Integer classId) {
         return ResponseEntity.ok(classProductParameterService.getProductsWithParamsByClass(classId));
+    }
+
+    @GetMapping
+    @Operation(summary = "По диапазону",
+               description = "Получение продуктов с параметрами по диапазону числового значения параметра")
+    public ResponseEntity<List<ProductWithParamDto>> getProductsInRange(@RequestParam(value = "paramId") Integer paramId,
+                                                                        @RequestParam(value = "minVal")  Double minVal,
+                                                                        @RequestParam(value = "maxVal")  Double maxVal) {
+        return ResponseEntity.ok(classProductParameterService.getProductsInRange(paramId, minVal, maxVal));
+    }
+
+    @GetMapping("/search-by-params")
+    @Operation(
+            summary = "Получение продуктов с фильтрацией по нескольким параметрам",
+            description = "Возвращает продукты, которые ОДНОВРЕМЕННО обладают всеми перечисленными ID параметров. Возвращает продукты со ВСЕМ набором их характеристик."
+    )
+    public ResponseEntity<List<ProductWithParamDto>> getProductsByParams(
+            @RequestParam(value = "paramIds", required = false) List<Integer> paramIds) {
+
+        if (paramIds == null || paramIds.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        return ResponseEntity.ok(classProductParameterService.getProductsBySeveralParams(paramIds));
     }
     
 }

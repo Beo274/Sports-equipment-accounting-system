@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS class_parameter (
     min_val INTEGER,
     int_val INTEGER,
 
-    CONSTRAINT int_val CHECK (int_val >= min_val AND int_val <= max_val)
+    CONSTRAINT int_val CHECK (int_val >= min_val AND int_val <= max_val),
+    CONSTRAINT min_max_val CHECK (min_val <= max_val)
 );
 
 CREATE TABLE IF NOT EXISTS product_parameter (
@@ -19,5 +20,6 @@ CREATE TABLE IF NOT EXISTS product_parameter (
     min_val INTEGER,
     int_val INTEGER,
 
-    CONSTRAINT int_val CHECK (int_val >= min_val AND int_val <= max_val)
+    CONSTRAINT int_val CHECK (int_val >= min_val AND int_val <= max_val),
+    CONSTRAINT min_max_val CHECK (min_val <= max_val)
 );
