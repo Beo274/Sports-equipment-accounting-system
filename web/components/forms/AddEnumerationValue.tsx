@@ -15,7 +15,7 @@ import { useStore } from "@/lib/store/store";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useEffect } from "react";
-import { CreateEnumerationValueDto } from "@/lib/dto/createEnumerationValueDto";
+import CreateEnumerationValueDto from "@/lib/dto/createEnumerationValueDto";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 
 const NullEnumerationId = "Не выбрано" as const;

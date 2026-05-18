@@ -15,8 +15,8 @@ import {
 import { Item, ItemContent } from "../ui/item";
 import { Button } from "../ui/button";
 import { Controller, useForm } from "react-hook-form";
-import { CreateCategoryDto } from "@/lib/dto/createCategoryDto";
 import { useStore } from "@/lib/store/store";
+import ErrorLabel from "../ErrorLabel/ErrorLabel";
 
 const NullMeasureUnit = null;
 
@@ -30,9 +30,20 @@ interface CreateCategoryFormData {
 export default function AddCategory() {
   const {
     measures: { items, isLoading: isLoadingMeasures, fetchMeasures },
-    categories: { isLoading: isLoadingCategory, createCategory },
+    categories: {
+      isLoading: isLoadingCategory,
+      createCategory,
+      refreshList,
+      error,
+      clearError,
+    },
   } = useStore();
-  const { register, handleSubmit, control } = useForm({
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { isValid, errors },
+  } = useForm({
     defaultValues: {
       name: "",
       shortName: "",
@@ -46,14 +57,13 @@ export default function AddCategory() {
   }, [fetchMeasures]);
 
   const handleCreate = async (data: CreateCategoryFormData) => {
-    const dto: CreateCategoryDto = {
+    await createCategory({
       name: data.name,
       shortName: data.shortName,
       measureUnitId: data.measureUnitId,
       baseClassId: data.baseClassId === "" ? null : Number(data.baseClassId),
-    };
-
-    createCategory(dto);
+    });
+    refreshList();
   };
 
   return (
@@ -69,8 +79,11 @@ export default function AddCategory() {
             placeholder="Имя"
             required
             {...register("name", { required: true })}
-            className="placeholder:text-gray-400"
+            className="bg-background text-foreground placeholder:text-gray-400"
           ></Input>
+          {errors.name && (
+            <span className="text-accent text-xs">Обязательное поле</span>
+          )}
         </Field>
         <Field>
           <FieldLabel>Краткое имя</FieldLabel>
@@ -79,8 +92,11 @@ export default function AddCategory() {
             placeholder="Короткое имя"
             {...register("shortName", { required: true })}
             required
-            className="placeholder:text-gray-400"
+            className="bg-background text-foreground placeholder:text-gray-400"
           ></Input>
+          {errors.shortName && (
+            <span className="text-accent text-xs">Обязательное поле</span>
+          )}
         </Field>
         {isLoadingMeasures ? (
           <Item>
@@ -95,11 +111,8 @@ export default function AddCategory() {
               defaultValue={NullMeasureUnit}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder="Единица измерения"
-                      className="text-gray-400"
-                    ></SelectValue>
+                  <SelectTrigger className="bg-background text-foreground ">
+                    <SelectValue placeholder="Единица измерения"></SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -126,7 +139,7 @@ export default function AddCategory() {
             type="number"
             min={1}
             placeholder="Нет базовой категории"
-            className="placeholder:text-gray-400"
+            className="bg-background text-foreground placeholder:text-gray-400"
             {...register("baseClassId", {
               valueAsNumber: true,
               setValueAs: (value) => {
@@ -143,10 +156,13 @@ export default function AddCategory() {
         className="w-full disabled:opacity-40 hover:bg-accent"
         variant="secondary"
         type="submit"
-        disabled={isLoadingCategory}
+        disabled={isLoadingCategory || !isValid}
       >
         Создать
       </Button>
+      {error && (
+        <ErrorLabel message={error.message} onClearError={() => clearError()} />
+      )}
     </form>
   );
 }

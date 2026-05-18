@@ -15,6 +15,12 @@ export default function useCategories() {
   const [items, setItems] = useState<CategoryArrayType>([]);
   const [listType, setListType] = useState<CategoryListType>("all");
   const [error, setError] = useState<ApiError | null>(null);
+  const [parentId, setParentId] = useState("");
+  const [childId, setChildId] = useState("");
+
+  const clearError = () => {
+    setError(null);
+  };
 
   const createCategory = useCallback(async (cat: CreateCategoryDto) => {
     try {
@@ -207,14 +213,30 @@ export default function useCategories() {
     }
   }, []);
 
+  const refreshList = useCallback(async () => {
+    if (listType === "all" || listType === "leaves") {
+      await fetchCategories(listType);
+    } else if (listType === "parents" && childId) {
+      await fetchCategories(listType, Number(childId));
+    } else if (listType === "children" && parentId) {
+      await fetchCategories(listType, Number(parentId));
+    }
+  }, [listType, fetchCategories, childId, parentId]);
+
   return {
     items,
     listType,
+    parentId,
+    childId,
+
     setListType,
+    setParentId,
+    setChildId,
 
     isLoading,
 
     error,
+    clearError,
 
     createCategory,
     fetchCategories,
@@ -223,5 +245,6 @@ export default function useCategories() {
     changeMeasure,
     deleteBaseClass,
     deleteMeasure,
+    refreshList,
   };
 }
