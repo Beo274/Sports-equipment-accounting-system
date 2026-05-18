@@ -44,8 +44,10 @@ public class ParameterServiceImpl implements ParameterService {
         currParam.setName(createParamDto.getName());
         currParam.setShortName(createParamDto.getShortName());
 
-        Measure measure = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
-        currParam.setMeasure(measure);
+        if (createParamDto.getMeasureId() != null) {
+            Measure measure = this.measureRepository.getReferenceById(createParamDto.getMeasureId());
+            currParam.setMeasure(measure);
+        }
     }
 
     @Override

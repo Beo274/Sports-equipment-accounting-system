@@ -3,6 +3,7 @@ package ru.etu.sport.parameter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +38,8 @@ public class ParameterController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<MessageResponse> updateParam(@PathVariable Integer id, @RequestBody CreateParamDto createParamDto) {
-        parameterService.update(id, createParamDto);
         log.info("Parameter updated with id: {}", id);
+        parameterService.update(id, createParamDto);
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
 
@@ -50,8 +51,11 @@ public class ParameterController {
     }
 
     @GetMapping("/group")
-    public ResponseEntity<List<ParameterGroupDto>> getParameterGroups() {
+    public ResponseEntity<List<ParameterGroupDto>> getParameterGroups(@RequestParam(required = false) Integer paramId) {
         List<ParameterGroupDto> groups = this.classProductParameterService.getParamsGroups();
+        if (paramId != null) {
+            groups = groups.stream().filter(parameter -> parameter.getId().equals(paramId)).toList();
+        }
         log.info("Parameter groups provided");
         return ResponseEntity.ok(groups);
     }
