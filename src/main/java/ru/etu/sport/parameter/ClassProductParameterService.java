@@ -9,9 +9,7 @@ import ru.etu.sport.category.projection.ClassHierarchyProjection;
 import ru.etu.sport.enumeration.repository.EnumerationValueRepository;
 import ru.etu.sport.model.dto.request.ClassParamBindingDto;
 import ru.etu.sport.model.dto.request.ProductParamBindingDto;
-import ru.etu.sport.model.dto.response.ClassParamBindingResponseDto;
-import ru.etu.sport.model.dto.response.ParameterGroupDto;
-import ru.etu.sport.model.dto.response.ProductParamBindingResponseDto;
+import ru.etu.sport.model.dto.response.*;
 import ru.etu.sport.model.entity.*;
 import ru.etu.sport.product.ProductRepository;
 
@@ -337,5 +335,68 @@ public class ClassProductParameterService {
         if (!newParameters.isEmpty()) {
             this.productParameterRepository.saveAll(newParameters);
         }
+    }
+
+    @Transactional
+    public List<ProductWithParamDto> getProductsInRange(Integer paramId, Double minVal, Double maxVal) {
+        Integer min = minVal != null ? minVal.intValue() : Integer.MIN_VALUE;
+        Integer max = maxVal != null ? maxVal.intValue() : Integer.MAX_VALUE;
+
+        List<Integer> targetProductIds = productParameterRepository.findProductIdsByParamRange(paramId, min, max);
+
+        if (targetProductIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<ProductParameter> allTargetParameters = productParameterRepository.findAllParamsForProducts(targetProductIds);
+
+        return ProductParameter.mapProductParameter(allTargetParameters);
+    }
+
+    public List<ProductWithParamDto> getProductsBySeveralParams(List<Integer> paramIds) {
+        Long paramCount = paramIds.stream().distinct().count();
+
+        List<Integer> targetProductIds = productParameterRepository.findProductIdsByAllParams(paramIds, paramCount);
+
+        if (targetProductIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<ProductParameter> allProductParameters = productParameterRepository.findAllParamsForProducts(targetProductIds);
+
+        return allProductParameters.stream()
+                .collect(Collectors.groupingBy(ProductParameter::getProduct))
+                .entrySet().stream()
+                .map(entry -> {
+                    Product product = entry.getKey();
+                    List<ProductParameter> paramsForProduct = entry.getValue();
+
+                    // Создаем списки для агрегации параметров этого продукта
+                    List<EnumerationValueDto> enumValues = new ArrayList<>();
+                    List<Integer> maxVals = new ArrayList<>();
+                    List<Integer> minVals = new ArrayList<>();
+                    List<Integer> intVals = new ArrayList<>();
+
+                    // Заполняем списки значениями (с вашей логикой фильтрации null)
+                    for (ProductParameter pp : paramsForProduct) {
+                        enumValues.add(EnumerationValue.mapEnumerationValue(pp.getEnumerationValue()));
+                        maxVals.add(pp.getEnumerationValue() != null ? null : pp.getMaxVal());
+                        minVals.add(pp.getEnumerationValue() != null ? null : pp.getMinVal());
+                        intVals.add(pp.getEnumerationValue() != null ? null : pp.getIntVal());
+                    }
+
+                    // Собираем итоговое DTO, где продукт представлен в единственном экземпляре
+                    return ProductWithParamDto.builder()
+                            .id(product.getId())
+                            .name(product.getName())
+                            .shortName(product.getShortName())
+                            .classId(product.getProductClass() != null ? product.getProductClass().getId() : null)
+                            .paramEnumValue(enumValues)
+                            .maxVal(maxVals)
+                            .minVal(minVals)
+                            .intVal(intVals)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
