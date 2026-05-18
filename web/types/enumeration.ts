@@ -13,4 +13,5 @@ export interface EnumerationValue {
   stringValue: string | null;
   imageValue: string | null;
   measure: MeasureUnit | null;
+  position: number | null;
 }

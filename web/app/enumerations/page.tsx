@@ -1,5 +1,6 @@
 import EnumerationsList from "@/components/EnumerationList/EnumerationList";
 import AddEnumeration from "@/components/forms/AddEnumeration";
+import AddEnumerationValue from "@/components/forms/AddEnumerationValue";
 
 export default function EnumerationsPage() {
   return (
@@ -11,8 +12,9 @@ export default function EnumerationsPage() {
         <section className="border-2 border-accent rounded-md pb-3">
           <EnumerationsList />
         </section>
-        <section className="border-2 border-accent rounded-md min-w-60 p-1">
+        <section className="flex flex-col gap-2 border-2 border-accent rounded-md min-w-60 p-1">
           <AddEnumeration />
+          <AddEnumerationValue />
         </section>
       </div>
     </div>

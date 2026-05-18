@@ -14,7 +14,7 @@ export default function EnumerationsList() {
       fetchEnumerationValues,
       isLoadingEnums,
       enums,
-      error,
+      errors: { fetchingError: error },
       clearError,
     },
   } = useStore();
@@ -38,12 +38,12 @@ export default function EnumerationsList() {
           <ErrorLabel
             message={error.message}
             onClearError={() => {
-              clearError();
+              clearError("fetchingError");
               fetchEnumerations();
             }}
           />
         ) : (
-          <div className="w-full max-h-140">
+          <div className="w-full max-h-150">
             <ItemGroup>
               {isLoadingEnums ? (
                 <Item className="h-full w-full justify-center items-center">
@@ -93,12 +93,20 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
         ) : (
           <ItemGroup className="bg-white rounded-md p-1 gap-0 border-collapse">
             {values.length ? (
-              values.map((v) => (
-                <EnumerationValueItem
-                  key={`${id}_${v.id}`}
-                  enumerationValue={v}
-                />
-              ))
+              values
+                .toSorted((a, b) => {
+                  if (a.position && b.position) {
+                    return a.position - b.position;
+                  } else {
+                    return -1;
+                  }
+                })
+                .map((v) => (
+                  <EnumerationValueItem
+                    key={`${id}_${v.id}`}
+                    enumerationValue={v}
+                  />
+                ))
             ) : (
               <span className="p-1 text-gray-400">Значений не задано</span>
             )}
@@ -123,7 +131,15 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
     } else if (enumerationValue.stringValue) {
       return <span>{enumerationValue.stringValue}</span>;
     } else if (enumerationValue.imageValue) {
-      return <a href={enumerationValue.imageValue}></a>;
+      return (
+        <a
+          href={enumerationValue.imageValue}
+          target="_blank"
+          className="hover:text-accent"
+        >
+          Картинка
+        </a>
+      );
     }
     return <span>Пустое значение, id: {enumerationValue.id}</span>;
   }

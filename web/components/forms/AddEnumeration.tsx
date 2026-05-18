@@ -2,15 +2,10 @@
 
 import { useForm } from "react-hook-form";
 import { Button } from "../ui/button";
-import { Field, FieldGroup, FieldLabel } from "../ui/field";
+import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
-import useEnumerations from "@/hooks/use-enumerations";
 import { useStore } from "@/lib/store/store";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
-
-// interface AddEnumerationProps {
-//   onRefresh: () => Promise<void>;
-// }
 
 export default function AddEnumeration() {
   const {
@@ -26,7 +21,7 @@ export default function AddEnumeration() {
   });
   const {
     enumerations: {
-      error,
+      errors: { creatingEnumError: error },
       clearError,
       isLoadingEnums,
       fetchEnumerations,
@@ -44,7 +39,7 @@ export default function AddEnumeration() {
   };
 
   const onReset = () => {
-    clearError();
+    clearError("creatingEnumError");
     reset({ name: "", shortName: "" });
   };
 
@@ -53,6 +48,9 @@ export default function AddEnumeration() {
       className="flex flex-col gap-2 bg-dimmedblue rounded-md text-background p-2"
       onSubmit={handleSubmit(onSubmit)}
     >
+      <FieldTitle className="text-md font-bold">
+        Создание перечисления
+      </FieldTitle>
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="new-enum-name">Название</FieldLabel>
