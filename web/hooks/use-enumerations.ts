@@ -1,6 +1,7 @@
 import { API_CONFIG } from "@/lib/api";
-import { CreateEnumerationDto } from "@/lib/dto/createEnumerationDto";
-import { CreateEnumerationValueDto } from "@/lib/dto/createEnumerationValueDto";
+import CreateEnumerationDto from "@/lib/dto/createEnumerationDto";
+import CreateEnumerationValueDto from "@/lib/dto/createEnumerationValueDto";
+import UpdateEnumerationValueDto from "@/lib/dto/updateEnumerationValueDto";
 import { Enumeration, EnumerationValue } from "@/types/enumeration";
 import { ApiError } from "next/dist/server/api-utils";
 import { useCallback, useState } from "react";
@@ -279,13 +280,53 @@ export default function useEnumerations() {
     }
   }, []);
 
+  const updateEnumerationValue = useCallback(
+    async (id: number, dto: UpdateEnumerationValueDto) => {
+      try {
+        setIsLoadingValues(true);
+        const response = await fetch(
+          `${API_CONFIG.BASE_URL}/enumeration/value/${id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dto),
+          },
+        );
+
+        if (!response.ok) {
+          throw new ApiError(
+            response.status,
+            "Ошибка при обновлении значения. Проверьте данные и повторите попытку",
+          );
+        }
+      } catch (error) {
+        if (error instanceof TypeError) {
+          setErrors((prev) => ({
+            ...prev,
+            fetchingError: new ApiError(503, "Сервер недоступен"),
+          }));
+        } else if (error instanceof ApiError) {
+          setErrors((prev) => ({ ...prev, fetchingError: error }));
+        }
+      } finally {
+        setIsLoadingValues(false);
+      }
+    },
+    [],
+  );
+
   return {
     enums,
     enumValues,
+
     isLoadingEnums,
     isLoadingValues,
+
     errors,
     clearError,
+
     fetchEnumerations,
     fetchEnumerationValues,
     fetchAll,
@@ -294,5 +335,6 @@ export default function useEnumerations() {
     deleteEnumeration,
     deleteEnumerationValue,
     reorderValues,
+    updateEnumerationValue,
   };
 }

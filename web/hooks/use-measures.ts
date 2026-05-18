@@ -34,8 +34,10 @@ export default function useMeasures() {
 
   return {
     items,
-    fetchMeasures,
+
     isLoading,
     error,
+
+    fetchMeasures,
   };
 }

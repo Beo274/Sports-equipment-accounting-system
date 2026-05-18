@@ -1,4 +1,4 @@
-export interface CreateCategoryDto {
+export default interface CreateCategoryDto {
   name: string;
   shortName: string;
   baseClassId: number | null;

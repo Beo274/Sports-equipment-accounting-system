@@ -1,5 +1,5 @@
 import { API_CONFIG } from "@/lib/api";
-import { CreateCategoryDto } from "@/lib/dto/createCategoryDto";
+import CreateCategoryDto from "@/lib/dto/createCategoryDto";
 import ApiError from "@/types/apiError";
 import { Category, CategoryWithLevel } from "@/types/category";
 import { useCallback, useState } from "react";
@@ -208,7 +208,14 @@ export default function useCategories() {
   }, []);
 
   return {
+    items,
+    listType,
+    setListType,
+
     isLoading,
+
+    error,
+
     createCategory,
     fetchCategories,
     deleteCategory,
@@ -216,9 +223,5 @@ export default function useCategories() {
     changeMeasure,
     deleteBaseClass,
     deleteMeasure,
-    items,
-    listType,
-    setListType,
-    error,
   };
 }

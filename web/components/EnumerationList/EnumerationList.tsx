@@ -8,7 +8,7 @@ import {
   ItemGroup,
   ItemTitle,
 } from "../ui/item";
-import { useEffect, useMemo, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useState } from "react";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { EnumerationValue } from "@/types/enumeration";
 import Loader from "../Loader/Loader";
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
 import { useForm } from "react-hook-form";
+import UpdateEnumerationValueDto from "@/lib/dto/updateEnumerationValueDto";
 
 export default function EnumerationsList() {
   const {
@@ -115,7 +116,13 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
         valuesIds: new Set(),
       };
     return {
-      values: values,
+      values: values.toSorted((a, b) => {
+        if (a.position && b.position) {
+          return a.position - b.position;
+        } else {
+          return -1;
+        }
+      }),
       valuesIds: new Set(values.map((item) => item.id)),
     };
   }, [enumValues, id]);
@@ -130,20 +137,12 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
         ) : (
           <ItemGroup className="col-start-1 self-center bg-white rounded-md p-1 gap-0 border-collapse">
             {values.length ? (
-              values
-                .toSorted((a, b) => {
-                  if (a.position && b.position) {
-                    return a.position - b.position;
-                  } else {
-                    return -1;
-                  }
-                })
-                .map((v) => (
-                  <EnumerationValueItem
-                    key={`${id}_${v.id}`}
-                    enumerationValue={v}
-                  />
-                ))
+              values.map((v) => (
+                <EnumerationValueItem
+                  key={`${id}_${v.id}`}
+                  enumerationValue={v}
+                />
+              ))
             ) : (
               <span className="p-1 text-gray-400">Значений не задано</span>
             )}
@@ -272,8 +271,58 @@ interface EnumerationValueItemProps {
 
 function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
   const {
-    enumerations: { fetchAll, deleteEnumerationValue },
+    enumerations: {
+      fetchEnumerationValues,
+      deleteEnumerationValue,
+      updateEnumerationValue,
+    },
   } = useStore();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState("");
+
+  const startEditing = () => {
+    if (enumerationValue.intValue) {
+      setEditValue(enumerationValue.intValue.toString());
+    } else if (enumerationValue.stringValue) {
+      setEditValue(enumerationValue.stringValue);
+    } else if (enumerationValue.imageValue) {
+      setEditValue(enumerationValue.imageValue);
+    } else {
+      setEditValue("");
+    }
+    setIsEditing(true);
+  };
+
+  const saveEdit = async () => {
+    const updatedValue: UpdateEnumerationValueDto = {
+      intValue: null,
+      stringValue: null,
+      imageValue: null,
+    };
+
+    if (enumerationValue.intValue) {
+      updatedValue.intValue = parseInt(editValue) || 0;
+    } else if (enumerationValue.stringValue) {
+      updatedValue.stringValue = editValue;
+    } else if (enumerationValue.imageValue) {
+      updatedValue.imageValue = editValue;
+    } else {
+      updatedValue.stringValue = editValue;
+    }
+
+    await updateEnumerationValue(enumerationValue.id, updatedValue);
+    fetchEnumerationValues();
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      saveEdit();
+    } else if (e.key === "Escape") {
+      setIsEditing(false);
+    }
+  };
 
   function renderValue() {
     if (enumerationValue.intValue) {
@@ -297,16 +346,42 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
     return <span>Пустое значение, id: {enumerationValue.id}</span>;
   }
 
+  const renderEditableValue = () => {
+    if (isEditing) {
+      return (
+        <input
+          type={enumerationValue.intValue ? "number" : "text"}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={saveEdit}
+          onKeyDown={handleKeyDown}
+          className="border border-gray-300 rounded px-2 py-1 w-full focus:outline-none focus:border-accent"
+          autoFocus
+        />
+      );
+    }
+
+    return (
+      <div
+        onClick={startEditing}
+        className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 -my-1"
+        title="Нажмите для редактирования"
+      >
+        {renderValue()}
+      </div>
+    );
+  };
+
   return (
     <Item className="border-y border-x-0 border-gray-300 rounded-none first:border-t-0 last:border-b-0">
-      <ItemContent>{renderValue()}</ItemContent>
+      <ItemContent>{renderEditableValue()}</ItemContent>
       <ItemActions>
         <Button
           variant="ghost"
           className="hover:bg-accent"
           onClick={async () => {
             await deleteEnumerationValue(enumerationValue.id);
-            fetchAll();
+            fetchEnumerationValues();
           }}
         >
           <Trash />
