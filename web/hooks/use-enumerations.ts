@@ -247,6 +247,38 @@ export default function useEnumerations() {
     }
   }, []);
 
+  const reorderValues = useCallback(async (ids: number[]) => {
+    try {
+      setIsLoadingValues(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/enumeration/reorder`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: ids }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка изменения порядка значений. Проверьте данные",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, fetchingError: error }));
+      }
+    } finally {
+      setIsLoadingValues(false);
+    }
+  }, []);
+
   return {
     enums,
     enumValues,
@@ -261,5 +293,6 @@ export default function useEnumerations() {
     addEnumerationValue,
     deleteEnumeration,
     deleteEnumerationValue,
+    reorderValues,
   };
 }

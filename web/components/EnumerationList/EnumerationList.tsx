@@ -8,12 +8,16 @@ import {
   ItemGroup,
   ItemTitle,
 } from "../ui/item";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { EnumerationValue } from "@/types/enumeration";
 import Loader from "../Loader/Loader";
 import { Button } from "../ui/button";
-import { Trash } from "lucide-react";
+import { Check, Shuffle, Trash } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
+import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
+import { Input } from "../ui/input";
+import { useForm } from "react-hook-form";
 
 export default function EnumerationsList() {
   const {
@@ -75,12 +79,45 @@ interface EnumerationItemProps {
 
 function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
   const {
-    enumerations: { isLoadingValues, enumValues, deleteEnumeration, fetchAll },
+    enumerations: {
+      isLoadingValues,
+      enumValues,
+      deleteEnumeration,
+      fetchAll,
+      fetchEnumerationValues,
+      reorderValues,
+    },
   } = useStore();
+  const [isReorderOpen, setReorderOpen] = useState(false);
+  const {
+    formState: { errors, isValid },
+    register,
+    handleSubmit,
+    reset,
+  } = useForm<{ order: number[] }>({
+    defaultValues: {
+      order: [],
+    },
+  });
 
-  const values = useMemo(() => {
+  const onReorder = async (data: { order: number[] }) => {
+    await reorderValues(data.order);
+    reset();
+    setReorderOpen(false);
+    await fetchEnumerationValues();
+  };
+
+  const { values, valuesIds } = useMemo(() => {
     const values = enumValues.get(id);
-    return values ?? [];
+    if (!values)
+      return {
+        values: [],
+        valuesIds: new Set(),
+      };
+    return {
+      values: values,
+      valuesIds: new Set(values.map((item) => item.id)),
+    };
   }, [enumValues, id]);
 
   return (
@@ -91,7 +128,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
         {isLoadingValues ? (
           <Loader />
         ) : (
-          <ItemGroup className="col-start-1 bg-white rounded-md p-1 gap-0 border-collapse">
+          <ItemGroup className="col-start-1 self-center bg-white rounded-md p-1 gap-0 border-collapse">
             {values.length ? (
               values
                 .toSorted((a, b) => {
@@ -124,8 +161,107 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
           >
             <Trash />
           </Button>
+          <Button
+            className="hover:bg-accent"
+            variant="secondary"
+            type="button"
+            onClick={() => setReorderOpen(true)}
+            disabled={values.length === 0}
+          >
+            <Shuffle />
+          </Button>
         </ItemActions>
       </ItemContent>
+      <Dialog open={isReorderOpen} onOpenChange={setReorderOpen}>
+        <DialogContent>
+          <DialogTitle className="text-lg font-bold">
+            Изменение порядка значений
+          </DialogTitle>
+          <form
+            className="flex flex-col gap-2"
+            onSubmit={handleSubmit(onReorder)}
+          >
+            <FieldGroup className="flex flex-row">
+              <Field>
+                <FieldTitle>
+                  Идентификаторы значений:{" "}
+                  <span className="bg-accent px-1 rounded-md font-bold">
+                    {values.map((v) => v.id).join(" , ")}
+                  </span>
+                </FieldTitle>
+                <FieldLabel>
+                  Новый порядок (идентификаторы через пробел)
+                </FieldLabel>
+                <Input
+                  type="text"
+                  placeholder="Расставьте идентификаторы"
+                  {...register("order", {
+                    required: true,
+                    setValueAs: (value: unknown): number[] => {
+                      if (typeof value !== "string" || !value.trim()) {
+                        return [];
+                      }
+
+                      return value
+                        .split(/\s+/)
+                        .filter((item) => item !== "")
+                        .map(Number);
+                    },
+                    validate: {
+                      notEmpty: (value: number[]): string | boolean =>
+                        value.length > 0 || "Введите числа",
+
+                      correctLength: (value: number[]): string | boolean =>
+                        value.length === values.length ||
+                        `Должно быть ${values.length} чисел`,
+
+                      allNumbers: (value: number[]): string | boolean =>
+                        !value.some(isNaN) ||
+                        "Все значения должны быть числами",
+
+                      allExist: (value: number[]): string | boolean => {
+                        const numbers = value.filter((n) => !isNaN(n));
+                        if (numbers.length === 0) return true;
+
+                        const missingIds = numbers.filter(
+                          (id) => !valuesIds.has(id),
+                        );
+
+                        if (missingIds.length > 0) {
+                          return `Не найдены ID: ${missingIds.join(", ")}`;
+                        }
+                        return true;
+                      },
+
+                      noDuplicates: (value: number[]): string | boolean => {
+                        const numbers = value.filter((n) => !isNaN(n));
+                        const uniqueIds = new Set(numbers);
+                        if (uniqueIds.size !== numbers.length) {
+                          return "Есть повторяющиеся ID";
+                        }
+                        return true;
+                      },
+                    },
+                  })}
+                />
+              </Field>
+              <Button
+                type="submit"
+                variant="secondary"
+                className="hover:bg-accent self-end"
+                disabled={!isValid}
+              >
+                <Check />
+              </Button>
+            </FieldGroup>
+            {errors.order && (
+              <span className="text-accent text-xs">
+                {errors.order.message}
+              </span>
+            )}
+          </form>
+        </DialogContent>
+      </Dialog>
     </Item>
   );
 }
