@@ -16,6 +16,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useEffect } from "react";
 import { CreateEnumerationValueDto } from "@/lib/dto/createEnumerationValueDto";
+import ErrorLabel from "../ErrorLabel/ErrorLabel";
 
 const NullEnumerationId = "Не выбрано" as const;
 const NullMeasureUnit = "Без е. и." as const;
@@ -46,8 +47,10 @@ export default function AddEnumerationValue() {
     enumerations: {
       enums,
       errors: { fetchingError, creatingEnumValueError },
+      clearError,
       isLoadingValues,
       addEnumerationValue,
+      fetchAll,
       fetchEnumerationValues,
     },
     measures: { items: measures, fetchMeasures },
@@ -98,6 +101,17 @@ export default function AddEnumerationValue() {
     await addEnumerationValue(dto);
     reset();
     await fetchEnumerationValues();
+  };
+
+  const onReset = async () => {
+    if (fetchingError) {
+      clearError("fetchingError");
+      await fetchAll();
+      await fetchMeasures();
+    }
+    if (creatingEnumValueError) {
+      clearError("creatingEnumValueError");
+    }
   };
 
   return (
@@ -240,6 +254,12 @@ export default function AddEnumerationValue() {
       >
         Создать
       </Button>
+      {(fetchingError || creatingEnumValueError) && (
+        <ErrorLabel
+          onClearError={onReset}
+          message={fetchingError?.message || creatingEnumValueError!.message}
+        />
+      )}
     </form>
   );
 }

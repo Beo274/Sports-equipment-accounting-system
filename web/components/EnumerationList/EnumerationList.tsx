@@ -1,17 +1,24 @@
 "use client";
 
 import { useStore } from "@/lib/store/store";
-import { Item, ItemContent, ItemGroup, ItemTitle } from "../ui/item";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemGroup,
+  ItemTitle,
+} from "../ui/item";
 import { useCallback, useEffect, useMemo } from "react";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { EnumerationValue } from "@/types/enumeration";
 import Loader from "../Loader/Loader";
+import { Button } from "../ui/button";
+import { Trash } from "lucide-react";
 
 export default function EnumerationsList() {
   const {
     enumerations: {
-      fetchEnumerations,
-      fetchEnumerationValues,
+      fetchAll,
       isLoadingEnums,
       enums,
       errors: { fetchingError: error },
@@ -19,15 +26,8 @@ export default function EnumerationsList() {
     },
   } = useStore();
 
-  const fetchList = useCallback(async () => {
-    const fetchedEnums = await fetchEnumerations();
-    if (fetchedEnums && fetchedEnums.length > 0) {
-      await fetchEnumerationValues(fetchedEnums);
-    }
-  }, [fetchEnumerationValues, fetchEnumerations]);
-
   useEffect(() => {
-    fetchList();
+    fetchAll();
   }, []);
 
   return (
@@ -39,7 +39,7 @@ export default function EnumerationsList() {
             message={error.message}
             onClearError={() => {
               clearError("fetchingError");
-              fetchEnumerations();
+              fetchAll();
             }}
           />
         ) : (
@@ -75,7 +75,7 @@ interface EnumerationItemProps {
 
 function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
   const {
-    enumerations: { isLoadingValues, enumValues },
+    enumerations: { isLoadingValues, enumValues, deleteEnumeration, fetchAll },
   } = useStore();
 
   const values = useMemo(() => {
@@ -86,12 +86,12 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
   return (
     <Item className="grid grid-cols-2 border-2 border-dimmedblue rounded-md bg-gray-200">
       <ItemTitle>{`${id}: ${name} (${shortName})`}</ItemTitle>
-      <ItemContent>
-        <h4>Значения</h4>
+      <ItemContent className="grid grid-cols-[1fr_max-content]">
+        <h4 className="col-start-1">Значения</h4>
         {isLoadingValues ? (
           <Loader />
         ) : (
-          <ItemGroup className="bg-white rounded-md p-1 gap-0 border-collapse">
+          <ItemGroup className="col-start-1 bg-white rounded-md p-1 gap-0 border-collapse">
             {values.length ? (
               values
                 .toSorted((a, b) => {
@@ -112,6 +112,19 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
             )}
           </ItemGroup>
         )}
+        <ItemActions className="flex flex-col justify-center">
+          <Button
+            className="hover:bg-accent"
+            variant="secondary"
+            type="button"
+            onClick={async () => {
+              await deleteEnumeration(id);
+              fetchAll();
+            }}
+          >
+            <Trash />
+          </Button>
+        </ItemActions>
       </ItemContent>
     </Item>
   );
@@ -122,6 +135,10 @@ interface EnumerationValueItemProps {
 }
 
 function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
+  const {
+    enumerations: { fetchAll, deleteEnumerationValue },
+  } = useStore();
+
   function renderValue() {
     if (enumerationValue.intValue) {
       return (
@@ -147,6 +164,18 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
   return (
     <Item className="border-y border-x-0 border-gray-300 rounded-none first:border-t-0 last:border-b-0">
       <ItemContent>{renderValue()}</ItemContent>
+      <ItemActions>
+        <Button
+          variant="ghost"
+          className="hover:bg-accent"
+          onClick={async () => {
+            await deleteEnumerationValue(enumerationValue.id);
+            fetchAll();
+          }}
+        >
+          <Trash />
+        </Button>
+      </ItemActions>
     </Item>
   );
 }

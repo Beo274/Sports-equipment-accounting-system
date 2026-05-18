@@ -113,6 +113,13 @@ export default function useEnumerations() {
     [enums],
   );
 
+  const fetchAll = useCallback(async () => {
+    const fetchedEnums = await fetchEnumerations();
+    if (fetchedEnums && fetchedEnums.length > 0) {
+      await fetchEnumerationValues(fetchedEnums);
+    }
+  }, [fetchEnumerationValues, fetchEnumerations]);
+
   const createEnumeration = useCallback(async (dto: CreateEnumerationDto) => {
     try {
       setIsLoadingEnums(true);
@@ -182,6 +189,64 @@ export default function useEnumerations() {
     [],
   );
 
+  const deleteEnumeration = useCallback(async (enumId: number) => {
+    try {
+      setIsLoadingEnums(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/enumeration/${enumId}`,
+        { method: "DELETE" },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка при удалении перечисления. Повторите попытку",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, fetchingError: error }));
+      }
+    } finally {
+      setIsLoadingEnums(false);
+    }
+  }, []);
+
+  const deleteEnumerationValue = useCallback(async (enumValueId: number) => {
+    try {
+      setIsLoadingValues(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/enumeration/value/${enumValueId}?option=FULL`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка при удалении значения перечисления. Повторите попытку",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, fetchingError: error }));
+      }
+    } finally {
+      setIsLoadingValues(false);
+    }
+  }, []);
+
   return {
     enums,
     enumValues,
@@ -191,7 +256,10 @@ export default function useEnumerations() {
     clearError,
     fetchEnumerations,
     fetchEnumerationValues,
+    fetchAll,
     createEnumeration,
     addEnumerationValue,
+    deleteEnumeration,
+    deleteEnumerationValue,
   };
 }
