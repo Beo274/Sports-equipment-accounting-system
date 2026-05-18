@@ -71,7 +71,7 @@ public class EnumerationController {
         return ResponseEntity.ok(value);
     }
     
-    @PatchMapping("/{id}/reorder")
+    @PatchMapping("/reorder")
     public ResponseEntity<MessageResponse> reorderValues(@RequestBody ReorderDto reorderDto) {
         this.enumerationService.reorderValues(reorderDto.getOrder());
         log.info("Values reordered");

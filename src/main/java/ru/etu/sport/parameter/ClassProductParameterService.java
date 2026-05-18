@@ -3,7 +3,6 @@ package ru.etu.sport.parameter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.category.ClassRepository;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
