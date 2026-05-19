@@ -35,7 +35,7 @@ const appRoutes: RouteDescrioption[] = [
 export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <StoreProvider>
-      <SidebarProvider defaultOpen={false}>
+      <SidebarProvider defaultOpen={false} className="h-full min-h-full flex-1">
         <NavSidebar routes={appRoutes} />
         <SidebarTrigger className="hover:bg-accent" />
         {children}
