@@ -13,6 +13,7 @@ import ru.etu.sport.model.dto.request.CreateParamDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ParameterGroupDto;
+import ru.etu.sport.model.dto.response.ParameterResponse;
 
 
 @RestController
@@ -59,4 +60,9 @@ public class ParameterController {
         return ResponseEntity.ok(groups);
     }
     
+    @GetMapping
+    public ResponseEntity<List<ParameterResponse>> getAll() {
+        log.info("List of parameters provided");
+        return ResponseEntity.ok(this.parameterService.getAll());
+    } 
 }

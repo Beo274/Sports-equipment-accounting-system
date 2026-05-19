@@ -2,10 +2,14 @@ package ru.etu.sport.parameter;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import ru.etu.sport.measure.MeasureRepository;
 import ru.etu.sport.model.dto.request.CreateParamDto;
+import ru.etu.sport.model.dto.response.ParameterResponse;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Parameter;
 
@@ -53,5 +57,17 @@ public class ParameterServiceImpl implements ParameterService {
     @Override
     public void delete(Integer id) {
         parameterRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ParameterResponse> getAll() {
+        return this.parameterRepository.findAll().stream()
+            .map(p -> ParameterResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .shortName(p.getShortName())
+                .measureUnitId(p.getMeasure() != null ? p.getMeasure().getId() : null)
+                .build())
+            .toList();
     }
 }
