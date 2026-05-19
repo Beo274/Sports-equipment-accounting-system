@@ -15,3 +15,5 @@ export interface EnumerationValue {
   measure: MeasureUnit | null;
   position: number | null;
 }
+
+export const NullEnumerationId = "Не выбрано" as const;

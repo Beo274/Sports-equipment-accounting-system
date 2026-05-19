@@ -3,3 +3,5 @@ export default interface MeasureUnit {
   name: string;
   shortName: string;
 }
+
+export const NullMeasureUnit = "Без е. и." as const;

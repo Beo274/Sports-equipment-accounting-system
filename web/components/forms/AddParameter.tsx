@@ -19,8 +19,7 @@ import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import Loader from "../Loader/Loader";
 import { Item } from "../ui/item";
 import CreateParamDto from "@/lib/dto/createParamDto";
-
-const NullMeasureUnit = "Без е. и." as const;
+import { NullMeasureUnit } from "@/types/measureUnit";
 
 interface FormSchema {
   name: string;

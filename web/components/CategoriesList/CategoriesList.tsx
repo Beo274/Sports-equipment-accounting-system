@@ -194,6 +194,7 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           onClick={props.handleDelete}
           variant={"ghost"}
           className="hover:bg-accent"
+          disabled={isLoading}
         >
           <TrashIcon />
         </Button>
@@ -201,6 +202,7 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           onClick={() => setEditOpen(true)}
           variant={"ghost"}
           className="hover:bg-accent"
+          disabled={isLoading}
         >
           <EditIcon />
         </Button>

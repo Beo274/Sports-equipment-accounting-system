@@ -3,9 +3,18 @@
 import { useStore } from "@/lib/store/store";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { useEffect } from "react";
-import { Item, ItemGroup, ItemTitle } from "../ui/item";
+import { Item, ItemActions, ItemGroup, ItemTitle } from "../ui/item";
 import Parameter from "@/types/parameter";
 import Loader from "../Loader/Loader";
+import { Button } from "../ui/button";
+import { Edit, Trash } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "../ui/dialog";
+import EditParamDialog from "../dialog/EditParamDialog";
 
 export default function ParametersList() {
   const {
@@ -16,6 +25,8 @@ export default function ParametersList() {
       error,
       clearError,
       isLoading,
+      deleteParameter,
+      dialog: { setEditOpen, isEditOpen, editedParam },
     },
   } = useStore();
 
@@ -52,7 +63,14 @@ export default function ParametersList() {
           <div className="w-full">
             <ItemGroup>
               {items.map((p) => (
-                <ParameterItem key={p.id} data={p} />
+                <ParameterItem
+                  key={p.id}
+                  data={p}
+                  handleDelete={async () => {
+                    await deleteParameter(p.id);
+                    fetchParameters();
+                  }}
+                />
               ))}
             </ItemGroup>
           </div>
@@ -62,18 +80,54 @@ export default function ParametersList() {
           </div>
         )}
       </div>
+      <EditParamDialog
+        isOpen={isEditOpen}
+        onOpenChange={setEditOpen}
+        editedParam={editedParam}
+      />
     </div>
   );
 }
 
 interface ParameterItemProps {
   data: Parameter;
+  handleDelete: () => Promise<void>;
 }
 
-function ParameterItem({ data }: ParameterItemProps) {
+function ParameterItem({ data, handleDelete }: ParameterItemProps) {
+  const {
+    parameters: {
+      isLoading,
+      dialog: { setEditOpen, setEditedParam },
+    },
+  } = useStore();
+
   return (
-    <Item className="border-2 border-dimmedblue rounded-md bg-gray-200">
+    <Item className="justify-between border-2 border-dimmedblue rounded-md bg-gray-200">
       <ItemTitle>{`${data.id}: ${data.name} (${data.shortName})`}</ItemTitle>
+      <ItemActions>
+        <Button
+          variant="secondary"
+          type="button"
+          disabled={isLoading}
+          className="hover:bg-accent"
+          onClick={() => {
+            setEditOpen(true);
+            setEditedParam(data);
+          }}
+        >
+          <Edit />
+        </Button>
+        <Button
+          variant="secondary"
+          className="hover:bg-accent"
+          type="button"
+          onClick={handleDelete}
+          disabled={isLoading}
+        >
+          <Trash />
+        </Button>
+      </ItemActions>
     </Item>
   );
 }

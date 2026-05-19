@@ -17,9 +17,8 @@ import { Input } from "../ui/input";
 import { useEffect } from "react";
 import CreateEnumerationValueDto from "@/lib/dto/createEnumerationValueDto";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
-
-const NullEnumerationId = "Не выбрано" as const;
-const NullMeasureUnit = "Без е. и." as const;
+import { NullEnumerationId } from "@/types/enumeration";
+import { NullMeasureUnit } from "@/types/measureUnit";
 
 const IntType = "Целое число" as const;
 const StringType = "Строка" as const;

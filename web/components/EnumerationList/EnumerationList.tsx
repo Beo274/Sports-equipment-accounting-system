@@ -86,6 +86,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
   const {
     enumerations: {
       isLoadingValues,
+      isLoadingEnums,
       enumValues,
       deleteEnumeration,
       fetchAll,
@@ -161,6 +162,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
               await deleteEnumeration(id);
               fetchAll();
             }}
+            disabled={isLoadingEnums}
           >
             <Trash />
           </Button>
@@ -169,7 +171,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
             variant="secondary"
             type="button"
             onClick={() => setReorderOpen(true)}
-            disabled={values.length === 0}
+            disabled={values.length === 0 || isLoadingValues}
           >
             <Shuffle />
           </Button>
@@ -279,6 +281,7 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
       fetchEnumerationValues,
       deleteEnumerationValue,
       updateEnumerationValue,
+      isLoadingValues,
     },
   } = useStore();
 
@@ -387,6 +390,7 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
             await deleteEnumerationValue(enumerationValue.id);
             fetchEnumerationValues();
           }}
+          disabled={isLoadingValues}
         >
           <Trash />
         </Button>

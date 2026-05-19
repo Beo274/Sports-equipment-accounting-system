@@ -18,8 +18,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useStore } from "@/lib/store/store";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import CreateCategoryDto from "@/lib/dto/createCategoryDto";
-
-const NullMeasureUnit = "Без е. и." as const;
+import { NullMeasureUnit } from "@/types/measureUnit";
 
 interface CreateCategoryFormData {
   name: string;
