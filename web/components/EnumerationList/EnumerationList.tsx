@@ -54,7 +54,7 @@ export default function EnumerationsList() {
                 <Item className="h-full w-full justify-center items-center">
                   <Loader />
                 </Item>
-              ) : (
+              ) : enums.length ? (
                 enums.map((e) => (
                   <EnumerationItem
                     key={e.id}
@@ -63,6 +63,10 @@ export default function EnumerationsList() {
                     id={e.id}
                   />
                 ))
+              ) : (
+                <div className="h-full flex justify-center items-center">
+                  <p>Пусто...</p>
+                </div>
               )}
             </ItemGroup>
           </div>

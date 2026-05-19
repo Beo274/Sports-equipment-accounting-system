@@ -17,19 +17,20 @@ import { Button } from "../ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { useStore } from "@/lib/store/store";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
+import CreateCategoryDto from "@/lib/dto/createCategoryDto";
 
-const NullMeasureUnit = null;
+const NullMeasureUnit = "Без е. и." as const;
 
 interface CreateCategoryFormData {
   name: string;
   shortName: string;
-  measureUnitId: number | null;
+  measureUnitId: string | typeof NullMeasureUnit;
   baseClassId: string | number;
 }
 
 export default function AddCategory() {
   const {
-    measures: { items, isLoading: isLoadingMeasures, fetchMeasures },
+    measures: { items: measures, isLoading: isLoadingMeasures, fetchMeasures },
     categories: {
       isLoading: isLoadingCategory,
       createCategory,
@@ -43,7 +44,9 @@ export default function AddCategory() {
     handleSubmit,
     control,
     formState: { isValid, errors },
-  } = useForm({
+    watch,
+    reset,
+  } = useForm<CreateCategoryFormData>({
     defaultValues: {
       name: "",
       shortName: "",
@@ -52,17 +55,27 @@ export default function AddCategory() {
     },
   });
 
+  const measure = watch("measureUnitId");
+
   useEffect(() => {
     fetchMeasures();
   }, [fetchMeasures]);
 
   const handleCreate = async (data: CreateCategoryFormData) => {
-    await createCategory({
+    const dto: CreateCategoryDto = {
       name: data.name,
       shortName: data.shortName,
-      measureUnitId: data.measureUnitId,
+      measureUnitId: null,
       baseClassId: data.baseClassId === "" ? null : Number(data.baseClassId),
-    });
+    };
+    if (
+      data.measureUnitId !== NullMeasureUnit &&
+      !isNaN(Number(data.measureUnitId))
+    ) {
+      dto.measureUnitId = Number(data.measureUnitId);
+    }
+    await createCategory(dto);
+    reset();
     refreshList();
   };
 
@@ -111,15 +124,31 @@ export default function AddCategory() {
               defaultValue={NullMeasureUnit}
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger className="bg-background text-foreground ">
-                    <SelectValue placeholder="Единица измерения"></SelectValue>
+                  <SelectTrigger className="bg-background cursor-pointer">
+                    <SelectValue
+                      placeholder="Единица измерения"
+                      className="text-gray-400"
+                    >
+                      {measure === NullMeasureUnit ? (
+                        <span>{NullMeasureUnit}</span>
+                      ) : (
+                        (() => {
+                          const selected = measures.find(
+                            (m) => String(m.id) === measure,
+                          );
+                          return selected ? (
+                            <span>{`${selected.name} (${selected.shortName})`}</span>
+                          ) : null;
+                        })()
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Единицы измерения категории</SelectLabel>
+                      <SelectLabel>Единицы измерения</SelectLabel>
                       <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
-                      {items.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
+                      {measures.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
                           {`${m.name} (${m.shortName})`}
                         </SelectItem>
                       ))}

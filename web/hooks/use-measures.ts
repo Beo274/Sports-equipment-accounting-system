@@ -8,6 +8,10 @@ export default function useMeasures() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
+  const clearError = () => {
+    setError(null);
+  };
+
   const fetchMeasures = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -36,7 +40,9 @@ export default function useMeasures() {
     items,
 
     isLoading,
+
     error,
+    clearError,
 
     fetchMeasures,
   };

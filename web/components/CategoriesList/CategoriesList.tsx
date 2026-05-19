@@ -90,7 +90,7 @@ export function CategoriesList() {
             </ItemGroup>
           </div>
         ) : (
-          <div className="h-full flex justify-center itemsitems-center">
+          <div className="h-full flex justify-center items-center">
             <p>Пусто...</p>
           </div>
         )}
