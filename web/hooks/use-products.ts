@@ -5,7 +5,7 @@ import ApiError from "@/types/apiError";
 import Product from "@/types/product";
 import { useCallback, useState } from "react";
 
-type FetchType = "all";
+type FetchType = "all" | "with-params";
 
 interface Errors {
   fetchingError: ApiError | null;
@@ -173,6 +173,7 @@ export default function useProducts() {
     fetchType,
     setFetchType,
 
+    classId,
     setClassId,
 
     errors,

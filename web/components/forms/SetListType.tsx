@@ -36,7 +36,7 @@ export default function SetListType() {
         <RadioGroupItem
           value="all"
           id="all-categories"
-          className="shrink-0 cursor-pointer hover:scale-125 transition-transform"
+          className="shrink-0 cursor-pointer hover:scale-140 transition-transform"
         />
       </div>
 
@@ -55,7 +55,7 @@ export default function SetListType() {
         <RadioGroupItem
           value="leaves"
           id="leaves-categories"
-          className="shrink-0 cursor-pointer hover:scale-125 transition-transform"
+          className="shrink-0 cursor-pointer hover:scale-140 transition-transform"
         />
       </div>
 
@@ -84,7 +84,7 @@ export default function SetListType() {
         <RadioGroupItem
           value="children"
           id="children-categories"
-          className="shrink-0 cursor-pointer hover:scale-125 transition-transform"
+          className="shrink-0 cursor-pointer hover:scale-140 transition-transform"
         />
       </div>
 
@@ -113,7 +113,7 @@ export default function SetListType() {
         <RadioGroupItem
           value="parents"
           id="parents-categories"
-          className="shrink-0 cursor-pointer hover:scale-125 transition-transform"
+          className="shrink-0 cursor-pointer hover:scale-140 transition-transform"
         />
       </div>
     </RadioGroup>
