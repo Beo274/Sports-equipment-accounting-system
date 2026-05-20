@@ -109,6 +109,61 @@ export default function useProducts() {
     }
   }, []);
 
+  const deleteProduct = useCallback(async (id: number) => {
+    try {
+      setModifyLoading(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/product/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка удаления. Проверьте актуальность данных или повторите",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, modifyingError: error }));
+      }
+    } finally {
+      setModifyLoading(false);
+    }
+  }, []);
+
+  const updateBaseClass = useCallback(async (id: number, classId: number) => {
+    try {
+      setModifyLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/product/${id}/baseClass?new=${classId}`,
+        { method: "PUT" },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка обновления. Проверьте существование класса или повторите",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, modifyingError: error }));
+      }
+    } finally {
+      setModifyLoading(false);
+    }
+  }, []);
+
   return {
     products,
 
@@ -125,5 +180,7 @@ export default function useProducts() {
 
     fetchProducts,
     createProduct,
+    deleteProduct,
+    updateBaseClass,
   };
 }

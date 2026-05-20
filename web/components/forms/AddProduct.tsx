@@ -19,6 +19,7 @@ export default function AddProduct() {
     register,
     formState: { errors, isValid },
     handleSubmit,
+    reset,
   } = useForm<AddProductFormSchema>();
   const {
     products: {
@@ -38,6 +39,7 @@ export default function AddProduct() {
       classId: data.baseClassId,
     };
     await createProduct(dto);
+    reset();
     fetchProducts();
   };
 

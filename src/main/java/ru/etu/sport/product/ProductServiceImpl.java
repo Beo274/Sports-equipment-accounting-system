@@ -24,6 +24,7 @@ public class ProductServiceImpl implements ProductService {
     private final ClassRepository classRepository;
 
     @Override
+    @Transactional
     public void deleteProduct(Integer id) {
         productRepository.delete(id);
     }
@@ -57,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void updateClassId(Integer id, Integer parentId) {
         productRepository.updateParentId(id, parentId);
     }
