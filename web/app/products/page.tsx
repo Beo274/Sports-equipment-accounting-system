@@ -1,3 +1,4 @@
+import AddProduct from "@/components/forms/AddProduct";
 import ProductsList from "@/components/ProductsList/ProductsList";
 
 export default function ProductPage() {
@@ -8,7 +9,9 @@ export default function ProductPage() {
         <section className="border-2 border-accent rounded-md pb-3">
           <ProductsList />
         </section>
-        <section className="flex flex-col gap-2 border-2 border-accent rounded-md min-w-60 p-1"></section>
+        <section className="h-min flex flex-col gap-2 border-2 border-accent rounded-md min-w-60 p-1">
+          <AddProduct />
+        </section>
       </div>
     </div>
   );

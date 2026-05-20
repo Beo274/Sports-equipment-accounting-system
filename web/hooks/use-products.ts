@@ -1,4 +1,5 @@
 import { API_CONFIG } from "@/lib/api";
+import CreateProductDto from "@/lib/dto/createProductDto";
 import GetAllProductsResponseDto from "@/lib/dto/getAllProductsResponseDto";
 import ApiError from "@/types/apiError";
 import Product from "@/types/product";
@@ -8,6 +9,7 @@ type FetchType = "all";
 
 interface Errors {
   fetchingError: ApiError | null;
+  modifyingError: ApiError | null;
 }
 
 export default function useProducts() {
@@ -15,8 +17,10 @@ export default function useProducts() {
 
   const [errors, setErrors] = useState<Errors>({
     fetchingError: null,
+    modifyingError: null,
   });
   const [isFetchLoading, setFetchLoading] = useState(false);
+  const [isModifyLoading, setModifyLoading] = useState(false);
 
   const [fetchType, setFetchType] = useState<FetchType>("all");
   const [classId, setClassId] = useState<number | undefined>(undefined);
@@ -27,6 +31,7 @@ export default function useProducts() {
     } else {
       setErrors({
         fetchingError: null,
+        modifyingError: null,
       });
     }
   };
@@ -75,10 +80,40 @@ export default function useProducts() {
     }
   }, [fetchAll, fetchType, classId]);
 
+  const createProduct = useCallback(async (dto: CreateProductDto) => {
+    try {
+      setModifyLoading(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/product`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dto),
+      });
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка создания. Проверьте уникальность и ID класса",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, modifyingError: error }));
+      }
+    } finally {
+      setModifyLoading(false);
+    }
+  }, []);
+
   return {
     products,
 
     isFetchLoading,
+    isModifyLoading,
 
     fetchType,
     setFetchType,
@@ -89,5 +124,6 @@ export default function useProducts() {
     clearError,
 
     fetchProducts,
+    createProduct,
   };
 }
