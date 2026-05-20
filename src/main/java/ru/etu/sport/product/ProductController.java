@@ -70,7 +70,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/swap")
+    @PutMapping("/{id}/baseClass")
     public ResponseEntity<MessageResponse> updateProduct(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         productService.updateClassId(id, parentId);
         log.info("class id for product found successful");

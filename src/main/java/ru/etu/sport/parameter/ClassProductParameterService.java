@@ -87,7 +87,19 @@ public class ClassProductParameterService {
                 .maxVal(cp.getMaxVal())
                 .minVal(cp.getMinVal())
                 .intVal(cp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
+    }
+
+    public List<ClassParamBindingResponseDto> getClassParamsById(Integer classId) {
+        return classParameterRepository.findByClassId(classId).stream().map(cp -> ClassParamBindingResponseDto.builder()
+                .id(cp.getId())
+                .classId(cp.getClassEntity().getId())
+                .paramId(cp.getParameter().getId())
+                .enumValueId(cp.getEnumerationValue() != null ? cp.getEnumerationValue().getId() : null)
+                .maxVal(cp.getMaxVal())
+                .minVal(cp.getMinVal())
+                .intVal(cp.getIntVal())
+                .build()).toList();
     }
 
     @Transactional
@@ -131,7 +143,7 @@ public class ClassProductParameterService {
                 .maxVal(pp.getMaxVal())
                 .minVal(pp.getMinVal())
                 .intVal(pp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     public List<ProductParamBindingResponseDto> getProductParams(Integer productId) {
@@ -144,7 +156,7 @@ public class ClassProductParameterService {
                 .maxVal(pp.getMaxVal())
                 .minVal(pp.getMinVal())
                 .intVal(pp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     public void deleteProductParam(Integer id) {
@@ -186,7 +198,7 @@ public class ClassProductParameterService {
                     .maxVal(pp.getMaxVal())
                     .minVal(pp.getMinVal())
                     .intVal(pp.getIntVal())
-                    .build()).collect(Collectors.toList());
+                    .build()).toList();
             productInfo.put("params", params);
             items.add(productInfo);
         }
@@ -211,7 +223,7 @@ public class ClassProductParameterService {
                     map.put("short_name", p.getShortName());
                     map.put("class_id", p.getProductClass().getId());
                     return map;
-                }).collect(Collectors.toList());
+                }).toList();
 
         return Map.of("items", items);
     }

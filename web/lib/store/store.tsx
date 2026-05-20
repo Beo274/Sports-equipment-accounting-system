@@ -4,6 +4,7 @@ import useCategories from "@/hooks/use-categories";
 import useEnumerations from "@/hooks/use-enumerations";
 import useMeasures from "@/hooks/use-measures";
 import useParameters from "@/hooks/use-parameters";
+import useProducts from "@/hooks/use-products";
 import { createContext, ReactNode, useContext } from "react";
 
 interface State {
@@ -11,6 +12,7 @@ interface State {
   measures: ReturnType<typeof useMeasures>;
   enumerations: ReturnType<typeof useEnumerations>;
   parameters: ReturnType<typeof useParameters>;
+  products: ReturnType<typeof useProducts>;
 }
 
 const StoreContext = createContext<State | null>(null);
@@ -24,8 +26,9 @@ export function StoreProvider({ children }: StoreProviderProps) {
   const measures = useMeasures();
   const enumerations = useEnumerations();
   const parameters = useParameters();
+  const products = useProducts();
 
-  const values = { categories, measures, enumerations, parameters };
+  const values = { categories, measures, enumerations, parameters, products };
 
   return (
     <StoreContext.Provider value={values}>{children}</StoreContext.Provider>
