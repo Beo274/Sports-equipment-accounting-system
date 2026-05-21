@@ -5,13 +5,19 @@ import {
 } from "@/lib/dto/createEntityParameterDto";
 import CreateParamDto from "@/lib/dto/createParamDto";
 import UpdateParamDto from "@/lib/dto/updateParamDto";
-import { ClassParameter } from "@/types/entityParameter";
+import { ClassParameter, ProductParameter } from "@/types/entityParameter";
 import Parameter from "@/types/parameter";
 import { ApiError } from "next/dist/server/api-utils";
 import { useCallback, useState } from "react";
 
 export default function useParameters() {
   const [items, setItems] = useState<ReadonlyArray<Parameter>>([]);
+  const [classParameters, setClassParameters] = useState<
+    ReadonlyArray<ClassParameter>
+  >([]);
+  const [productParameters, setProductParameters] = useState<
+    ReadonlyArray<ProductParameter>
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -23,8 +29,17 @@ export default function useParameters() {
     setError(null);
   };
 
-  const clearItems = () => {
-    setItems([]);
+  const clearItems = (key: "all" | "class" | "product") => {
+    switch (key) {
+      case "all":
+        setItems([]);
+        break;
+      case "class":
+        setClassParameters([]);
+        break;
+      case "product":
+        setProductParameters([]);
+    }
   };
 
   const fetchParameters = useCallback(async () => {
@@ -191,7 +206,7 @@ export default function useParameters() {
       }
 
       const params: ClassParameter[] = await response.json();
-      return params;
+      setClassParameters(params);
     } catch (error) {
       if (error instanceof TypeError) {
         setError(new ApiError(503, "Сервер недоступен"));
@@ -199,6 +214,7 @@ export default function useParameters() {
     } finally {
       setIsLoading(false);
     }
+    return [];
   }, []);
 
   const fetchProductParameters = useCallback(async (productId: number) => {
@@ -215,8 +231,8 @@ export default function useParameters() {
         );
       }
 
-      const params: ClassParameter[] = await response.json();
-      return params;
+      const params: ProductParameter[] = await response.json();
+      setProductParameters(params);
     } catch (error) {
       if (error instanceof TypeError) {
         setError(new ApiError(503, "Сервер недоступен"));
@@ -224,10 +240,13 @@ export default function useParameters() {
     } finally {
       setIsLoading(false);
     }
+    return [];
   }, []);
 
   return {
     items,
+    classParameters,
+    productParameters,
     clearItems,
 
     dialog: {

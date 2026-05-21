@@ -144,7 +144,12 @@ function ProductItem({
             className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 -my-1"
             title="Нажмите для редактирования"
           >
-            <ItemDescription>{`ID базовой категории: ${product.classId}`}</ItemDescription>
+            <ItemDescription>
+              {product.classId
+                ? `ID базовой категории: ${product.classId}`
+                : "Базовый класс не указан"}{" "}
+              {}
+            </ItemDescription>
           </div>
         )}
       </ItemContent>

@@ -12,7 +12,12 @@ import { useEffect, useRef, useState } from "react";
 import { Field, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { EditIcon, Grid2x2Plus, TrashIcon } from "lucide-react";
+import {
+  EditIcon,
+  Grid2x2Plus,
+  TableProperties,
+  TrashIcon,
+} from "lucide-react";
 import { useStore } from "@/lib/store/store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import {
@@ -28,6 +33,7 @@ import Loader from "../Loader/Loader";
 import SetListType from "../forms/SetListType";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import AddParameterDialog from "../dialog/AddParameterDialog";
+import ListParametersDialog from "../dialog/ListParametersDialog";
 
 export function CategoriesList() {
   const {
@@ -43,6 +49,7 @@ export function CategoriesList() {
     },
   } = useStore();
   const [isAddParamOpen, setAddParamOpen] = useState(false);
+  const [isListParamsOpen, setListParamsOpen] = useState(false);
 
   useEffect(() => {
     refreshList();
@@ -91,6 +98,7 @@ export function CategoriesList() {
                   refresh={refreshList}
                   handleDelete={onDeleteCategory(c.id)}
                   openAddParam={() => setAddParamOpen(true)}
+                  openListParam={() => setListParamsOpen(true)}
                 />
               ))}
             </ItemGroup>
@@ -105,6 +113,14 @@ export function CategoriesList() {
         open={isAddParamOpen}
         onOpenChange={setAddParamOpen}
         editingEntity={{
+          paramFor: "class",
+          entity: editingCategory,
+        }}
+      />
+      <ListParametersDialog
+        open={isListParamsOpen}
+        onOpenChange={setListParamsOpen}
+        dialogEntity={{
           paramFor: "class",
           entity: editingCategory,
         }}
@@ -124,6 +140,7 @@ interface CategoriesListItemProps {
   handleDelete: () => Promise<void>;
   refresh: () => Promise<void>;
   openAddParam: () => void;
+  openListParam: () => void;
 }
 
 const NullMeasureUnit = "Без е. и." as const;
@@ -243,73 +260,89 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
         >
           <Grid2x2Plus />
         </Button>
-        <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Редактирование класса</DialogTitle>
-            </DialogHeader>
-            <Field>
-              <FieldLabel>Выбор единицы измерения</FieldLabel>
-              <Select
-                onValueChange={handleMeasureUnitChange}
-                value={measureUnit}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder="Единица измерения"
-                    className="text-gray-400"
-                  >
-                    {measureUnit === NullMeasureUnit ? (
-                      <span>{NullMeasureUnit}</span>
-                    ) : (
-                      (() => {
-                        const selected = measures.find(
-                          (m) => String(m.id) === measureUnit,
-                        );
-                        return selected ? (
-                          <span>{`${selected.name} (${selected.shortName})`}</span>
-                        ) : null;
-                      })()
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Единицы измерения категории</SelectLabel>
-                    <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
-                    {measures.map((m) => (
-                      <SelectItem key={m.id} value={String(m.id)}>
-                        {`${m.name} (${m.shortName})`}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field>
-              <Input
-                id="category-edit-baseClass-id"
-                type="number"
-                min={1}
-                value={baseClassId ?? ""}
-                onChange={(e) => setBaseClassId(e.target.value)}
-                placeholder="Нет базовой категории"
-                className="placeholder:text-gray-400"
-              />
-            </Field>
-            <Button
-              variant="secondary"
-              className="hover:bg-accent"
-              type="submit"
-              disabled={isLoading}
-              ref={buttonRef}
-              onClick={handleEdit}
-            >
-              Сохранить
-            </Button>
-          </DialogContent>
-        </Dialog>
+        <Button
+          variant="ghost"
+          className="hover:bg-accent"
+          disabled={isLoading}
+          title="Посмотреть параметры"
+          onClick={() => {
+            props.openListParam();
+            setEditingCategory({
+              id: props.id,
+              name: props.name,
+              shortName: props.shortName,
+              baseClassId: props.baseClassId,
+              baseClass: null,
+              mUnitId: props.measureUnitId,
+            });
+          }}
+        >
+          <TableProperties />
+        </Button>
       </ItemActions>
+      <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактирование класса</DialogTitle>
+          </DialogHeader>
+          <Field>
+            <FieldLabel>Выбор единицы измерения</FieldLabel>
+            <Select onValueChange={handleMeasureUnitChange} value={measureUnit}>
+              <SelectTrigger>
+                <SelectValue
+                  placeholder="Единица измерения"
+                  className="text-gray-400"
+                >
+                  {measureUnit === NullMeasureUnit ? (
+                    <span>{NullMeasureUnit}</span>
+                  ) : (
+                    (() => {
+                      const selected = measures.find(
+                        (m) => String(m.id) === measureUnit,
+                      );
+                      return selected ? (
+                        <span>{`${selected.name} (${selected.shortName})`}</span>
+                      ) : null;
+                    })()
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Единицы измерения категории</SelectLabel>
+                  <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
+                  {measures.map((m) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      {`${m.name} (${m.shortName})`}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field>
+            <Input
+              id="category-edit-baseClass-id"
+              type="number"
+              min={1}
+              value={baseClassId ?? ""}
+              onChange={(e) => setBaseClassId(e.target.value)}
+              placeholder="Нет базовой категории"
+              className="placeholder:text-gray-400"
+            />
+          </Field>
+          <Button
+            variant="secondary"
+            className="hover:bg-accent"
+            type="submit"
+            disabled={isLoading}
+            ref={buttonRef}
+            onClick={handleEdit}
+          >
+            Сохранить
+          </Button>
+        </DialogContent>
+      </Dialog>
     </Item>
   );
 }

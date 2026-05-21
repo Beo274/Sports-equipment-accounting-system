@@ -28,7 +28,7 @@ export default function ParametersList() {
   useEffect(() => {
     fetchParameters();
     return () => {
-      clearItems();
+      clearItems("all");
     };
   }, []);
 
