@@ -8,12 +8,7 @@ import Parameter from "@/types/parameter";
 import Loader from "../Loader/Loader";
 import { Button } from "../ui/button";
 import { Edit, Trash } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "../ui/dialog";
+
 import EditParamDialog from "../dialog/EditParamDialog";
 
 export default function ParametersList() {

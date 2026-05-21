@@ -92,7 +92,16 @@ export default function useEnumerations() {
             );
           }
           const values: EnumerationValue[] = await response.json();
-          newValuesMap.set(e.id, values);
+          newValuesMap.set(
+            e.id,
+            values.toSorted((a, b) => {
+              if (a.position && b.position) {
+                return a.position - b.position;
+              } else {
+                return -1;
+              }
+            }),
+          );
         });
 
         await Promise.all(promises);

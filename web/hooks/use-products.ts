@@ -24,6 +24,7 @@ export default function useProducts() {
 
   const [fetchType, setFetchType] = useState<FetchType>("all");
   const [classId, setClassId] = useState<number | undefined>(undefined);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const clearError = (errorType?: keyof Errors) => {
     if (errorType) {
@@ -175,6 +176,8 @@ export default function useProducts() {
 
     classId,
     setClassId,
+    editingProduct,
+    setEditingProduct,
 
     errors,
     clearError,

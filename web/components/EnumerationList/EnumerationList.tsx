@@ -121,13 +121,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
         valuesIds: new Set(),
       };
     return {
-      values: values.toSorted((a, b) => {
-        if (a.position && b.position) {
-          return a.position - b.position;
-        } else {
-          return -1;
-        }
-      }),
+      values,
       valuesIds: new Set(values.map((item) => item.id)),
     };
   }, [enumValues, id]);
@@ -334,8 +328,11 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
   function renderValue() {
     if (enumerationValue.intValue) {
       return (
-        <span>{`${enumerationValue.intValue}
-          ${enumerationValue.measure && ` ${enumerationValue.measure.name} (${enumerationValue.measure.shortName})`}`}</span>
+        <span>
+          {enumerationValue.intValue}
+          {enumerationValue.measure &&
+            ` ${enumerationValue.measure.name} (${enumerationValue.measure.shortName})`}
+        </span>
       );
     } else if (enumerationValue.stringValue) {
       return <span>{enumerationValue.stringValue}</span>;

@@ -17,6 +17,7 @@ export default function useCategories() {
   const [error, setError] = useState<ApiError | null>(null);
   const [parentId, setParentId] = useState("");
   const [childId, setChildId] = useState("");
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const clearError = () => {
     setError(null);
@@ -232,6 +233,11 @@ export default function useCategories() {
     setListType,
     setParentId,
     setChildId,
+
+    dialog: {
+      editingCategory,
+      setEditingCategory,
+    },
 
     isLoading,
 

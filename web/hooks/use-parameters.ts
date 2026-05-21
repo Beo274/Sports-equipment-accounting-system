@@ -1,6 +1,11 @@
 import { API_CONFIG } from "@/lib/api";
+import {
+  CreateClassParameterDto,
+  CreateProductParameterDto,
+} from "@/lib/dto/createEntityParameterDto";
 import CreateParamDto from "@/lib/dto/createParamDto";
 import UpdateParamDto from "@/lib/dto/updateParamDto";
+import { ClassParameter } from "@/types/entityParameter";
 import Parameter from "@/types/parameter";
 import { ApiError } from "next/dist/server/api-utils";
 import { useCallback, useState } from "react";
@@ -117,6 +122,110 @@ export default function useParameters() {
     [],
   );
 
+  const addParameterToClass = useCallback(
+    async (dto: CreateClassParameterDto) => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${API_CONFIG.BASE_URL}/param/class`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dto),
+        });
+
+        if (!response.ok) {
+          throw new ApiError(
+            response.status,
+            "Ошибка при создании параметра. Проверьте данные и повторите",
+          );
+        }
+      } catch (error) {
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const addParameterToProduct = useCallback(
+    async (dto: CreateProductParameterDto) => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${API_CONFIG.BASE_URL}/param/product`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dto),
+        });
+
+        if (!response.ok) {
+          throw new ApiError(
+            response.status,
+            "Ошибка при создании параметра. Проверьте данные и повторите",
+          );
+        }
+      } catch (error) {
+        if (error instanceof TypeError) {
+          setError(new ApiError(503, "Сервер недоступен"));
+        } else if (error instanceof ApiError) setError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const fetchClassParameters = useCallback(async (classId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/param/class?classId=${classId}`,
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка получения параметров, проверьте данные и повторите",
+        );
+      }
+
+      const params: ClassParameter[] = await response.json();
+      return params;
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const fetchProductParameters = useCallback(async (productId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/param/product?classId=${productId}`,
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка получения параметров, проверьте данные и повторите",
+        );
+      }
+
+      const params: ClassParameter[] = await response.json();
+      return params;
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     items,
     clearItems,
@@ -137,5 +246,9 @@ export default function useParameters() {
     createParameter,
     deleteParameter,
     updateParameter,
+    addParameterToClass,
+    addParameterToProduct,
+    fetchClassParameters,
+    fetchProductParameters,
   };
 }

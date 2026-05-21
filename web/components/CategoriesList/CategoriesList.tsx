@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { Field, FieldLabel } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { EditIcon, Grid2x2Plus, TrashIcon } from "lucide-react";
 import { useStore } from "@/lib/store/store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import {
@@ -27,17 +27,22 @@ import {
 import Loader from "../Loader/Loader";
 import SetListType from "../forms/SetListType";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
+import AddParameterDialog from "../dialog/AddParameterDialog";
 
 export function CategoriesList() {
   const {
-    items,
-    isLoading,
-    listType,
-    deleteCategory,
-    refreshList,
-    error,
-    clearError,
-  } = useStore().categories;
+    categories: {
+      items,
+      isLoading,
+      listType,
+      deleteCategory,
+      refreshList,
+      error,
+      clearError,
+      dialog: { editingCategory },
+    },
+  } = useStore();
+  const [isAddParamOpen, setAddParamOpen] = useState(false);
 
   useEffect(() => {
     refreshList();
@@ -85,6 +90,7 @@ export function CategoriesList() {
                   measureUnitId={c.mUnitId ?? null}
                   refresh={refreshList}
                   handleDelete={onDeleteCategory(c.id)}
+                  openAddParam={() => setAddParamOpen(true)}
                 />
               ))}
             </ItemGroup>
@@ -95,6 +101,14 @@ export function CategoriesList() {
           </div>
         )}
       </div>
+      <AddParameterDialog
+        open={isAddParamOpen}
+        onOpenChange={setAddParamOpen}
+        editingEntity={{
+          paramFor: "class",
+          entity: editingCategory,
+        }}
+      />
     </div>
   );
 }
@@ -109,6 +123,7 @@ interface CategoriesListItemProps {
 
   handleDelete: () => Promise<void>;
   refresh: () => Promise<void>;
+  openAddParam: () => void;
 }
 
 const NullMeasureUnit = "Без е. и." as const;
@@ -128,6 +143,7 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
       isLoading,
       deleteBaseClass,
       deleteMeasure,
+      dialog: { setEditingCategory },
     },
   } = useStore();
   const [baseClassId, setBaseClassId] = useState(
@@ -195,6 +211,7 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           variant={"ghost"}
           className="hover:bg-accent"
           disabled={isLoading}
+          title="Удалить"
         >
           <TrashIcon />
         </Button>
@@ -203,8 +220,28 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           variant={"ghost"}
           className="hover:bg-accent"
           disabled={isLoading}
+          title="Редактировать"
         >
           <EditIcon />
+        </Button>
+        <Button
+          variant="ghost"
+          className="hover:bg-accent"
+          disabled={isLoading}
+          title="Добавить параметр"
+          onClick={() => {
+            props.openAddParam();
+            setEditingCategory({
+              id: props.id,
+              name: props.name,
+              shortName: props.shortName,
+              baseClassId: props.baseClassId,
+              baseClass: null,
+              mUnitId: props.measureUnitId,
+            });
+          }}
+        >
+          <Grid2x2Plus />
         </Button>
         <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
           <DialogContent>

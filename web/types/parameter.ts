@@ -4,3 +4,5 @@ export default interface Parameter {
   shortName: string;
   measureUnitId: number | null;
 }
+
+export const NullParameterId = "Не выбрано" as const;

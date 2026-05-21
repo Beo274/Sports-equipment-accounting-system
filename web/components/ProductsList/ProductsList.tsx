@@ -52,20 +52,26 @@ export default function ProductsList() {
         ) : (
           <div className="w-full max-h-125">
             <ItemGroup>
-              {products.map((p) => (
-                <ProductItem
-                  key={p.id}
-                  product={p}
-                  handleDelete={async () => {
-                    await deleteProduct(p.id);
-                    fetchProducts();
-                  }}
-                  handleUpdateBaseClass={async (classId: number) => {
-                    await updateBaseClass(p.id, classId);
-                    fetchProducts();
-                  }}
-                />
-              ))}
+              {products.length ? (
+                products.map((p) => (
+                  <ProductItem
+                    key={p.id}
+                    product={p}
+                    handleDelete={async () => {
+                      await deleteProduct(p.id);
+                      fetchProducts();
+                    }}
+                    handleUpdateBaseClass={async (classId: number) => {
+                      await updateBaseClass(p.id, classId);
+                      fetchProducts();
+                    }}
+                  />
+                ))
+              ) : (
+                <Item className="w-full h-full">
+                  <ItemContent>Пусто...</ItemContent>
+                </Item>
+              )}
             </ItemGroup>
           </div>
         )}

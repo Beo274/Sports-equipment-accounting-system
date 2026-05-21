@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store/store";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Field, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SetProductSort() {
   const {
