@@ -14,7 +14,9 @@ import Loader from "../Loader/Loader";
 import Product from "@/types/product";
 import { KeyboardEvent, useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { Trash } from "lucide-react";
+import { Grid2x2Plus, TableProperties, Trash } from "lucide-react";
+import AddParameterDialog from "../dialog/AddParameterDialog";
+import ListParametersDialog from "../dialog/ListParametersDialog";
 
 export default function ProductsList() {
   const {
@@ -26,8 +28,12 @@ export default function ProductsList() {
       fetchProducts,
       deleteProduct,
       updateBaseClass,
+      editingProduct,
+      setEditingProduct,
     },
   } = useStore();
+  const [isAddParamOpen, setAddParamOpen] = useState(false);
+  const [isListParamsOpen, setListParamOpen] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -65,6 +71,14 @@ export default function ProductsList() {
                       await updateBaseClass(p.id, classId);
                       fetchProducts();
                     }}
+                    openAddParam={() => {
+                      setAddParamOpen(true);
+                      setEditingProduct(p);
+                    }}
+                    openListParam={() => {
+                      setListParamOpen(true);
+                      setEditingProduct(p);
+                    }}
                   />
                 ))
               ) : (
@@ -76,6 +90,16 @@ export default function ProductsList() {
           </div>
         )}
       </div>
+      <AddParameterDialog
+        editingEntity={{ paramFor: "product", entity: editingProduct }}
+        open={isAddParamOpen}
+        onOpenChange={setAddParamOpen}
+      />
+      <ListParametersDialog
+        dialogEntity={{ paramFor: "product", entity: editingProduct }}
+        open={isListParamsOpen}
+        onOpenChange={setListParamOpen}
+      />
     </div>
   );
 }
@@ -85,12 +109,17 @@ interface ProductItemProps {
 
   handleDelete: () => Promise<void>;
   handleUpdateBaseClass: (classId: number) => Promise<void>;
+
+  openAddParam: () => void;
+  openListParam: () => void;
 }
 
 function ProductItem({
   product,
   handleDelete,
   handleUpdateBaseClass,
+  openAddParam,
+  openListParam,
 }: ProductItemProps) {
   const {
     products: { isModifyLoading },
@@ -154,6 +183,24 @@ function ProductItem({
         )}
       </ItemContent>
       <ItemActions>
+        <Button
+          variant="ghost"
+          className="hover:bg-accent"
+          disabled={isModifyLoading}
+          title="Добавить параметр"
+          onClick={() => openAddParam()}
+        >
+          <Grid2x2Plus />
+        </Button>
+        <Button
+          variant="ghost"
+          className="hover:bg-accent"
+          disabled={isModifyLoading}
+          title="Посмотреть параметры"
+          onClick={() => openListParam()}
+        >
+          <TableProperties />
+        </Button>
         <Button
           variant="ghost"
           className="hover:bg-accent"

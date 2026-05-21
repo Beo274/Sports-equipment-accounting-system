@@ -1,5 +1,11 @@
 import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
-import { Item, ItemDescription, ItemGroup, ItemTitle } from "../ui/item";
+import {
+  Item,
+  ItemActions,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "../ui/item";
 import { DialogEntity } from "./AddParameterDialog";
 import { ClassParameter, ProductParameter } from "@/types/entityParameter";
 import { useStore } from "@/lib/store/store";
@@ -7,6 +13,8 @@ import { useEffect } from "react";
 import Loader from "../Loader/Loader";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { EnumerationValue } from "@/types/enumeration";
+import { Button } from "../ui/button";
+import { Trash } from "lucide-react";
 
 interface ListParametersDialogProps {
   open: boolean;
@@ -29,6 +37,8 @@ export default function ListParametersDialog({
       clearItems,
       fetchClassParameters,
       fetchProductParameters,
+      deleteClassParameter,
+      deleteProductParameter,
     },
   } = useStore();
 
@@ -64,7 +74,18 @@ export default function ListParametersDialog({
     ) : (
       <ItemGroup>
         {params.map((p) => (
-          <ParameterItem key={p.id} entity={p} />
+          <ParameterItem
+            key={p.id}
+            entity={p}
+            handleDelete={async () => {
+              if (dialogEntity.paramFor === "class") {
+                await deleteClassParameter(p.id);
+              } else {
+                await deleteProductParameter(p.id);
+              }
+              getParams();
+            }}
+          />
         ))}
       </ItemGroup>
     );
@@ -91,17 +112,29 @@ export default function ListParametersDialog({
 
 interface ParameterItemProps {
   entity: ClassParameter | ProductParameter;
+
+  handleDelete: () => Promise<void>;
 }
 
-function ParameterItem({ entity }: ParameterItemProps) {
+function ParameterItem({ entity, handleDelete }: ParameterItemProps) {
   return (
-    <Item>
+    <Item className="grid grid-cols-3">
       <ItemTitle>{`${entity.param.name} (${entity.param.shortName})`}</ItemTitle>
       <ItemDescription>
         {entity.enumValue
           ? extractEnumValue(entity.enumValue)
-          : `Диапазон: ${entity.minVal} <-> ${entity.maxVal}`}
+          : `от ${entity.minVal} до ${entity.maxVal}`}
       </ItemDescription>
+      <ItemActions className="justify-self-end">
+        <Button
+          className="hover:bg-accent"
+          type="button"
+          variant="secondary"
+          onClick={handleDelete}
+        >
+          <Trash />
+        </Button>
+      </ItemActions>
     </Item>
   );
 }
@@ -115,7 +148,7 @@ function extractEnumValue(ev: EnumerationValue) {
     return <span>{ev.stringValue}</span>;
   } else if (ev.imageValue) {
     return (
-      <a href={ev.imageValue} className="hover:text-accent">
+      <a href={ev.imageValue} target="_blank" className="hover:text-accent">
         Картинка
       </a>
     );

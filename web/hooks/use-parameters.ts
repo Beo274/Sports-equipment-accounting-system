@@ -221,7 +221,7 @@ export default function useParameters() {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `${API_CONFIG.BASE_URL}/param/product?classId=${productId}`,
+        `${API_CONFIG.BASE_URL}/param/product?productId=${productId}`,
       );
 
       if (!response.ok) {
@@ -241,6 +241,56 @@ export default function useParameters() {
       setIsLoading(false);
     }
     return [];
+  }, []);
+
+  const deleteClassParameter = useCallback(async (classParamId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/param/class/${classParamId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка удаления, проверьте актуальность данных или повторите",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const deleteProductParameter = useCallback(async (productParamId: number) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/param/product/${productParamId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка удаления, проверьте актуальность данных или повторите",
+        );
+      }
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setError(new ApiError(503, "Сервер недоступен"));
+      } else if (error instanceof ApiError) setError(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return {
@@ -269,5 +319,7 @@ export default function useParameters() {
     addParameterToProduct,
     fetchClassParameters,
     fetchProductParameters,
+    deleteClassParameter,
+    deleteProductParameter,
   };
 }

@@ -86,11 +86,11 @@ export default function AddParameterDialog({
   const {
     control,
     handleSubmit,
-    formState: { isValid },
+    formState: { isValid, errors },
     register,
     watch,
     reset,
-  } = useForm<AddParameterFormSchema>();
+  } = useForm<AddParameterFormSchema>({ mode: "onChange" });
   const [valueType, setValueType] = useState<"enum" | "int">("enum");
   const [fetchedEnumValues, setFetchedEnumValues] =
     useState<ReadonlyArray<EnumerationValue> | null>(null);
@@ -112,6 +112,8 @@ export default function AddParameterDialog({
   }, [isLoadingEnums]);
 
   const enumId = watch("enumId");
+  const minVal = watch("minVal");
+  const maxVal = watch("maxVal");
 
   useEffect(() => {
     if (enumId && enumId !== NullEnumerationId) {
@@ -239,7 +241,10 @@ export default function AddParameterDialog({
                   control={control}
                   defaultValue={NullParameterId}
                   rules={{
-                    validate: async (value) => value !== NullParameterId,
+                    validate: async (value) => {
+                      if (value === NullParameterId) return "Выберите параметр";
+                      return true;
+                    },
                   }}
                   render={({ field }) => (
                     <Select
@@ -267,6 +272,11 @@ export default function AddParameterDialog({
                     </Select>
                   )}
                 />
+                {errors.paramId && (
+                  <span className="text-accent text-xs">
+                    {errors.paramId.message}
+                  </span>
+                )}
               </Field>
               <RadioGroup
                 value={valueType}
@@ -297,7 +307,11 @@ export default function AddParameterDialog({
                     control={control}
                     defaultValue={NullEnumerationId}
                     rules={{
-                      validate: async (value) => value !== NullEnumerationId,
+                      validate: async (value) => {
+                        if (value === NullEnumerationId)
+                          return "Выберите перечисление";
+                        return true;
+                      },
                     }}
                     render={({ field }) => (
                       <Select
@@ -325,6 +339,11 @@ export default function AddParameterDialog({
                       </Select>
                     )}
                   />
+                  {errors.enumId && (
+                    <span className="text-accent text-xs">
+                      {errors.enumId.message}
+                    </span>
+                  )}
                   {enumId !== NullEnumerationId && (
                     <Controller
                       name="enumValueId"
@@ -358,6 +377,11 @@ export default function AddParameterDialog({
                       )}
                     />
                   )}
+                  {errors.enumValueId && (
+                    <span className="text-accent text-xs">
+                      {errors.enumValueId.message}
+                    </span>
+                  )}
                 </Field>
               ) : (
                 <FieldGroup>
@@ -368,8 +392,30 @@ export default function AddParameterDialog({
                     <Input
                       id="param-min-val"
                       type="number"
-                      {...register("minVal")}
+                      {...register("minVal", {
+                        validate: {
+                          required: async (value) => {
+                            if (valueType === "int" && value === "")
+                              return "Обязательное поле";
+                            return true;
+                          },
+                          lteMax: async (value) => {
+                            if (
+                              value &&
+                              maxVal &&
+                              Number(value) > Number(maxVal)
+                            )
+                              return "Минимум  не должен быть больше максимума";
+                            return true;
+                          },
+                        },
+                      })}
                     />
+                    {errors.minVal && (
+                      <span className="text-accent text-xs">
+                        {errors.minVal.message}
+                      </span>
+                    )}
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="param-min-val">
@@ -378,8 +424,30 @@ export default function AddParameterDialog({
                     <Input
                       id="param-max-val"
                       type="number"
-                      {...register("maxVal")}
+                      {...register("maxVal", {
+                        validate: {
+                          required: async (value) => {
+                            if (valueType === "int" && value === "")
+                              return "Обязательное поле";
+                            return true;
+                          },
+                          gteMin: async (value) => {
+                            if (
+                              value &&
+                              minVal &&
+                              Number(value) < Number(minVal)
+                            )
+                              return "Максимум не должен быть меньше минимума";
+                            return true;
+                          },
+                        },
+                      })}
                     />
+                    {errors.maxVal && (
+                      <span className="text-accent text-xs">
+                        {errors.maxVal.message}
+                      </span>
+                    )}
                   </Field>
                 </FieldGroup>
               )}

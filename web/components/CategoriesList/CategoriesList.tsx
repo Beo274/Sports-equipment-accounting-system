@@ -224,15 +224,6 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
       </ItemDescription>
       <ItemActions className="col-start-2 justify-self-end p-1">
         <Button
-          onClick={props.handleDelete}
-          variant={"ghost"}
-          className="hover:bg-accent"
-          disabled={isLoading}
-          title="Удалить"
-        >
-          <TrashIcon />
-        </Button>
-        <Button
           onClick={() => setEditOpen(true)}
           variant={"ghost"}
           className="hover:bg-accent"
@@ -278,6 +269,15 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           }}
         >
           <TableProperties />
+        </Button>
+        <Button
+          onClick={props.handleDelete}
+          variant={"ghost"}
+          className="hover:bg-accent"
+          disabled={isLoading}
+          title="Удалить"
+        >
+          <TrashIcon />
         </Button>
       </ItemActions>
       <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
