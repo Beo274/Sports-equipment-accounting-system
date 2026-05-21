@@ -4,6 +4,7 @@ package ru.etu.sport.model.dto.response;
 import lombok.Builder;
 import lombok.Data;
 import ru.etu.sport.model.entity.EnumerationValue;
+import ru.etu.sport.model.entity.Parameter;
 
 @Data
 @Builder
@@ -12,7 +13,7 @@ public class ClassParamBindingResponseDto {
 
     private Integer classId;
 
-    private Integer paramId;
+    private Parameter param;
 
     private EnumerationValue enumValue;
 

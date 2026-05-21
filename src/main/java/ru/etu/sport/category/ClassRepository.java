@@ -33,5 +33,6 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Integer> {
     @Modifying
     void updateClassMeasure(@Param("classId") Integer classId, @Param("measureId") Integer measureId);
 
-    List<ClassEntity> findByBaseClassId(ClassEntity baseClassId);
+    @Query(nativeQuery = true, value = "SELECT * FROM class WHERE base_class_id = :id")
+    List<ClassEntity> findByBaseClassId(@Param("id") Integer id);
 }

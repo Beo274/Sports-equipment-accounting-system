@@ -50,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
                 .id(p.getId())
                 .name(p.getName())
                 .shortName(p.getShortName())
-                .classId(p.getProductClass().getId())
+                .classId(p.getProductClass() != null ? p.getProductClass().getId() : null)
                 .build())
             .toList();
 

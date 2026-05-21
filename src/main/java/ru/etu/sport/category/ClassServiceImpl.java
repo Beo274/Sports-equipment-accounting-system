@@ -60,7 +60,7 @@ public class ClassServiceImpl implements ClassService {
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id: " + id));
         ClassEntity parentClass = classToDelete.getBaseClass();
         if (parentClass != null) {
-            List<ClassEntity> children = classRepository.findByBaseClassId(classToDelete);
+            List<ClassEntity> children = classRepository.findByBaseClassId(id);
 
             for (ClassEntity child : children) {
                 child.setBaseClass(parentClass);
