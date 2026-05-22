@@ -49,7 +49,7 @@ export default function ParametersList() {
   return (
     <div className="h-full">
       <h3 className="p-1 text-xl">Список параметров</h3>
-      <div className="flex justify-center items-center p-1 overflow-y-auto">
+      <div className="flex justify-center max-h-100 items-center p-1 overflow-y-auto">
         {isLoading ? (
           <Item className="h-full justify-center items-center">
             <Loader />

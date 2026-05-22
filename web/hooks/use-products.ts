@@ -25,6 +25,7 @@ export default function useProducts() {
   const [fetchType, setFetchType] = useState<FetchType>("all");
   const [classId, setClassId] = useState<number | undefined>(undefined);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [paramsIds, setParamsIds] = useState<Set<number>>(new Set([]));
 
   const clearError = (errorType?: keyof Errors) => {
     if (errorType) {
@@ -73,13 +74,50 @@ export default function useProducts() {
     }
   }, []);
 
+  const fetchByParamIds = useCallback(async (ids: number[]) => {
+    console.log(ids);
+    try {
+      setFetchLoading(true);
+      const query = ids.map((id) => `paramIds=${id}`);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/product/search-by-params?${query.join("&")}`,
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка получения изделий. Проверьте данные или повторите",
+        );
+      }
+
+      const items: Product[] = await response.json();
+      console.log(items);
+      setProducts(items);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, fetchingError: error }));
+      }
+    } finally {
+      setFetchLoading(false);
+    }
+  }, []);
+
   const fetchProducts = useCallback(async () => {
     switch (fetchType) {
       case "all":
         fetchAll(classId);
         break;
+      case "with-params":
+        if (paramsIds.size) fetchByParamIds(paramsIds.values().toArray());
+        else fetchAll();
+        break;
     }
-  }, [fetchAll, fetchType, classId]);
+  }, [fetchAll, fetchType, classId, paramsIds, fetchByParamIds]);
 
   const createProduct = useCallback(async (dto: CreateProductDto) => {
     try {
@@ -178,6 +216,8 @@ export default function useProducts() {
     setClassId,
     editingProduct,
     setEditingProduct,
+    paramsIds,
+    setParamsIds,
 
     errors,
     clearError,
