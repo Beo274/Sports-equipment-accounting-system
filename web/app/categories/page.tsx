@@ -7,7 +7,7 @@ export default function CategoryPage() {
       <h2 className="text-2xl bg-accent rounded-md p-1 font-bold">Категории</h2>
       <div className="h-full grid grid-cols-[1fr_max-content] gap-2 items-start justify-center">
         <section className="border-2 border-accent rounded-md p-3">
-          <h3>Вывод категорий</h3>
+          <h3 className="p-1 text-lg">Вывод категорий</h3>
           <CategoriesList />
         </section>
         <section className="border-2 border-accent rounded-md p-2">

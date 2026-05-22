@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
 import { useEffect, useState } from "react";
-import Parameter from "@/types/parameter";
+import Parameter, { NullParameterId } from "@/types/parameter";
 import { Checkbox } from "../ui/checkbox";
 import Loader from "../Loader/Loader";
 import {
@@ -15,29 +15,44 @@ import {
   CommandList,
 } from "../ui/command";
 import { Button } from "../ui/button";
+import ErrorLabel from "../ErrorLabel/ErrorLabel";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export default function SetProductSort() {
   const {
     products: {
       fetchType,
       setFetchType,
-      classId,
       setClassId,
       isFetchLoading,
       fetchProducts,
       paramsIds,
       setParamsIds,
+      rangeMaxVal,
+      rangeMinVal,
+      setRangeMaxVal,
+      setRangeMinVal,
+      rangeParamId,
+      setRangeParamId,
     },
     parameters: {
       items: params,
       isLoading: isLoadingParams,
       error,
+      clearError,
       fetchParameters,
     },
   } = useStore();
   const [newClassId, setNewClassId] = useState("");
   const [isParamFilterOpen, setParamFilterOpen] = useState(false);
-
   useEffect(() => {
     const parsed = Number(newClassId);
     if (!isNaN(parsed) && parsed > 0) {
@@ -59,13 +74,13 @@ export default function SetProductSort() {
     <RadioGroup
       value={fetchType}
       onValueChange={setFetchType}
-      className="flex justify-between"
+      className="h-full flex flex-col justify-between"
     >
       <div className="flex gap-4 rounded-lg border p-4 bg-dimmedblue text-background">
-        <Field>
+        <Field className="flex-row">
           <FieldLabel
             htmlFor="all-products"
-            className="text-base flex flex-col items-start cursor-pointer"
+            className="text-base flex cursor-pointer"
           >
             <FieldTitle>Все изделия</FieldTitle>
           </FieldLabel>
@@ -121,9 +136,58 @@ export default function SetProductSort() {
           >
             <FieldTitle>По числовому диапазону параметра</FieldTitle>
           </FieldLabel>
+          <Select
+            value={rangeParamId}
+            onValueChange={(value: string | null) => {
+              if (value) setRangeParamId(value);
+              else setRangeParamId(NullParameterId);
+            }}
+            defaultValue={NullParameterId}
+            disabled={isLoadingParams}
+          >
+            <SelectTrigger className="bg-background text-foreground">
+              <SelectValue placeholder="ID параметра"></SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Параметры</SelectLabel>
+                <SelectItem value={NullParameterId}>
+                  {NullParameterId}
+                </SelectItem>
+                {params.map((p) => (
+                  <SelectItem
+                    key={p.id}
+                    value={String(p.id)}
+                  >{`${p.name} (${p.shortName})`}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </Field>
+        <FieldGroup>
+          <Field>
+            <Input
+              id="min-val"
+              className="bg-background text-foreground placeholder:text-gray-400"
+              placeholder="От"
+              value={rangeMinVal}
+              onChange={(e) => setRangeMinVal(e.target.value)}
+              type="number"
+            />
+          </Field>
+          <Field>
+            <Input
+              id="max-val"
+              className="bg-background text-foreground placeholder:text-gray-400"
+              placeholder="До"
+              value={rangeMaxVal}
+              onChange={(e) => setRangeMaxVal(e.target.value)}
+              type="number"
+            />
+          </Field>
+        </FieldGroup>
         <RadioGroupItem
-          value="with-param-range"
+          value="within-range"
           id="products-with-param-range"
           className="shrink-0 cursor-pointer hover:scale-140 transition-transform"
           disabled={isFetchLoading}
@@ -133,6 +197,15 @@ export default function SetProductSort() {
         <Command>
           <CommandList className="overflow-y-auto">
             <CommandGroup heading="Список параметров">
+              {error && (
+                <ErrorLabel
+                  message={error.message}
+                  onClearError={async () => {
+                    clearError();
+                    fetchParameters();
+                  }}
+                />
+              )}
               {isLoadingParams ? (
                 <Loader />
               ) : (

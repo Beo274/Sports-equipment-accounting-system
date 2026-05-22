@@ -27,7 +27,7 @@ public interface ProductParameterRepository extends JpaRepository<ProductParamet
 
     @Query("SELECT DISTINCT pp.product.id FROM ProductParameter pp " +
             "WHERE pp.parameter.id = :paramId " +
-            "AND pp.intVal BETWEEN :minVal AND :maxVal")
+            "AND (pp.intVal BETWEEN :minVal AND :maxVal OR pp.minVal <= :minVal AND pp.maxVal >= :maxVal)")
     List<Integer> findProductIdsByParamRange(
             @Param("paramId") Integer paramId,
             @Param("minVal") Integer minVal,

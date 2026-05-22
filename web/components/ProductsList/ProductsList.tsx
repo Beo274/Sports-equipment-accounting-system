@@ -41,8 +41,7 @@ export default function ProductsList() {
 
   return (
     <div className="h-full">
-      <h3 className="p-1 text-xl">Список изделий</h3>
-      <div className="flex justify-center items-center p-1 overflow-y-auto">
+      <div className="max-h-100 flex justify-center items-center p-1 overflow-y-auto">
         {errors.fetchingError ? (
           <ErrorLabel
             message={errors.fetchingError.message}

@@ -7,11 +7,14 @@ export default function ProductPage() {
     <div className="h-full w-full flex flex-col gap-1 p-1">
       <h2 className="text-2xl bg-accent rounded-md p-1 font-bold">Изделия</h2>
       <div className="h-full grid grid-cols-[1fr_max-content] gap-3">
-        <section className="col-span-2">
-          <SetProductSort />
-        </section>
-        <section className="border-2 border-accent rounded-md pb-3">
-          <ProductsList />
+        <section className="grid grid-cols-[1fr_max-content] gap-2 border-2 border-accent rounded-md p-3">
+          <div className="h-full p-1 pb-3 border-2 border-accent rounded-md">
+            <h3 className="p-1 text-xl">Список изделий</h3>
+            <ProductsList />
+          </div>
+          <div>
+            <SetProductSort />
+          </div>
         </section>
         <section className="h-min flex flex-col gap-2 border-2 border-accent rounded-md min-w-60 p-1">
           <AddProduct />
