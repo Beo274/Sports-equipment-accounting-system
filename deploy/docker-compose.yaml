@@ -30,6 +30,19 @@ services:
     depends_on:
       - postgres
 
+  web-app:
+    container_name: sports_eq_web
+    build:
+      context: ../
+      dockerfile: ./web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    networks:
+      - data_network
+    depends_on:
+      - postgres
+      - sports-api
 
 volumes:
   sports_pgdata:
