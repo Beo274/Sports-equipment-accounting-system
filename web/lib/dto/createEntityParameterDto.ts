@@ -3,6 +3,7 @@ interface CreateEntityParameterDto {
   enumValueId: number | null;
   maxVal: number | null;
   minVal: number | null;
+  intVal: number | null;
 }
 
 export interface CreateClassParameterDto extends CreateEntityParameterDto {

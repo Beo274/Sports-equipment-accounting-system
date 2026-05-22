@@ -7,6 +7,7 @@ interface EntityParameter {
   enumValue: EnumerationValue | null;
   maxVal: number | null;
   minVal: number | null;
+  intVal: number | null;
 }
 
 export interface ClassParameter extends EntityParameter {

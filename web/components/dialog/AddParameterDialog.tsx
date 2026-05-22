@@ -10,8 +10,18 @@ import { Category } from "@/types/category";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "../ui/field";
 import { useStore } from "@/lib/store/store";
 import { NullParameterId } from "@/types/parameter";
-import { EnumerationValue, NullEnumerationId } from "@/types/enumeration";
-import { Controller, useForm } from "react-hook-form";
+import {
+  Enumeration,
+  EnumerationValue,
+  NullEnumerationId,
+} from "@/types/enumeration";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  useForm,
+  UseFormRegister,
+} from "react-hook-form";
 import {
   Select,
   SelectContent,
@@ -21,7 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ComponentType,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Button } from "../ui/button";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
@@ -91,7 +107,7 @@ export default function AddParameterDialog({
     watch,
     reset,
   } = useForm<AddParameterFormSchema>({ mode: "onChange" });
-  const [valueType, setValueType] = useState<"enum" | "int">("enum");
+  const [valueType, setValueType] = useState<"enum" | "int" | "range">("enum");
   const [fetchedEnumValues, setFetchedEnumValues] =
     useState<ReadonlyArray<EnumerationValue> | null>(null);
 
@@ -141,16 +157,29 @@ export default function AddParameterDialog({
             enumValueId: Number(data.enumValueId),
             maxVal: null,
             minVal: null,
+            intVal: null,
           };
           await addParameterToClass(enumDto);
+          break;
+        case "range":
+          const rangeDto: CreateClassParameterDto = {
+            classId: editingEntity.entity.id,
+            paramId: Number(data.paramId),
+            enumValueId: null,
+            maxVal: Number(data.maxVal),
+            minVal: Number(data.minVal),
+            intVal: null,
+          };
+          await addParameterToClass(rangeDto);
           break;
         case "int":
           const intDto: CreateClassParameterDto = {
             classId: editingEntity.entity.id,
             paramId: Number(data.paramId),
             enumValueId: null,
-            maxVal: Number(data.maxVal),
-            minVal: Number(data.minVal),
+            maxVal: null,
+            minVal: null,
+            intVal: Number(data.intVal),
           };
           await addParameterToClass(intDto);
       }
@@ -163,16 +192,29 @@ export default function AddParameterDialog({
             enumValueId: Number(data.enumValueId),
             maxVal: null,
             minVal: null,
+            intVal: null,
           };
           await addParameterToProduct(enumDto);
+          break;
+        case "range":
+          const rangeDto: CreateProductParameterDto = {
+            productId: editingEntity.entity.id,
+            paramId: Number(data.paramId),
+            enumValueId: null,
+            maxVal: Number(data.maxVal),
+            minVal: Number(data.minVal),
+            intVal: null,
+          };
+          await addParameterToProduct(rangeDto);
           break;
         case "int":
           const intDto: CreateProductParameterDto = {
             productId: editingEntity.entity.id,
             paramId: Number(data.paramId),
             enumValueId: null,
-            maxVal: Number(data.maxVal),
-            minVal: Number(data.minVal),
+            maxVal: null,
+            minVal: null,
+            intVal: Number(data.intVal),
           };
           await addParameterToProduct(intDto);
       }
@@ -217,6 +259,41 @@ export default function AddParameterDialog({
       );
     }
   }, [paramError, enumsErrors, clearParamError, clearEnumError]);
+
+  const renderValueFields = () => {
+    switch (valueType) {
+      case "enum":
+        return (
+          <EnumValueFields
+            control={control}
+            errors={errors}
+            isLoadingEnums={isLoadingEnums}
+            isLoadingValues={isLoadingValues}
+            enumId={enumId}
+            enums={enums}
+            fetchedEnumValues={fetchedEnumValues}
+          />
+        );
+      case "int":
+        return (
+          <IntValueFields
+            register={register}
+            errors={errors}
+            valueType={valueType}
+          />
+        );
+      case "range":
+        return (
+          <RangeValueFields
+            register={register}
+            errors={errors}
+            maxVal={maxVal}
+            minVal={minVal}
+            valueType={valueType}
+          />
+        );
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -299,158 +376,16 @@ export default function AddParameterDialog({
                   />
                   <Label htmlFor="int-type">Числовой</Label>
                 </div>
-              </RadioGroup>
-              {valueType === "enum" ? (
-                <Field>
-                  <Controller
-                    name="enumId"
-                    control={control}
-                    defaultValue={NullEnumerationId}
-                    rules={{
-                      validate: async (value) => {
-                        if (value === NullEnumerationId)
-                          return "Выберите перечисление";
-                        return true;
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={isLoadingEnums}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="ID перечисления"></SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Перечисления</SelectLabel>
-                            <SelectItem value={NullEnumerationId}>
-                              {NullEnumerationId}
-                            </SelectItem>
-                            {enums.map((e) => (
-                              <SelectItem
-                                key={e.id}
-                                value={String(e.id)}
-                              >{`${e.name} (${e.shortName})`}</SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    )}
+                <div className="flex gap-2 group">
+                  <RadioGroupItem
+                    value="range"
+                    id="range-type"
+                    className="group-hover:scale-120 transition-transform"
                   />
-                  {errors.enumId && (
-                    <span className="text-accent text-xs">
-                      {errors.enumId.message}
-                    </span>
-                  )}
-                  {enumId !== NullEnumerationId && (
-                    <Controller
-                      name="enumValueId"
-                      control={control}
-                      defaultValue={null}
-                      rules={{
-                        validate: async (value) => {
-                          if (value === null) return "Выберите значение";
-                          return true;
-                        },
-                      }}
-                      render={({ field }) => (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={isLoadingValues}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Значение перечисления"></SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Значения</SelectLabel>
-                              {fetchedEnumValues &&
-                                fetchedEnumValues.map((v) =>
-                                  enumValueToSelectItem(v),
-                                )}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  )}
-                  {errors.enumValueId && (
-                    <span className="text-accent text-xs">
-                      {errors.enumValueId.message}
-                    </span>
-                  )}
-                </Field>
-              ) : (
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="param-min-val">
-                      Мин. значение
-                    </FieldLabel>
-                    <Input
-                      id="param-min-val"
-                      type="number"
-                      {...register("minVal", {
-                        validate: {
-                          required: async (value) => {
-                            if (valueType === "int" && value === "")
-                              return "Обязательное поле";
-                            return true;
-                          },
-                          lteMax: async (value) => {
-                            if (
-                              value &&
-                              maxVal &&
-                              Number(value) > Number(maxVal)
-                            )
-                              return "Минимум  не должен быть больше максимума";
-                            return true;
-                          },
-                        },
-                      })}
-                    />
-                    {errors.minVal && (
-                      <span className="text-accent text-xs">
-                        {errors.minVal.message}
-                      </span>
-                    )}
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="param-min-val">
-                      Макс. значение
-                    </FieldLabel>
-                    <Input
-                      id="param-max-val"
-                      type="number"
-                      {...register("maxVal", {
-                        validate: {
-                          required: async (value) => {
-                            if (valueType === "int" && value === "")
-                              return "Обязательное поле";
-                            return true;
-                          },
-                          gteMin: async (value) => {
-                            if (
-                              value &&
-                              minVal &&
-                              Number(value) < Number(minVal)
-                            )
-                              return "Максимум не должен быть меньше минимума";
-                            return true;
-                          },
-                        },
-                      })}
-                    />
-                    {errors.maxVal && (
-                      <span className="text-accent text-xs">
-                        {errors.maxVal.message}
-                      </span>
-                    )}
-                  </Field>
-                </FieldGroup>
-              )}
+                  <Label htmlFor="range-type">Диапазон</Label>
+                </div>
+              </RadioGroup>
+              {renderValueFields()}
             </FieldSet>
             <Button
               type="submit"
@@ -493,4 +428,201 @@ function enumValueToSelectItem(ev: EnumerationValue) {
       </SelectItem>
     );
   } else return <SelectItem key={ev.id}>Значение неопределено</SelectItem>;
+}
+
+interface EnumValueFieldsProps {
+  control: Control<AddParameterFormSchema>;
+  errors: FieldErrors<AddParameterFormSchema>;
+  isLoadingEnums: boolean;
+  isLoadingValues: boolean;
+  enums: ReadonlyArray<Enumeration>;
+  enumId: string;
+  fetchedEnumValues: ReadonlyArray<EnumerationValue> | null;
+}
+
+function EnumValueFields({
+  control,
+  errors,
+  isLoadingEnums,
+  isLoadingValues,
+  enums,
+  fetchedEnumValues,
+  enumId,
+}: EnumValueFieldsProps) {
+  return (
+    <Field>
+      <Controller
+        name="enumId"
+        control={control}
+        defaultValue={NullEnumerationId}
+        rules={{
+          validate: async (value) => {
+            if (value === NullEnumerationId) return "Выберите перечисление";
+            return true;
+          },
+        }}
+        render={({ field }) => (
+          <Select
+            value={field.value}
+            onValueChange={field.onChange}
+            disabled={isLoadingEnums}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="ID перечисления"></SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Перечисления</SelectLabel>
+                <SelectItem value={NullEnumerationId}>
+                  {NullEnumerationId}
+                </SelectItem>
+                {enums.map((e) => (
+                  <SelectItem
+                    key={e.id}
+                    value={String(e.id)}
+                  >{`${e.name} (${e.shortName})`}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        )}
+      />
+      {errors.enumId && (
+        <span className="text-accent text-xs">{errors.enumId.message}</span>
+      )}
+      {enumId !== NullEnumerationId && (
+        <Controller
+          name="enumValueId"
+          control={control}
+          defaultValue={null}
+          rules={{
+            validate: async (value) => {
+              if (value === null) return "Выберите значение";
+              return true;
+            },
+          }}
+          render={({ field }) => (
+            <Select
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={isLoadingValues}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Значение перечисления"></SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Значения</SelectLabel>
+                  {fetchedEnumValues &&
+                    fetchedEnumValues.map((v) => enumValueToSelectItem(v))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
+        />
+      )}
+      {errors.enumValueId && (
+        <span className="text-accent text-xs">
+          {errors.enumValueId.message}
+        </span>
+      )}
+    </Field>
+  );
+}
+
+interface RangeValueFieldsProps {
+  register: UseFormRegister<AddParameterFormSchema>;
+  errors: FieldErrors<AddParameterFormSchema>;
+  minVal: string;
+  maxVal: string;
+  valueType: string;
+}
+
+function RangeValueFields({
+  register,
+  errors,
+  maxVal,
+  minVal,
+  valueType,
+}: RangeValueFieldsProps) {
+  return (
+    <FieldGroup>
+      <Field>
+        <FieldLabel htmlFor="param-min-val">Мин. значение</FieldLabel>
+        <Input
+          id="param-min-val"
+          type="number"
+          {...register("minVal", {
+            validate: {
+              required: async (value) => {
+                if (valueType === "int" && value === "")
+                  return "Обязательное поле";
+                return true;
+              },
+              lteMax: async (value) => {
+                if (value && maxVal && Number(value) > Number(maxVal))
+                  return "Минимум  не должен быть больше максимума";
+                return true;
+              },
+            },
+          })}
+        />
+        {errors.minVal && (
+          <span className="text-accent text-xs">{errors.minVal.message}</span>
+        )}
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="param-min-val">Макс. значение</FieldLabel>
+        <Input
+          id="param-max-val"
+          type="number"
+          {...register("maxVal", {
+            validate: {
+              required: async (value) => {
+                if (valueType === "int" && value === "")
+                  return "Обязательное поле";
+                return true;
+              },
+              gteMin: async (value) => {
+                if (value && minVal && Number(value) < Number(minVal))
+                  return "Максимум не должен быть меньше минимума";
+                return true;
+              },
+            },
+          })}
+        />
+        {errors.maxVal && (
+          <span className="text-accent text-xs">{errors.maxVal.message}</span>
+        )}
+      </Field>
+    </FieldGroup>
+  );
+}
+
+interface IntValueFieldsProps {
+  register: UseFormRegister<AddParameterFormSchema>;
+  errors: FieldErrors<AddParameterFormSchema>;
+  valueType: string;
+}
+
+function IntValueFields({ register, errors, valueType }: IntValueFieldsProps) {
+  return (
+    <Field>
+      <FieldLabel htmlFor="param-int-val">Числовое значение</FieldLabel>
+      <Input
+        id="param-int-val"
+        type="number"
+        {...register("intVal", {
+          validate: async (value) => {
+            if (valueType === "int" && isNaN(Number(value)))
+              return "Обязательное поле";
+            return true;
+          },
+        })}
+      />
+      {errors.intVal && (
+        <span className="text-accent text-xs">{errors.intVal.message}</span>
+      )}
+    </Field>
+  );
 }

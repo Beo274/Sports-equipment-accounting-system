@@ -117,14 +117,22 @@ interface ParameterItemProps {
 }
 
 function ParameterItem({ entity, handleDelete }: ParameterItemProps) {
+  const renderParamValue = () => {
+    if (entity.enumValue) {
+      return extractEnumValue(entity.enumValue);
+    } else if (entity.intVal) {
+      return `${entity.intVal}`;
+    } else if (entity.maxVal && entity.minVal) {
+      return `от ${entity.minVal} до ${entity.maxVal}`;
+    } else {
+      return "Значение неопределено";
+    }
+  };
+
   return (
     <Item className="grid grid-cols-3">
       <ItemTitle>{`${entity.param.name} (${entity.param.shortName})`}</ItemTitle>
-      <ItemDescription>
-        {entity.enumValue
-          ? extractEnumValue(entity.enumValue)
-          : `от ${entity.minVal} до ${entity.maxVal}`}
-      </ItemDescription>
+      <ItemDescription>{renderParamValue()}</ItemDescription>
       <ItemActions className="justify-self-end">
         <Button
           className="hover:bg-accent"
