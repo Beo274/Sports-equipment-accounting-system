@@ -34,6 +34,8 @@ import Loader from "../Loader/Loader";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import AddParameterDialog from "../dialog/AddParameterDialog";
 import ListParametersDialog from "../dialog/ListParametersDialog";
+import EditCategoryDialog from "../dialog/EditCategoryDialog";
+import { Category } from "@/types/category";
 
 export function CategoriesList() {
   const {
@@ -47,13 +49,21 @@ export function CategoriesList() {
       clearError,
       dialog: { editingCategory },
     },
+    measures: { items: measures, fetchMeasures, isLoading: isLoadingMeasures },
   } = useStore();
   const [isAddParamOpen, setAddParamOpen] = useState(false);
   const [isListParamsOpen, setListParamsOpen] = useState(false);
+  const [isEditOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     refreshList();
   }, [listType, refreshList]);
+
+  useEffect(() => {
+    if (!isLoadingMeasures && !measures.length) {
+      fetchMeasures();
+    }
+  }, [isLoadingMeasures]);
 
   const onDeleteCategory = (classId: number) => {
     return async () => {
@@ -90,15 +100,11 @@ export function CategoriesList() {
               {items.map((c) => (
                 <CategoriesListItem
                   key={c.id}
-                  id={c.id}
-                  name={c.name}
-                  shortName={c.shortName}
-                  baseClassId={c.baseClassId}
-                  measureUnitId={c.mUnitId ?? null}
-                  refresh={refreshList}
+                  category={c}
                   handleDelete={onDeleteCategory(c.id)}
                   openAddParam={() => setAddParamOpen(true)}
                   openListParam={() => setListParamsOpen(true)}
+                  openEdit={() => setEditOpen(true)}
                 />
               ))}
             </ItemGroup>
@@ -125,107 +131,56 @@ export function CategoriesList() {
           entity: editingCategory,
         }}
       />
+      <EditCategoryDialog
+        open={isEditOpen}
+        onOpenChange={setEditOpen}
+        category={editingCategory}
+        measures={measures}
+      />
     </div>
   );
 }
 
 interface CategoriesListItemProps {
-  id: number;
-  name: string;
-  shortName: string;
-  baseClassId: number | null;
-  measureUnitId: number | null;
-  level?: number;
+  category: Category;
 
   handleDelete: () => Promise<void>;
-  refresh: () => Promise<void>;
   openAddParam: () => void;
   openListParam: () => void;
+  openEdit: () => void;
 }
 
-const NullMeasureUnit = "Без е. и." as const;
-
-export function CategoriesListItem(props: CategoriesListItemProps) {
-  const [isEditOpen, setEditOpen] = useState(false);
-  const [measureUnit, setMeasureUnit] = useState<string>(
-    props.measureUnitId !== null
-      ? String(props.measureUnitId)
-      : NullMeasureUnit,
-  );
+export function CategoriesListItem({
+  category,
+  handleDelete,
+  openAddParam,
+  openEdit,
+  openListParam,
+}: CategoriesListItemProps) {
   const {
-    measures: { items: measures },
     categories: {
-      changeBaseClass,
-      changeMeasure,
       isLoading,
-      deleteBaseClass,
-      deleteMeasure,
       dialog: { setEditingCategory },
     },
   } = useStore();
-  const [baseClassId, setBaseClassId] = useState(
-    props.baseClassId !== null ? String(props.baseClassId) : "",
-  );
-
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const handleMeasureUnitChange = (value: string | null) => {
-    setMeasureUnit(value ?? NullMeasureUnit);
-  };
-
-  const handleEdit = async () => {
-    const newMeasureUnit =
-      measureUnit === NullMeasureUnit ? null : Number(measureUnit);
-    const newBaseClassId = baseClassId === "" ? null : Number(baseClassId);
-    let changed = false;
-
-    if (newMeasureUnit !== props.measureUnitId) {
-      if (newMeasureUnit !== null && !isNaN(newMeasureUnit)) {
-        await changeMeasure(props.id, newMeasureUnit);
-      } else {
-        await deleteMeasure(props.id);
-      }
-      changed = true;
-    }
-
-    if (newBaseClassId !== props.baseClassId) {
-      if (newBaseClassId !== null && !isNaN(newBaseClassId)) {
-        await changeBaseClass(props.id, newBaseClassId);
-      } else {
-        await deleteBaseClass(props.id);
-      }
-      changed = true;
-    }
-
-    if (changed) {
-      await props.refresh();
-      setEditOpen(false);
-    } else {
-      if (buttonRef.current) {
-        buttonRef.current.textContent = "Изменять нечего";
-        setTimeout(() => {
-          if (buttonRef.current) {
-            buttonRef.current.textContent = "Сохранить";
-          }
-        }, 3000);
-      }
-    }
-  };
 
   return (
     <Item className="grid grid-cols-2 items-start gap-1 border border-accent rounded-lg max-w-sm p-0 hover:shadow-lg hover:shadow-foreground transition-all">
       <ItemHeader className="col-span-2 p-0 border border-accent rounded-t-md bg-accent">
-        <ItemTitle className="p-1 w-full font-bold">{`${props.id}: ${props.name} (${props.shortName})`}</ItemTitle>
+        <ItemTitle className="p-1 w-full font-bold">{`${category.id}: ${category.name} (${category.shortName})`}</ItemTitle>
       </ItemHeader>
       <ItemContent>
         <ItemDescription className="col-start-1 px-2">
-          {props.baseClassId
-            ? `ID базовой категории: ${props.baseClassId}`
+          {category.baseClassId
+            ? `ID базовой категории: ${category.baseClassId}`
             : "Корневая категория"}
         </ItemDescription>
         <ItemActions className="col-start-2 justify-self-end p-1">
           <Button
-            onClick={() => setEditOpen(true)}
+            onClick={() => {
+              openEdit();
+              setEditingCategory(category);
+            }}
             variant={"ghost"}
             className="hover:bg-accent"
             disabled={isLoading}
@@ -239,15 +194,8 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
             disabled={isLoading}
             title="Добавить параметр"
             onClick={() => {
-              props.openAddParam();
-              setEditingCategory({
-                id: props.id,
-                name: props.name,
-                shortName: props.shortName,
-                baseClassId: props.baseClassId,
-                baseClass: null,
-                mUnitId: props.measureUnitId,
-              });
+              openAddParam();
+              setEditingCategory(category);
             }}
           >
             <Grid2x2Plus />
@@ -258,21 +206,14 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
             disabled={isLoading}
             title="Посмотреть параметры"
             onClick={() => {
-              props.openListParam();
-              setEditingCategory({
-                id: props.id,
-                name: props.name,
-                shortName: props.shortName,
-                baseClassId: props.baseClassId,
-                baseClass: null,
-                mUnitId: props.measureUnitId,
-              });
+              openListParam();
+              setEditingCategory(category);
             }}
           >
             <TableProperties />
           </Button>
           <Button
-            onClick={props.handleDelete}
+            onClick={handleDelete}
             variant={"ghost"}
             className="hover:bg-accent"
             disabled={isLoading}
@@ -282,69 +223,6 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
           </Button>
         </ItemActions>
       </ItemContent>
-      <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Редактирование класса</DialogTitle>
-          </DialogHeader>
-          <Field>
-            <FieldLabel>Выбор единицы измерения</FieldLabel>
-            <Select onValueChange={handleMeasureUnitChange} value={measureUnit}>
-              <SelectTrigger>
-                <SelectValue
-                  placeholder="Единица измерения"
-                  className="text-gray-400"
-                >
-                  {measureUnit === NullMeasureUnit ? (
-                    <span>{NullMeasureUnit}</span>
-                  ) : (
-                    (() => {
-                      const selected = measures.find(
-                        (m) => String(m.id) === measureUnit,
-                      );
-                      return selected ? (
-                        <span>{`${selected.name} (${selected.shortName})`}</span>
-                      ) : null;
-                    })()
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Единицы измерения категории</SelectLabel>
-                  <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
-                  {measures.map((m) => (
-                    <SelectItem key={m.id} value={String(m.id)}>
-                      {`${m.name} (${m.shortName})`}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field>
-            <Input
-              id="category-edit-baseClass-id"
-              type="number"
-              min={1}
-              value={baseClassId ?? ""}
-              onChange={(e) => setBaseClassId(e.target.value)}
-              placeholder="Нет базовой категории"
-              className="placeholder:text-gray-400"
-            />
-          </Field>
-          <Button
-            variant="secondary"
-            className="hover:bg-accent"
-            type="submit"
-            disabled={isLoading}
-            ref={buttonRef}
-            onClick={handleEdit}
-          >
-            Сохранить
-          </Button>
-        </DialogContent>
-      </Dialog>
     </Item>
   );
 }

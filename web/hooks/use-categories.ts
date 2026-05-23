@@ -2,6 +2,7 @@ import { API_CONFIG } from "@/lib/api";
 import CreateCategoryDto from "@/lib/dto/createCategoryDto";
 import ApiError from "@/types/apiError";
 import { Category, CategoryWithLevel } from "@/types/category";
+import { NullMeasureUnit } from "@/types/measureUnit";
 import { useCallback, useState } from "react";
 
 export type CategoryListType = "all" | "leaves" | "parents" | "children";
@@ -18,6 +19,13 @@ export default function useCategories() {
   const [parentId, setParentId] = useState("");
   const [childId, setChildId] = useState("");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategoryProps, setEditingCategoryProps] = useState<{
+    baseClassId: string;
+    measureUnitId: string;
+  }>({
+    baseClassId: "",
+    measureUnitId: NullMeasureUnit,
+  });
 
   const clearError = () => {
     setError(null);
@@ -229,6 +237,22 @@ export default function useCategories() {
     listType,
     parentId,
     childId,
+    editing: {
+      baseClassId: editingCategoryProps.baseClassId,
+      measureUnit: editingCategoryProps.measureUnitId,
+      setBaseClassId: (value: string | null) => {
+        setEditingCategoryProps((prev) => ({
+          ...prev,
+          baseClassId: value ?? "",
+        }));
+      },
+      setMeasureUnit: (value: string | null) => {
+        setEditingCategoryProps((prev) => ({
+          ...prev,
+          measureUnitId: value ?? NullMeasureUnit,
+        }));
+      },
+    },
 
     setListType,
     setParentId,
