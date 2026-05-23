@@ -31,6 +31,7 @@ export default function ProductsList() {
       updateBaseClass,
       editingProduct,
       setEditingProduct,
+      clearItems,
     },
   } = useStore();
   const [isAddParamOpen, setAddParamOpen] = useState(false);
@@ -38,6 +39,10 @@ export default function ProductsList() {
 
   useEffect(() => {
     fetchProducts();
+
+    return () => {
+      clearItems();
+    };
   }, []);
 
   return (

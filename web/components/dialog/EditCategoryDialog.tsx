@@ -15,19 +15,19 @@ import { Button } from "../ui/button";
 import { Category } from "@/types/category";
 import { useEffect, useRef } from "react";
 import { useStore } from "@/lib/store/store";
+import { Item } from "../ui/item";
+import Loader from "../Loader/Loader";
 
 interface EditCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 
   category: Category | null;
-  measures: MeasureUnit[];
 }
 
 export default function EditCategoryDialog({
   open,
   onOpenChange,
-  measures,
   category,
 }: EditCategoryDialogProps) {
   const {
@@ -40,6 +40,7 @@ export default function EditCategoryDialog({
       isLoading,
       editing: { baseClassId, measureUnit, setBaseClassId, setMeasureUnit },
     },
+    measures: { items: measures, isLoading: isLoadingMeasures, fetchMeasures },
   } = useStore();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -53,6 +54,12 @@ export default function EditCategoryDialog({
       );
     }
   }, [category]);
+
+  useEffect(() => {
+    if (open && !isLoadingMeasures && !measures.length) {
+      fetchMeasures();
+    }
+  }, [open]);
 
   const handleMeasureUnitChange = (value: string | null) => {
     setMeasureUnit(value ?? NullMeasureUnit);
@@ -107,38 +114,44 @@ export default function EditCategoryDialog({
         </DialogHeader>
         <Field>
           <FieldLabel>Выбор единицы измерения</FieldLabel>
-          <Select onValueChange={handleMeasureUnitChange} value={measureUnit}>
-            <SelectTrigger>
-              <SelectValue
-                placeholder="Единица измерения"
-                className="text-gray-400"
-              >
-                {measureUnit === NullMeasureUnit ? (
-                  <span>{NullMeasureUnit}</span>
-                ) : (
-                  (() => {
-                    const selected = measures.find(
-                      (m) => String(m.id) === measureUnit,
-                    );
-                    return selected ? (
-                      <span>{`${selected.name} (${selected.shortName})`}</span>
-                    ) : null;
-                  })()
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Единицы измерения категории</SelectLabel>
-                <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
-                {measures.map((m) => (
-                  <SelectItem key={m.id} value={String(m.id)}>
-                    {`${m.name} (${m.shortName})`}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          {isLoadingMeasures ? (
+            <Item>
+              <Loader />
+            </Item>
+          ) : (
+            <Select onValueChange={handleMeasureUnitChange} value={measureUnit}>
+              <SelectTrigger>
+                <SelectValue
+                  placeholder="Единица измерения"
+                  className="text-gray-400"
+                >
+                  {measureUnit === NullMeasureUnit ? (
+                    <span>{NullMeasureUnit}</span>
+                  ) : (
+                    (() => {
+                      const selected = measures.find(
+                        (m) => String(m.id) === measureUnit,
+                      );
+                      return selected ? (
+                        <span>{`${selected.name} (${selected.shortName})`}</span>
+                      ) : null;
+                    })()
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Единицы измерения категории</SelectLabel>
+                  <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
+                  {measures.map((m) => (
+                    <SelectItem key={m.id} value={String(m.id)}>
+                      {`${m.name} (${m.shortName})`}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          )}
         </Field>
         <Field>
           <Input

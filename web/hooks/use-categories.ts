@@ -27,6 +27,10 @@ export default function useCategories() {
     measureUnitId: NullMeasureUnit,
   });
 
+  const clearItems = () => {
+    setItems([]);
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -257,6 +261,7 @@ export default function useCategories() {
     setListType,
     setParentId,
     setChildId,
+    clearItems,
 
     dialog: {
       editingCategory,

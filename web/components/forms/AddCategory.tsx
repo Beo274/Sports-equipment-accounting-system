@@ -19,6 +19,7 @@ import { useStore } from "@/lib/store/store";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import CreateCategoryDto from "@/lib/dto/createCategoryDto";
 import { NullMeasureUnit } from "@/types/measureUnit";
+import Loader from "../Loader/Loader";
 
 interface CreateCategoryFormData {
   name: string;
@@ -29,7 +30,13 @@ interface CreateCategoryFormData {
 
 export default function AddCategory() {
   const {
-    measures: { items: measures, isLoading: isLoadingMeasures, fetchMeasures },
+    measures: {
+      items: measures,
+      isLoading: isLoadingMeasures,
+      fetchMeasures,
+      error: measuresError,
+      clearError: clearMeasuresError,
+    },
     categories: {
       isLoading: isLoadingCategory,
       createCategory,
@@ -111,9 +118,17 @@ export default function AddCategory() {
             <span className="text-accent text-xs">Обязательное поле</span>
           )}
         </Field>
-        {isLoadingMeasures ? (
+        {measuresError ? (
+          <ErrorLabel
+            message={measuresError.message}
+            onClearError={() => {
+              clearMeasuresError();
+              fetchMeasures();
+            }}
+          />
+        ) : isLoadingMeasures ? (
           <Item>
-            <ItemContent>Единицы измерения загружаются...</ItemContent>
+            <Loader />
           </Item>
         ) : (
           <Field>
@@ -185,12 +200,23 @@ export default function AddCategory() {
         className="w-full disabled:opacity-40 hover:bg-accent"
         variant="secondary"
         type="submit"
-        disabled={isLoadingCategory || !isValid}
+        disabled={
+          isLoadingCategory ||
+          !isValid ||
+          error !== null ||
+          measuresError !== null
+        }
       >
         Создать
       </Button>
       {error && (
-        <ErrorLabel message={error.message} onClearError={() => clearError()} />
+        <ErrorLabel
+          message={error.message}
+          onClearError={() => {
+            clearError();
+            refreshList();
+          }}
+        />
       )}
     </form>
   );

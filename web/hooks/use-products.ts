@@ -46,6 +46,10 @@ export default function useProducts() {
     }
   };
 
+  const clearItems = () => {
+    setProducts([]);
+  };
+
   const fetchAll = useCallback(async (classId?: number) => {
     try {
       setFetchLoading(true);
@@ -262,6 +266,7 @@ export default function useProducts() {
 
   return {
     products,
+    clearItems,
 
     isFetchLoading,
     isModifyLoading,

@@ -20,16 +20,6 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { useStore } from "@/lib/store/store";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import Loader from "../Loader/Loader";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import AddParameterDialog from "../dialog/AddParameterDialog";
@@ -48,8 +38,8 @@ export function CategoriesList() {
       error,
       clearError,
       dialog: { editingCategory },
+      clearItems,
     },
-    measures: { items: measures, fetchMeasures, isLoading: isLoadingMeasures },
   } = useStore();
   const [isAddParamOpen, setAddParamOpen] = useState(false);
   const [isListParamsOpen, setListParamsOpen] = useState(false);
@@ -60,10 +50,10 @@ export function CategoriesList() {
   }, [listType, refreshList]);
 
   useEffect(() => {
-    if (!isLoadingMeasures && !measures.length) {
-      fetchMeasures();
-    }
-  }, [isLoadingMeasures]);
+    return () => {
+      clearItems();
+    };
+  }, []);
 
   const onDeleteCategory = (classId: number) => {
     return async () => {
@@ -135,7 +125,6 @@ export function CategoriesList() {
         open={isEditOpen}
         onOpenChange={setEditOpen}
         category={editingCategory}
-        measures={measures}
       />
     </div>
   );
