@@ -1,3 +1,5 @@
+"use client";
+
 import { useStore } from "@/lib/store/store";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Field, FieldContent, FieldLabel, FieldTitle } from "../ui/field";
@@ -17,7 +19,7 @@ export default function SetListType() {
 
   return (
     <RadioGroup
-      className="col-start-2 flex flex-col justify-between gap-2 w-full"
+      className="col-start-2 flex flex-col justify-start gap-2 w-full"
       value={listType}
       onValueChange={setListType}
     >

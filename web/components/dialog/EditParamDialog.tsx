@@ -80,7 +80,7 @@ export default function EditParamDialog({
       reset({
         name: editedParam.name ?? "",
         shortName: editedParam.shortName ?? "",
-        measureId: String(editedParam.measureUnitId ?? NullMeasureUnit),
+        measureId: String(editedParam.measure?.id ?? NullMeasureUnit),
       });
     } else if (!isOpen) {
       reset({
@@ -94,7 +94,7 @@ export default function EditParamDialog({
   const paramMeasure = useMemo(() => {
     if (editedParam) {
       return (
-        items.find((m) => m.id === editedParam.measureUnitId) ?? NullMeasureUnit
+        items.find((m) => m.id === editedParam.measure?.id) ?? NullMeasureUnit
       );
     }
   }, [editedParam, items]);
@@ -120,7 +120,7 @@ export default function EditParamDialog({
         if (
           dto.name === editedParam.name &&
           dto.shortName === editedParam.shortName &&
-          dto.measureId === editedParam.measureUnitId
+          dto.measureId === (editedParam.measure?.id ?? null)
         ) {
           return;
         }
@@ -181,7 +181,7 @@ export default function EditParamDialog({
                 defaultValue={NullMeasureUnit}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="bg-background cursor-pointer">
+                    <SelectTrigger className="cursor-pointer">
                       <SelectValue
                         placeholder="Единица измерения"
                         className="text-gray-400"

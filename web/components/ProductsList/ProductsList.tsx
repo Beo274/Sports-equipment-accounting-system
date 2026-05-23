@@ -7,6 +7,7 @@ import {
   ItemContent,
   ItemDescription,
   ItemGroup,
+  ItemHeader,
   ItemTitle,
 } from "../ui/item";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
@@ -40,8 +41,9 @@ export default function ProductsList() {
   }, []);
 
   return (
-    <div className="h-full">
-      <div className="max-h-100 flex justify-center items-center p-1 overflow-y-auto">
+    <div className="h-full max-h-100 min-h-100">
+      <h3 className="p-1 text-xl">Список изделий</h3>
+      <div className="flex flex-col justify-start items-center p-1 overflow-y-auto">
         {errors.fetchingError ? (
           <ErrorLabel
             message={errors.fetchingError.message}
@@ -56,7 +58,7 @@ export default function ProductsList() {
           </Item>
         ) : (
           <div className="w-full max-h-125">
-            <ItemGroup>
+            <ItemGroup className="pb-3">
               {products.length ? (
                 products.map((p) => (
                   <ProductItem
@@ -152,9 +154,11 @@ function ProductItem({
   };
 
   return (
-    <Item className="border-2 border-foreground">
-      <ItemContent className="flex-col">
-        <ItemTitle>{`${product.id}: ${product.name} (${product.shortName})`}</ItemTitle>
+    <Item className="max-w-sm border border-accent hover:shadow-lg hover:shadow-foreground transition-all p-0">
+      <ItemHeader className="p-0 border border-accent rounded-t-md bg-accent">
+        <ItemTitle className="p-1 w-full font-bold">{`${product.id}: ${product.name} (${product.shortName})`}</ItemTitle>
+      </ItemHeader>
+      <ItemContent className="flex-col p-1">
         {isEditing ? (
           <input
             type={"number"}
@@ -169,7 +173,7 @@ function ProductItem({
         ) : (
           <div
             onClick={startEditing}
-            className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1 -mx-2 -my-1"
+            className="cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
             title="Нажмите для редактирования"
           >
             <ItemDescription>
@@ -180,35 +184,36 @@ function ProductItem({
             </ItemDescription>
           </div>
         )}
+        <ItemActions>
+          <Button
+            variant="ghost"
+            className="hover:bg-accent"
+            disabled={isModifyLoading}
+            title="Добавить параметр"
+            onClick={() => openAddParam()}
+          >
+            <Grid2x2Plus />
+          </Button>
+          <Button
+            variant="ghost"
+            className="hover:bg-accent"
+            disabled={isModifyLoading}
+            title="Посмотреть параметры"
+            onClick={() => openListParam()}
+          >
+            <TableProperties />
+          </Button>
+          <Button
+            variant="ghost"
+            className="hover:bg-accent"
+            disabled={isModifyLoading}
+            onClick={handleDelete}
+            title="Удалить"
+          >
+            <Trash />
+          </Button>
+        </ItemActions>
       </ItemContent>
-      <ItemActions>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent"
-          disabled={isModifyLoading}
-          title="Добавить параметр"
-          onClick={() => openAddParam()}
-        >
-          <Grid2x2Plus />
-        </Button>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent"
-          disabled={isModifyLoading}
-          title="Посмотреть параметры"
-          onClick={() => openListParam()}
-        >
-          <TableProperties />
-        </Button>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent"
-          disabled={isModifyLoading}
-          onClick={handleDelete}
-        >
-          <Trash />
-        </Button>
-      </ItemActions>
     </Item>
   );
 }

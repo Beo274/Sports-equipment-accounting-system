@@ -66,7 +66,7 @@ public class ParameterServiceImpl implements ParameterService {
                 .id(p.getId())
                 .name(p.getName())
                 .shortName(p.getShortName())
-                .measureUnitId(p.getMeasure() != null ? p.getMeasure().getId() : null)
+                .measure(p.getMeasure())
                 .build())
             .toList();
     }

@@ -3,6 +3,7 @@
 import {
   Item,
   ItemActions,
+  ItemContent,
   ItemDescription,
   ItemGroup,
   ItemHeader,
@@ -30,7 +31,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import Loader from "../Loader/Loader";
-import SetListType from "../forms/SetListType";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import AddParameterDialog from "../dialog/AddParameterDialog";
 import ListParametersDialog from "../dialog/ListParametersDialog";
@@ -77,9 +77,9 @@ export function CategoriesList() {
   }
 
   return (
-    <div className="h-full grid grid-cols-[1fr_max(350px)] gap-2">
-      <SetListType />
-      <div className="col-start-1 row-start-1 p-2 border-2 border-accent rounded-lg">
+    <div className="h-full flex flex-col gap-2">
+      <h3 className="p-1 text-xl">Вывод категорий</h3>
+      <div className="col-start-1 row-start-1">
         {isLoading ? (
           <Item className="h-full justify-center items-center">
             <Loader />
@@ -217,69 +217,71 @@ export function CategoriesListItem(props: CategoriesListItemProps) {
       <ItemHeader className="col-span-2 p-0 border border-accent rounded-t-md bg-accent">
         <ItemTitle className="p-1 w-full font-bold">{`${props.id}: ${props.name} (${props.shortName})`}</ItemTitle>
       </ItemHeader>
-      <ItemDescription className="col-start-1 p-1">
-        {props.baseClassId
-          ? `Идентификатор базовой категории: ${props.baseClassId}`
-          : "Корневая категория"}
-      </ItemDescription>
-      <ItemActions className="col-start-2 justify-self-end p-1">
-        <Button
-          onClick={() => setEditOpen(true)}
-          variant={"ghost"}
-          className="hover:bg-accent"
-          disabled={isLoading}
-          title="Редактировать"
-        >
-          <EditIcon />
-        </Button>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent"
-          disabled={isLoading}
-          title="Добавить параметр"
-          onClick={() => {
-            props.openAddParam();
-            setEditingCategory({
-              id: props.id,
-              name: props.name,
-              shortName: props.shortName,
-              baseClassId: props.baseClassId,
-              baseClass: null,
-              mUnitId: props.measureUnitId,
-            });
-          }}
-        >
-          <Grid2x2Plus />
-        </Button>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent"
-          disabled={isLoading}
-          title="Посмотреть параметры"
-          onClick={() => {
-            props.openListParam();
-            setEditingCategory({
-              id: props.id,
-              name: props.name,
-              shortName: props.shortName,
-              baseClassId: props.baseClassId,
-              baseClass: null,
-              mUnitId: props.measureUnitId,
-            });
-          }}
-        >
-          <TableProperties />
-        </Button>
-        <Button
-          onClick={props.handleDelete}
-          variant={"ghost"}
-          className="hover:bg-accent"
-          disabled={isLoading}
-          title="Удалить"
-        >
-          <TrashIcon />
-        </Button>
-      </ItemActions>
+      <ItemContent>
+        <ItemDescription className="col-start-1 px-2">
+          {props.baseClassId
+            ? `ID базовой категории: ${props.baseClassId}`
+            : "Корневая категория"}
+        </ItemDescription>
+        <ItemActions className="col-start-2 justify-self-end p-1">
+          <Button
+            onClick={() => setEditOpen(true)}
+            variant={"ghost"}
+            className="hover:bg-accent"
+            disabled={isLoading}
+            title="Редактировать"
+          >
+            <EditIcon />
+          </Button>
+          <Button
+            variant="ghost"
+            className="hover:bg-accent"
+            disabled={isLoading}
+            title="Добавить параметр"
+            onClick={() => {
+              props.openAddParam();
+              setEditingCategory({
+                id: props.id,
+                name: props.name,
+                shortName: props.shortName,
+                baseClassId: props.baseClassId,
+                baseClass: null,
+                mUnitId: props.measureUnitId,
+              });
+            }}
+          >
+            <Grid2x2Plus />
+          </Button>
+          <Button
+            variant="ghost"
+            className="hover:bg-accent"
+            disabled={isLoading}
+            title="Посмотреть параметры"
+            onClick={() => {
+              props.openListParam();
+              setEditingCategory({
+                id: props.id,
+                name: props.name,
+                shortName: props.shortName,
+                baseClassId: props.baseClassId,
+                baseClass: null,
+                mUnitId: props.measureUnitId,
+              });
+            }}
+          >
+            <TableProperties />
+          </Button>
+          <Button
+            onClick={props.handleDelete}
+            variant={"ghost"}
+            className="hover:bg-accent"
+            disabled={isLoading}
+            title="Удалить"
+          >
+            <TrashIcon />
+          </Button>
+        </ItemActions>
+      </ItemContent>
       <Dialog open={isEditOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>

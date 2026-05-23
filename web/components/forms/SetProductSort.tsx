@@ -74,7 +74,7 @@ export default function SetProductSort() {
     <RadioGroup
       value={fetchType}
       onValueChange={setFetchType}
-      className="h-full flex flex-col justify-between"
+      className="h-full flex flex-col justify-stretch"
     >
       <div className="flex gap-4 rounded-lg border p-4 bg-dimmedblue text-background">
         <Field className="flex-row">
@@ -251,7 +251,9 @@ function ParamsCheckboxList({
     <FieldGroup className="px-3 py-3">
       {params.map((p) => (
         <Field key={p.id} className="w-full flex-row">
-          <FieldLabel>{`${p.name} (${p.shortName})`}</FieldLabel>
+          <FieldLabel>
+            {`${p.name} (${p.shortName})`} {p.measure && p.measure.shortName}
+          </FieldLabel>
           <Checkbox
             id={`cb_${p.id}`}
             name={`cb_${p.id}`}

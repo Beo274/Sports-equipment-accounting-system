@@ -339,10 +339,10 @@ export default function AddParameterDialog({
                             {NullParameterId}
                           </SelectItem>
                           {params.map((p) => (
-                            <SelectItem
-                              key={p.id}
-                              value={String(p.id)}
-                            >{`${p.name} (${p.shortName})`}</SelectItem>
+                            <SelectItem key={p.id} value={String(p.id)}>
+                              {`${p.name} (${p.shortName})`}{" "}
+                              {p.measure && p.measure.shortName}
+                            </SelectItem>
                           ))}
                         </SelectGroup>
                       </SelectContent>

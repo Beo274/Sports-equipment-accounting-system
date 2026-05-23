@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Field, FieldGroup, FieldLabel } from "../ui/field";
+import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -80,9 +80,10 @@ export default function AddCategory() {
 
   return (
     <form
-      className="min-w-xs flex flex-col gap-2 bg-dimmedblue p-2 rounded-md text-background"
+      className="flex flex-col gap-2 bg-dimmedblue p-2 rounded-md text-background"
       onSubmit={handleSubmit(handleCreate)}
     >
+      <FieldTitle className="text-md font-bold">Добавить категорию</FieldTitle>
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="category-name">Имя категории</FieldLabel>
