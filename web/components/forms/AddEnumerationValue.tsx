@@ -19,6 +19,8 @@ import CreateEnumerationValueDto from "@/lib/dto/createEnumerationValueDto";
 import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { NullEnumerationId } from "@/types/enumeration";
 import { NullMeasureUnit } from "@/types/measureUnit";
+import { Item } from "../ui/item";
+import Loader from "../Loader/Loader";
 
 const IntType = "Целое число" as const;
 const StringType = "Строка" as const;
@@ -52,7 +54,13 @@ export default function AddEnumerationValue() {
       fetchAll,
       fetchEnumerationValues,
     },
-    measures: { items: measures, fetchMeasures },
+    measures: {
+      items: measures,
+      fetchMeasures,
+      error,
+      clearError: clearMeasuresError,
+      isLoading: isLoadingMeasures,
+    },
   } = useStore();
 
   useEffect(() => {
@@ -204,45 +212,59 @@ export default function AddEnumerationValue() {
         </Field>
         <Field>
           <FieldLabel>Единица измерения</FieldLabel>
-          <Controller
-            name="measureId"
-            control={control}
-            defaultValue={NullMeasureUnit}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger className="bg-background cursor-pointer">
-                  <SelectValue
-                    placeholder="Единица измерения"
-                    className="text-gray-400"
-                  >
-                    {measure === NullMeasureUnit ? (
-                      <span>{NullMeasureUnit}</span>
-                    ) : (
-                      (() => {
-                        const selected = measures.find(
-                          (m) => String(m.id) === measure,
-                        );
-                        return selected ? (
-                          <span>{`${selected.name} (${selected.shortName})`}</span>
-                        ) : null;
-                      })()
-                    )}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Единицы измерения</SelectLabel>
-                    <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
-                    {measures.map((m) => (
-                      <SelectItem key={m.id} value={String(m.id)}>
-                        {`${m.name} (${m.shortName})`}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            )}
-          />
+          {error ? (
+            <ErrorLabel
+              message={error.message}
+              onClearError={() => {
+                clearMeasuresError();
+                fetchMeasures();
+              }}
+            />
+          ) : isLoadingMeasures ? (
+            <Item>
+              <Loader />
+            </Item>
+          ) : (
+            <Controller
+              name="measureId"
+              control={control}
+              defaultValue={NullMeasureUnit}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="bg-background cursor-pointer">
+                    <SelectValue
+                      placeholder="Единица измерения"
+                      className="text-gray-400"
+                    >
+                      {measure === NullMeasureUnit ? (
+                        <span>{NullMeasureUnit}</span>
+                      ) : (
+                        (() => {
+                          const selected = measures.find(
+                            (m) => String(m.id) === measure,
+                          );
+                          return selected ? (
+                            <span>{`${selected.name} (${selected.shortName})`}</span>
+                          ) : null;
+                        })()
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Единицы измерения</SelectLabel>
+                      <SelectItem value={NullMeasureUnit}>Без е. и.</SelectItem>
+                      {measures.map((m) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {`${m.name} (${m.shortName})`}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          )}
         </Field>
       </FieldGroup>
       <Button

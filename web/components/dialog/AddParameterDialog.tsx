@@ -112,20 +112,12 @@ export default function AddParameterDialog({
     useState<ReadonlyArray<EnumerationValue> | null>(null);
 
   useEffect(() => {
-    if (open) reset();
-  }, [open]);
-
-  useEffect(() => {
-    if (!isLoadingParams && !params.length) {
+    if (open) {
+      reset();
       fetchParameters();
-    }
-  }, [isLoadingParams]);
-
-  useEffect(() => {
-    if (!isLoadingEnums && !enums.length) {
       fetchEnumerations();
     }
-  }, [isLoadingEnums]);
+  }, [open]);
 
   const enumId = watch("enumId");
   const minVal = watch("minVal");

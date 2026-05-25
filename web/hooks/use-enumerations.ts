@@ -39,6 +39,11 @@ export default function useEnumerations() {
     }
   };
 
+  const clearAll = () => {
+    setEnums([]);
+    setEnumValues(new Map<number, ReadonlyArray<EnumerationValue>>());
+  };
+
   const fetchEnumerations = useCallback(async () => {
     try {
       setIsLoadingEnums(true);
@@ -329,6 +334,7 @@ export default function useEnumerations() {
   return {
     enums,
     enumValues,
+    clearAll,
 
     isLoadingEnums,
     isLoadingValues,

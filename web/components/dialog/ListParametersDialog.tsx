@@ -55,7 +55,7 @@ export default function ListParametersDialog({
   };
 
   useEffect(() => {
-    getParams();
+    if (open) getParams();
     return () => {
       clearItems(dialogEntity.paramFor);
     };

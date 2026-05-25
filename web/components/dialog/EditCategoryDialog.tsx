@@ -56,7 +56,7 @@ export default function EditCategoryDialog({
   }, [category]);
 
   useEffect(() => {
-    if (open && !isLoadingMeasures && !measures.length) {
+    if (open) {
       fetchMeasures();
     }
   }, [open]);

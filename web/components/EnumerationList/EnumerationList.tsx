@@ -28,11 +28,16 @@ export default function EnumerationsList() {
       enums,
       errors: { fetchingError: error },
       clearError,
+      clearAll,
     },
   } = useStore();
 
   useEffect(() => {
     fetchAll();
+
+    return () => {
+      clearAll();
+    };
   }, []);
 
   return (

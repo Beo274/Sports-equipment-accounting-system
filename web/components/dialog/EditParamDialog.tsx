@@ -70,10 +70,10 @@ export default function EditParamDialog({
   });
 
   useEffect(() => {
-    if (!isLoading && !items.length) {
+    if (isOpen) {
       fetchMeasures();
     }
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && editedParam) {
