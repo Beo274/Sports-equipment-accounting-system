@@ -46,9 +46,9 @@ export default function ProductsList() {
   }, []);
 
   return (
-    <div className="h-full max-h-100 min-h-100">
+    <div className="h-full flex flex-col">
       <h3 className="p-1 text-xl">Список изделий</h3>
-      <div className="flex flex-col justify-start items-center p-1 overflow-y-auto">
+      <div className="flex flex-1 flex-col justify-start items-center p-1 overflow-y-auto">
         {errors.fetchingError ? (
           <ErrorLabel
             message={errors.fetchingError.message}
@@ -58,11 +58,11 @@ export default function ProductsList() {
             }}
           />
         ) : isFetchLoading ? (
-          <Item className="h-full w-full justify-center items-center">
+          <Item className="w-full justify-center items-center">
             <Loader />
           </Item>
         ) : (
-          <div className="w-full max-h-125">
+          <div className="w-full">
             <ItemGroup className="pb-3">
               {products.length ? (
                 products.map((p) => (
