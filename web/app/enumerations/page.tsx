@@ -5,7 +5,7 @@ import AddEnumerationValue from "@/components/forms/AddEnumerationValue";
 export default function EnumerationsPage() {
   return (
     <div className="h-full w-full flex flex-col gap-1 p-1">
-      <h2 className="text-2xl bg-accent rounded-md p-1 font-bold">
+      <h2 className="text-2xl bg-accent rounded-md p-1 font-bold text-warm-white">
         Перечисления
       </h2>
       <div className="min-h-0 flex-1 grid grid-cols-[1fr_max-content] gap-3">

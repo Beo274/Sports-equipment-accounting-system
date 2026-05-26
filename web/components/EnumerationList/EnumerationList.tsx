@@ -192,7 +192,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
               <Field>
                 <FieldTitle>
                   Идентификаторы значений:{" "}
-                  <span className="bg-accent px-1 rounded-md font-bold">
+                  <span className="bg-accent px-1 rounded-md font-bold text-warm-white">
                     {values.map((v) => v.id).join(" , ")}
                   </span>
                 </FieldTitle>

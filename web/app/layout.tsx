@@ -42,7 +42,7 @@ export default function RootLayout({
           <h1 className="text-3xl py-1 font-bold text-background">
             Спортивный инвентарь
           </h1>
-          <p className="font-medium bg-accent rounded-md p-2">
+          <p className="font-medium bg-accent rounded-md p-2 text-warm-white">
             Крутой справочник товаров спортивного инвентаря
           </p>
         </header>

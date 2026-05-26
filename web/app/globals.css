@@ -10,6 +10,7 @@
     --background: #e9e9eb;
     --foreground: #43506c;
     --placeholder: #99a1af;
+    --warm-white: #fff5f5;
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
@@ -62,6 +63,7 @@
     --color-accent: var(--accent-color);
     --color-dimmedblue: var(--dimmedblue);
     --color-placeholder: var(--placeholder);
+    --color-warm-white: var(--warm-white);
     --font-sans: var(--font-ubuntu-sans);
     --font-mono: var(--font-ubuntu-mono);
     --font-heading: var(--font-sans);

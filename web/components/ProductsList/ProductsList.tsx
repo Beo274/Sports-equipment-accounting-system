@@ -164,7 +164,7 @@ function ProductItem({
   return (
     <Item className="max-w-sm border border-accent hover:shadow-lg hover:shadow-foreground transition-all p-0">
       <ItemHeader className="p-0 border border-accent rounded-t-md bg-accent">
-        <ItemTitle className="p-1 w-full font-bold">{`${product.id}: ${product.name} (${product.shortName})`}</ItemTitle>
+        <ItemTitle className="p-1 w-full font-bold text-warm-white">{`${product.id}: ${product.name} (${product.shortName})`}</ItemTitle>
       </ItemHeader>
       <ItemContent className="flex-col p-1">
         {isEditing ? (

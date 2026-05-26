@@ -155,7 +155,7 @@ export function CategoriesListItem({
   return (
     <Item className="grid grid-cols-2 items-start gap-1 border border-accent rounded-lg max-w-sm p-0 hover:shadow-lg hover:shadow-foreground transition-all">
       <ItemHeader className="col-span-2 p-0 border border-accent rounded-t-md bg-accent">
-        <ItemTitle className="p-1 w-full font-bold">{`${category.id}: ${category.name} (${category.shortName})`}</ItemTitle>
+        <ItemTitle className="p-1 w-full font-bold text-warm-white">{`${category.id}: ${category.name} (${category.shortName})`}</ItemTitle>
       </ItemHeader>
       <ItemContent>
         <ItemDescription className="col-start-1 px-2">
