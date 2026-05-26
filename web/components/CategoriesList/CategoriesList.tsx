@@ -9,9 +9,7 @@ import {
   ItemHeader,
   ItemTitle,
 } from "../ui/item";
-import { useEffect, useRef, useState } from "react";
-import { Field, FieldLabel } from "../ui/field";
-import { Input } from "../ui/input";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import {
   EditIcon,
@@ -26,6 +24,7 @@ import AddParameterDialog from "../dialog/AddParameterDialog";
 import ListParametersDialog from "../dialog/ListParametersDialog";
 import EditCategoryDialog from "../dialog/EditCategoryDialog";
 import { Category } from "@/types/category";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 export function CategoriesList() {
   const {
@@ -79,14 +78,14 @@ export function CategoriesList() {
   return (
     <div className="h-full flex flex-col gap-2">
       <h3 className="p-1 text-xl">Вывод категорий</h3>
-      <div className="col-start-1 row-start-1">
+      <div className="col-start-1 row-start-1 flex-1 min-h-0">
         {isLoading ? (
           <Item className="h-full justify-center items-center">
             <Loader />
           </Item>
         ) : items.length ? (
-          <div className="overflow-y-auto">
-            <ItemGroup className="flex flex-col max-h-96 p-2">
+          <ScrollArea className="h-full max-h-100 rounded-md border">
+            <ItemGroup className="flex flex-col p-2">
               {items.map((c) => (
                 <CategoriesListItem
                   key={c.id}
@@ -98,7 +97,7 @@ export function CategoriesList() {
                 />
               ))}
             </ItemGroup>
-          </div>
+          </ScrollArea>
         ) : (
           <div className="h-full flex justify-center items-center">
             <p>Пусто...</p>

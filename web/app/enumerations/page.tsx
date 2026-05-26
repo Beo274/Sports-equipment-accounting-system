@@ -8,8 +8,8 @@ export default function EnumerationsPage() {
       <h2 className="text-2xl bg-accent rounded-md p-1 font-bold">
         Перечисления
       </h2>
-      <div className="h-full grid grid-cols-[1fr_max-content] gap-3">
-        <section className="border-2 border-accent rounded-md pb-3">
+      <div className="min-h-0 flex-1 grid grid-cols-[1fr_max-content] gap-3">
+        <section className="border-2 border-accent rounded-md p-1 flex flex-col min-h-0 ">
           <EnumerationsList />
         </section>
         <section className="h-min flex flex-col gap-2 border-2 border-accent rounded-md min-w-60 p-1">

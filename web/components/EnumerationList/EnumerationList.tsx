@@ -19,6 +19,7 @@ import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
 import { Input } from "../ui/input";
 import { useForm } from "react-hook-form";
 import UpdateEnumerationValueDto from "@/lib/dto/updateEnumerationValueDto";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function EnumerationsList() {
   const {
@@ -41,40 +42,42 @@ export default function EnumerationsList() {
   }, []);
 
   return (
-    <div className="h-full">
+    <div className="h-full flex flex-col min-h-0">
       <h3 className="p-1 text-xl">Список перечислений</h3>
-      <div className="flex justify-center items-center p-1 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         {error ? (
-          <ErrorLabel
-            message={error.message}
-            onClearError={() => {
-              clearError("fetchingError");
-              fetchAll();
-            }}
-          />
+          <div className="h-full flex justify-center items-center">
+            <ErrorLabel
+              message={error.message}
+              onClearError={() => {
+                clearError("fetchingError");
+                fetchAll();
+              }}
+            />
+          </div>
         ) : (
-          <div className="w-full max-h-150">
-            <ItemGroup>
-              {isLoadingEnums ? (
-                <Item className="h-full w-full justify-center items-center">
-                  <Loader />
-                </Item>
-              ) : enums.length ? (
-                enums.map((e) => (
+          <ScrollArea className="h-full max-h-155">
+            {isLoadingEnums ? (
+              <div className="h-full w-full flex justify-center items-center">
+                <Loader />
+              </div>
+            ) : enums.length ? (
+              <ItemGroup className="pr-4">
+                {enums.map((e) => (
                   <EnumerationItem
                     key={e.id}
                     name={e.name}
                     shortName={e.shortName}
                     id={e.id}
                   />
-                ))
-              ) : (
-                <div className="h-full flex justify-center items-center">
-                  <p>Пусто...</p>
-                </div>
-              )}
-            </ItemGroup>
-          </div>
+                ))}
+              </ItemGroup>
+            ) : (
+              <div className="h-full flex justify-center items-center">
+                <p>Пусто...</p>
+              </div>
+            )}
+          </ScrollArea>
         )}
       </div>
     </div>

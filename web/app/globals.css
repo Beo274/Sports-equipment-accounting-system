@@ -40,6 +40,20 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    [data-slot="scroll-area-scrollbar"] {
+        background: var(--background) !important;
+        opacity: 0.2;
+    }
+
+    [data-slot="scroll-area-thumb"] {
+        background: var(--accent-color) !important;
+        border-radius: 9999px;
+    }
+
+    [data-slot="scroll-area-thumb"]:hover {
+        background: var(--destructive) !important;
+    }
 }
 
 @theme inline {
@@ -87,15 +101,6 @@
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
 }
-
-/*@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
-}*/
-
-/*---break---*/
 
 .dark {
     --background: oklch(0.145 0 0);

@@ -18,6 +18,7 @@ import { Button } from "../ui/button";
 import { Grid2x2Plus, TableProperties, Trash } from "lucide-react";
 import AddParameterDialog from "../dialog/AddParameterDialog";
 import ListParametersDialog from "../dialog/ListParametersDialog";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function ProductsList() {
   const {
@@ -46,26 +47,28 @@ export default function ProductsList() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       <h3 className="p-1 text-xl">Список изделий</h3>
-      <div className="flex flex-1 flex-col justify-start items-center p-1 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         {errors.fetchingError ? (
-          <ErrorLabel
-            message={errors.fetchingError.message}
-            onClearError={() => {
-              clearError("fetchingError");
-              fetchProducts();
-            }}
-          />
+          <div className="h-full flex justify-center items-center">
+            <ErrorLabel
+              message={errors.fetchingError.message}
+              onClearError={() => {
+                clearError("fetchingError");
+                fetchProducts();
+              }}
+            />
+          </div>
         ) : isFetchLoading ? (
-          <Item className="w-full justify-center items-center">
+          <div className="h-full w-full flex justify-center items-center">
             <Loader />
-          </Item>
+          </div>
         ) : (
-          <div className="w-full">
-            <ItemGroup className="pb-3">
-              {products.length ? (
-                products.map((p) => (
+          <ScrollArea className="h-full max-h-115">
+            {products.length ? (
+              <ItemGroup className="pr-4 pb-3">
+                {products.map((p) => (
                   <ProductItem
                     key={p.id}
                     product={p}
@@ -86,14 +89,14 @@ export default function ProductsList() {
                       setEditingProduct(p);
                     }}
                   />
-                ))
-              ) : (
-                <Item className="w-full h-full">
-                  <ItemContent>Пусто...</ItemContent>
-                </Item>
-              )}
-            </ItemGroup>
-          </div>
+                ))}
+              </ItemGroup>
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <p>Пусто...</p>
+              </div>
+            )}
+          </ScrollArea>
         )}
       </div>
       <AddParameterDialog

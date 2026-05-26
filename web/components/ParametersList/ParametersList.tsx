@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { Edit, Trash } from "lucide-react";
 
 import EditParamDialog from "../dialog/EditParamDialog";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function ParametersList() {
   const {
@@ -47,16 +48,16 @@ export default function ParametersList() {
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full flex flex-col min-h-0">
       <h3 className="p-1 text-xl">Список параметров</h3>
-      <div className="flex justify-center max-h-100 items-center p-1 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         {isLoading ? (
-          <Item className="h-full justify-center items-center">
+          <div className="h-full flex justify-center items-center">
             <Loader />
-          </Item>
+          </div>
         ) : items.length ? (
-          <div className="w-full">
-            <ItemGroup>
+          <ScrollArea className="h-full max-h-115">
+            <ItemGroup className="pr-4">
               {items.map((p) => (
                 <ParameterItem
                   key={p.id}
@@ -68,7 +69,7 @@ export default function ParametersList() {
                 />
               ))}
             </ItemGroup>
-          </div>
+          </ScrollArea>
         ) : (
           <div className="h-full flex justify-center items-center">
             <p>Пусто...</p>

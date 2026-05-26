@@ -7,8 +7,8 @@ export default function ProductPage() {
     <div className="h-full w-full flex flex-col gap-1 p-1">
       <h2 className="text-2xl bg-accent rounded-md p-1 font-bold">Изделия</h2>
       <div className="min-h-0 flex-1 grid grid-cols-[1fr_max-content] gap-2">
-        <section className="grid grid-cols-[1fr_max-content] gap-2">
-          <div className="min-h-0 h-full p-1 pb-3 border-2 border-accent rounded-md">
+        <section className="grid grid-cols-[1fr_max-content] gap-2 min-h-0">
+          <div className="min-h-0 h-full p-1 pb-3 border-2 border-accent rounded-md flex flex-col">
             <ProductsList />
           </div>
           <div>
