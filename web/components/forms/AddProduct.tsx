@@ -168,7 +168,7 @@ export default function AddProduct() {
                                   : "opacity-0",
                               )}
                             />
-                            {`${cat.name} ${cat.shortName}`}
+                            {`${cat.name} (${cat.shortName})`}
                           </CommandItem>
                         ))}
                       </CommandGroup>

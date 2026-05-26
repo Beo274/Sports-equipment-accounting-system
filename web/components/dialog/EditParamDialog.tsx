@@ -140,7 +140,7 @@ export default function EditParamDialog({
         {editedParam && (
           <DialogDescription>
             Параметр:{" "}
-            <span className="bg-accent px-2 py-1 font-bold rounded-md">{`${editedParam.id}: ${editedParam.name} (${editedParam.shortName})`}</span>
+            <span className="bg-accent px-2 py-1 font-bold rounded-md text-warm-white">{`${editedParam.id}: ${editedParam.name} (${editedParam.shortName})`}</span>
             <br />
             {paramMeasure !== NullMeasureUnit &&
               paramMeasure &&

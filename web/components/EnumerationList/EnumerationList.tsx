@@ -13,13 +13,10 @@ import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import { EnumerationValue } from "@/types/enumeration";
 import Loader from "../Loader/Loader";
 import { Button } from "../ui/button";
-import { Check, Shuffle, Trash } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
-import { Field, FieldGroup, FieldLabel, FieldTitle } from "../ui/field";
-import { Input } from "../ui/input";
-import { useForm } from "react-hook-form";
+import { Shuffle, Trash } from "lucide-react";
 import UpdateEnumerationValueDto from "@/lib/dto/updateEnumerationValueDto";
 import { ScrollArea } from "../ui/scroll-area";
+import ReorderEnumValuesDialog from "../dialog/ReorderEnumValuesDialog";
 
 export default function EnumerationsList() {
   const {
@@ -98,40 +95,13 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
       enumValues,
       deleteEnumeration,
       fetchAll,
-      fetchEnumerationValues,
-      reorderValues,
+      reorder: { reorderingEnum, setReorderingEnum },
     },
   } = useStore();
   const [isReorderOpen, setReorderOpen] = useState(false);
-  const {
-    formState: { errors, isValid },
-    register,
-    handleSubmit,
-    reset,
-  } = useForm<{ order: number[] }>({
-    defaultValues: {
-      order: [],
-    },
-  });
 
-  const onReorder = async (data: { order: number[] }) => {
-    await reorderValues(data.order);
-    reset();
-    setReorderOpen(false);
-    await fetchEnumerationValues();
-  };
-
-  const { values, valuesIds } = useMemo(() => {
-    const values = enumValues.get(id);
-    if (!values)
-      return {
-        values: [],
-        valuesIds: new Set(),
-      };
-    return {
-      values,
-      valuesIds: new Set(values.map((item) => item.id)),
-    };
+  const values = useMemo(() => {
+    return enumValues.get(id) ?? ([] as ReadonlyArray<EnumerationValue>);
   }, [enumValues, id]);
 
   return (
@@ -172,103 +142,21 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
             className="hover:bg-accent"
             variant="secondary"
             type="button"
-            onClick={() => setReorderOpen(true)}
+            onClick={() => {
+              setReorderOpen(true);
+              setReorderingEnum({ id, name, shortName });
+            }}
             disabled={values.length === 0 || isLoadingValues}
           >
             <Shuffle />
           </Button>
         </ItemActions>
       </ItemContent>
-      <Dialog open={isReorderOpen} onOpenChange={setReorderOpen}>
-        <DialogContent>
-          <DialogTitle className="text-lg font-bold">
-            Изменение порядка значений
-          </DialogTitle>
-          <form
-            className="flex flex-col gap-2"
-            onSubmit={handleSubmit(onReorder)}
-          >
-            <FieldGroup className="flex flex-row">
-              <Field>
-                <FieldTitle>
-                  Идентификаторы значений:{" "}
-                  <span className="bg-accent px-1 rounded-md font-bold text-warm-white">
-                    {values.map((v) => v.id).join(" , ")}
-                  </span>
-                </FieldTitle>
-                <FieldLabel>
-                  Новый порядок (идентификаторы через пробел)
-                </FieldLabel>
-                <Input
-                  type="text"
-                  placeholder="Расставьте идентификаторы"
-                  {...register("order", {
-                    required: true,
-                    setValueAs: (value: unknown): number[] => {
-                      if (typeof value !== "string" || !value.trim()) {
-                        return [];
-                      }
-
-                      return value
-                        .split(/\s+/)
-                        .filter((item) => item !== "")
-                        .map(Number);
-                    },
-                    validate: {
-                      notEmpty: (value: number[]): string | boolean =>
-                        value.length > 0 || "Введите числа",
-
-                      correctLength: (value: number[]): string | boolean =>
-                        value.length === values.length ||
-                        `Должно быть ${values.length} чисел`,
-
-                      allNumbers: (value: number[]): string | boolean =>
-                        !value.some(isNaN) ||
-                        "Все значения должны быть числами",
-
-                      allExist: (value: number[]): string | boolean => {
-                        const numbers = value.filter((n) => !isNaN(n));
-                        if (numbers.length === 0) return true;
-
-                        const missingIds = numbers.filter(
-                          (id) => !valuesIds.has(id),
-                        );
-
-                        if (missingIds.length > 0) {
-                          return `Не найдены ID: ${missingIds.join(", ")}`;
-                        }
-                        return true;
-                      },
-
-                      noDuplicates: (value: number[]): string | boolean => {
-                        const numbers = value.filter((n) => !isNaN(n));
-                        const uniqueIds = new Set(numbers);
-                        if (uniqueIds.size !== numbers.length) {
-                          return "Есть повторяющиеся ID";
-                        }
-                        return true;
-                      },
-                    },
-                  })}
-                />
-              </Field>
-              <Button
-                type="submit"
-                variant="secondary"
-                className="hover:bg-accent self-end"
-                disabled={!isValid}
-              >
-                <Check />
-              </Button>
-            </FieldGroup>
-            {errors.order && (
-              <span className="text-accent text-xs">
-                {errors.order.message}
-              </span>
-            )}
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ReorderEnumValuesDialog
+        open={isReorderOpen}
+        onOpenChange={setReorderOpen}
+        editingEnum={reorderingEnum}
+      />
     </Item>
   );
 }

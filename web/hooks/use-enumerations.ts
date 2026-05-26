@@ -26,6 +26,9 @@ export default function useEnumerations() {
     creatingEnumError: null,
     creatingEnumValueError: null,
   });
+  const [reorderingEnum, setReorderingEnum] = useState<Enumeration | null>(
+    null,
+  );
 
   const clearError = (errorType?: keyof Errors) => {
     if (errorType) {
@@ -341,6 +344,11 @@ export default function useEnumerations() {
 
     errors,
     clearError,
+
+    reorder: {
+      reorderingEnum,
+      setReorderingEnum,
+    },
 
     fetchEnumerations,
     fetchEnumerationValues,
