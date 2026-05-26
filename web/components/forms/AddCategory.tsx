@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Item, ItemContent } from "../ui/item";
+import { Item } from "../ui/item";
 import { Button } from "../ui/button";
 import { Controller, useForm } from "react-hook-form";
 import { useStore } from "@/lib/store/store";
@@ -20,6 +20,16 @@ import ErrorLabel from "../ErrorLabel/ErrorLabel";
 import CreateCategoryDto from "@/lib/dto/createCategoryDto";
 import { NullMeasureUnit } from "@/types/measureUnit";
 import Loader from "../Loader/Loader";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "../ui/command";
+import { cn } from "@/lib/utils";
 
 interface CreateCategoryFormData {
   name: string;
@@ -38,6 +48,7 @@ export default function AddCategory() {
       clearError: clearMeasuresError,
     },
     categories: {
+      items: categories,
       isLoading: isLoadingCategory,
       createCategory,
       refreshList,
@@ -65,7 +76,8 @@ export default function AddCategory() {
 
   useEffect(() => {
     fetchMeasures();
-  }, [fetchMeasures]);
+    refreshList();
+  }, [fetchMeasures, refreshList]);
 
   const handleCreate = async (data: CreateCategoryFormData) => {
     const dto: CreateCategoryDto = {
@@ -174,27 +186,78 @@ export default function AddCategory() {
             ></Controller>
           </Field>
         )}
-        <Field>
-          <FieldLabel htmlFor="category-baseClass-id">
-            Идентификатор родительской категории
-          </FieldLabel>
-          <Input
-            id="category-baseClass-id"
-            type="number"
-            min={1}
-            placeholder="Нет базовой категории"
-            className="bg-background text-foreground placeholder:text-gray-400"
-            {...register("baseClassId", {
-              valueAsNumber: true,
-              setValueAs: (value) => {
-                if (value === "" || value === null || value === undefined)
-                  return "";
-                const num = Number(value);
-                return isNaN(num) ? "" : num;
-              },
-            })}
-          ></Input>
-        </Field>
+        {isLoadingCategory ? (
+          <Item>
+            <Loader />
+          </Item>
+        ) : (
+          <Field>
+            <FieldLabel>Родительская категория</FieldLabel>
+            <Controller
+              name="baseClassId"
+              control={control}
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger>
+                    <div
+                      className={cn(
+                        "inline-flex items-center justify-between w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer",
+                        !field.value ? "text-placeholder" : "text-foreground",
+                      )}
+                    >
+                      {field.value
+                        ? categories.find(
+                            (cat) => cat.id === Number(field.value),
+                          )?.name || "Выбрать категорию"
+                        : "Без категории"}
+                      <ChevronsUpDown />
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" align="center">
+                    <Command>
+                      <CommandInput
+                        placeholder="Поиск категории"
+                        className="placeholder:text-placeholder"
+                      />
+                      <CommandEmpty>Категории не найдены</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value=""
+                          onSelect={() => field.onChange("")}
+                          className="cursor-pointer hover:bg-background"
+                        >
+                          <Check
+                            className={cn(
+                              !field.value ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          Без родительской категории
+                        </CommandItem>
+                        {categories.map((cat) => (
+                          <CommandItem
+                            key={cat.id}
+                            value={cat.name}
+                            onSelect={() => field.onChange(cat.id.toString())}
+                            className="cursor-pointer hover:bg-background"
+                          >
+                            <Check
+                              className={cn(
+                                field.value === cat.id.toString()
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {`${cat.name} ${cat.shortName}`}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+          </Field>
+        )}
       </FieldGroup>
       <Button
         className="w-full disabled:opacity-40 hover:bg-accent"

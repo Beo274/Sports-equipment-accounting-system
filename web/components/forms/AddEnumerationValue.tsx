@@ -43,7 +43,7 @@ export default function AddEnumerationValue() {
     handleSubmit,
     control,
     watch,
-  } = useForm<FormSchema>();
+  } = useForm<FormSchema>({ mode: "onChange" });
   const {
     enumerations: {
       enums,
@@ -65,7 +65,7 @@ export default function AddEnumerationValue() {
 
   useEffect(() => {
     fetchMeasures();
-  }, []);
+  }, [fetchMeasures]);
 
   const valueType = watch("valueType");
   const measure = watch("measureId");

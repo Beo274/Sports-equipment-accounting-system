@@ -97,6 +97,17 @@ export default function AddParameter() {
       );
     }
 
+    if (errorParams) {
+      return (
+        <ErrorLabel
+          message={errorParams.message}
+          onClearError={() => {
+            clearParamError();
+          }}
+        />
+      );
+    }
+
     return (
       <Controller
         name="measureId"
@@ -184,7 +195,7 @@ export default function AddParameter() {
         type="submit"
         variant="secondary"
         className="hover:bg-accent"
-        disabled={!isValid || isLoadingMeasures}
+        disabled={!isValid || isLoadingMeasures || isLoadingParams}
       >
         Создать
       </Button>

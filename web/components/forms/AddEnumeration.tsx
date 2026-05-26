@@ -18,6 +18,7 @@ export default function AddEnumeration() {
       name: "",
       shortName: "",
     },
+    mode: "onChange",
   });
   const {
     enumerations: {
