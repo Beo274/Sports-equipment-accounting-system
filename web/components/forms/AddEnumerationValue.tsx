@@ -52,7 +52,7 @@ export default function AddEnumerationValue() {
       isLoadingValues,
       addEnumerationValue,
       fetchAll,
-      fetchEnumerationValues,
+      fetchValuesForEnum,
     },
     measures: {
       items: measures,
@@ -107,7 +107,7 @@ export default function AddEnumerationValue() {
     }
     await addEnumerationValue(dto);
     reset();
-    await fetchEnumerationValues();
+    await fetchValuesForEnum(Number(data.enumerationId));
   };
 
   const onReset = async () => {

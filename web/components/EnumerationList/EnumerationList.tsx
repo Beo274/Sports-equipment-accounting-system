@@ -118,6 +118,7 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
                 <EnumerationValueItem
                   key={`${id}_${v.id}`}
                   enumerationValue={v}
+                  enumId={id}
                 />
               ))
             ) : (
@@ -162,13 +163,17 @@ function EnumerationItem({ id, name, shortName }: EnumerationItemProps) {
 }
 
 interface EnumerationValueItemProps {
+  enumId: number;
   enumerationValue: EnumerationValue;
 }
 
-function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
+function EnumerationValueItem({
+  enumerationValue,
+  enumId,
+}: EnumerationValueItemProps) {
   const {
     enumerations: {
-      fetchEnumerationValues,
+      fetchValuesForEnum,
       deleteEnumerationValue,
       updateEnumerationValue,
       isLoadingValues,
@@ -209,7 +214,7 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
     }
 
     await updateEnumerationValue(enumerationValue.id, updatedValue);
-    fetchEnumerationValues();
+    fetchValuesForEnum(enumId);
     setIsEditing(false);
   };
 
@@ -281,7 +286,7 @@ function EnumerationValueItem({ enumerationValue }: EnumerationValueItemProps) {
           className="hover:bg-accent"
           onClick={async () => {
             await deleteEnumerationValue(enumerationValue.id);
-            fetchEnumerationValues();
+            fetchValuesForEnum(enumId);
           }}
           disabled={isLoadingValues}
         >

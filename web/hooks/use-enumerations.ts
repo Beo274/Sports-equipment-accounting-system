@@ -131,6 +131,50 @@ export default function useEnumerations() {
     [enums],
   );
 
+  const fetchValuesForEnum = useCallback(async (id: number) => {
+    try {
+      setIsLoadingValues(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/enumeration/${id}/values`,
+      );
+
+      if (!response.ok) {
+        throw new ApiError(
+          response.status,
+          "Ошибка получения значений. Проверьте данные или повторите попытку",
+        );
+      }
+
+      const values: EnumerationValue[] = await response.json();
+
+      setEnumValues((prev) => {
+        const next = new Map<number, ReadonlyArray<EnumerationValue>>(prev);
+        next.set(
+          id,
+          values.toSorted((a, b) => {
+            if (a.position && b.position) {
+              return a.position - b.position;
+            } else {
+              return -1;
+            }
+          }),
+        );
+        return next;
+      });
+    } catch (error) {
+      if (error instanceof TypeError) {
+        setErrors((prev) => ({
+          ...prev,
+          fetchingError: new ApiError(503, "Сервер недоступен"),
+        }));
+      } else if (error instanceof ApiError) {
+        setErrors((prev) => ({ ...prev, fetchingError: error }));
+      }
+    } finally {
+      setIsLoadingValues(false);
+    }
+  }, []);
+
   const fetchAll = useCallback(async () => {
     const fetchedEnums = await fetchEnumerations();
     if (fetchedEnums && fetchedEnums.length > 0) {
@@ -352,6 +396,7 @@ export default function useEnumerations() {
 
     fetchEnumerations,
     fetchEnumerationValues,
+    fetchValuesForEnum,
     fetchAll,
     createEnumeration,
     addEnumerationValue,

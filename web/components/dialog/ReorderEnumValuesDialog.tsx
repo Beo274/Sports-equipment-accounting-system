@@ -21,7 +21,7 @@ export default function ReorderEnumValuesDialog({
   editingEnum,
 }: ReorderEnumValuesDialogProps) {
   const {
-    enumerations: { enumValues, reorderValues, fetchEnumerationValues },
+    enumerations: { enumValues, reorderValues, fetchValuesForEnum },
   } = useStore();
   const {
     formState: { errors, isValid },
@@ -55,10 +55,11 @@ export default function ReorderEnumValuesDialog({
   }, [enumValues, editingEnum]);
 
   const onReorder = async (data: { order: number[] }) => {
+    if (!editingEnum) return;
     await reorderValues(data.order);
     reset();
     onOpenChange(false);
-    await fetchEnumerationValues();
+    await fetchValuesForEnum(editingEnum.id);
   };
 
   return (
