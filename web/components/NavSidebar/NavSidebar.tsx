@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,6 +10,8 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import Link from "next/link";
+import MeasuresDialog from "../dialog/MeasuresDialog";
+import { Button } from "../ui/button";
 
 interface NavSidebarProps {
   routes: RouteDescrioption[];
@@ -20,6 +23,8 @@ export interface RouteDescrioption {
 }
 
 export default function NavSidebar(props: NavSidebarProps) {
+  const [isMeasuresOpen, setMeasuresOpen] = useState(false);
+
   return (
     <Sidebar>
       <SidebarHeader className="text-center">
@@ -38,8 +43,19 @@ export default function NavSidebar(props: NavSidebarProps) {
                 </Link>
               </SidebarMenuItem>
             ))}
+            <SidebarMenuItem>
+              <Button
+                variant="ghost"
+                className="hover:bg-accent hover:text-background font-normal p-1"
+                type="button"
+                onClick={() => setMeasuresOpen(true)}
+              >
+                Единицы измерения
+              </Button>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+        <MeasuresDialog open={isMeasuresOpen} onOpenChange={setMeasuresOpen} />
       </SidebarContent>
     </Sidebar>
   );

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.entity.Measure;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -32,5 +33,12 @@ public class MeasureController {
     public ResponseEntity<List<Measure>> getMeasures() {
         log.info("Measure units provided");
         return ResponseEntity.ok().body(measureService.getAll());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MessageResponse> deleteMeasure(@PathVariable("id") Integer id) {
+        this.measureService.deleteMeasure(id);
+        log.info("Measure deleted");
+        return ResponseEntity.ok(new MessageResponse("deleted"));
     }
 }
