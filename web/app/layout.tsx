@@ -48,7 +48,9 @@ export default function RootLayout({
         </header>
         <ClientLayout>{children}</ClientLayout>
         <footer className="flex items-center justify-end px-5 min-h-32 bg-dimmedblue">
-          <p className="text-background">Произведено Ogurchiki team</p>
+          <a href="/pic" className="text-background">
+            Произведено Ogurchiki team
+          </a>
         </footer>
       </body>
     </html>
