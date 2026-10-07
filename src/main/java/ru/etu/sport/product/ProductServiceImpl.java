@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
+import ru.etu.sport.model.dto.response.ProductResponse;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.category.ClassRepository;
@@ -23,6 +24,7 @@ public class ProductServiceImpl implements ProductService {
     private final ClassRepository classRepository;
 
     @Override
+    @Transactional
     public void deleteProduct(Integer id) {
         productRepository.delete(id);
     }
@@ -43,10 +45,20 @@ public class ProductServiceImpl implements ProductService {
             count = this.productRepository.countProducts(classId);
         }
 
-        return new ProductList(count, limit, offset, products);
+        List<ProductResponse> mappedProducts = products.stream()
+            .map(p -> ProductResponse.builder()
+                .id(p.getId())
+                .name(p.getName())
+                .shortName(p.getShortName())
+                .classId(p.getProductClass() != null ? p.getProductClass().getId() : null)
+                .build())
+            .toList();
+
+        return new ProductList(count, limit, offset, mappedProducts);
     }
 
     @Override
+    @Transactional
     public void updateClassId(Integer id, Integer parentId) {
         productRepository.updateParentId(id, parentId);
     }

@@ -17,7 +17,13 @@ public interface ClassService {
 
     void updateClassMeasure(Integer classId, Integer measureId);
 
+    void deleteClassMeasure(Integer classId);
+
     void swapBaseClass(Integer id, Integer parentId);
 
+    void deleteBaseClass(Integer classId);
+
     Integer addClass(CreateClassDto classEntity);
+
+    List<ClassResponse> getAll();
 }

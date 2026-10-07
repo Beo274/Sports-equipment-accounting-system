@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.hibernate.annotations.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -71,7 +70,7 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/swap")
+    @PutMapping("/{id}/baseClass")
     public ResponseEntity<MessageResponse> updateProduct(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         productService.updateClassId(id, parentId);
         log.info("class id for product found successful");

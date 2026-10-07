@@ -9,7 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import ru.etu.sport.model.dto.request.ProductParamBindingDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
+import ru.etu.sport.model.dto.response.ProductParamBindingResponseDto;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,11 +27,11 @@ public class ProductParameterController {
     }
 
     @GetMapping("/param/product")
-    public ResponseEntity<Map<String, Object>> getProductParams(@RequestParam(required = false) Integer productId) {
+    public ResponseEntity<List<ProductParamBindingResponseDto>> getProductParams(@RequestParam(required = false) Integer productId) {
         if (productId == null) {
-            return ResponseEntity.ok(Map.of("items", service.getAllProductParams()));
+            return ResponseEntity.ok(service.getAllProductParams());
         } else {
-            return ResponseEntity.ok(Map.of("items", service.getProductParams(productId)));
+            return ResponseEntity.ok(service.getProductParams(productId));
         }
     }
 

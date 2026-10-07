@@ -78,10 +78,31 @@ public class ClassController {
         return ResponseEntity.ok(new MessageResponse("updated"));
     }
 
-    @PutMapping("/{id}/swap")
-    public ResponseEntity<MessageResponse> updateClass(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
+    @DeleteMapping("/{id}/measure")
+    public ResponseEntity<MessageResponse> deleteMeasure(@PathVariable("id") Integer id) {
+        classService.deleteClassMeasure(id);
+        log.info("Class measure unit deleted");
+        return ResponseEntity.ok(new MessageResponse("deleted"));
+    }
+
+    @PutMapping("/{id}/parent")
+    public ResponseEntity<MessageResponse> updateBaseClass(@PathVariable("id") Integer id, @RequestParam("new") Integer parentId) {
         classService.swapBaseClass(id, parentId);
         log.info("Base class updated");
         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("updated"));
     }
+
+    @DeleteMapping("/{id}/parent")
+    public ResponseEntity<MessageResponse> deleteBaseClass(@PathVariable("id") Integer id) {
+        classService.deleteBaseClass(id);
+        log.info("Base class deleted");
+        return ResponseEntity.ok(new MessageResponse("deleted"));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ClassResponse>> getAllClasses() {
+        log.info("All classes provided");
+        return ResponseEntity.ok().body(this.classService.getAll());
+    }
+    
 }

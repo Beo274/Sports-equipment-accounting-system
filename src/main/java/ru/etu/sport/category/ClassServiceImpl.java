@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,13 +53,14 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
+    @Transactional
     public void deleteClass(Integer id) {
         log.info("Service: deleting class {}", id);
         ClassEntity classToDelete = classRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Class not found with id: " + id));
         ClassEntity parentClass = classToDelete.getBaseClass();
         if (parentClass != null) {
-            List<ClassEntity> children = classRepository.findByBaseClassId(classToDelete);
+            List<ClassEntity> children = classRepository.findByBaseClassId(id);
 
             for (ClassEntity child : children) {
                 child.setBaseClass(parentClass);
@@ -70,6 +72,7 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
+    @Transactional
     public void updateClassMeasure(Integer classId, Integer measureId) {
         log.info("Service: updating measure for class {} to {}", classId, measureId);
         classRepository.updateClassMeasure(classId, measureId);
@@ -112,5 +115,33 @@ public class ClassServiceImpl implements ClassService {
                 .level(projection.getLevel())
                 .mUnitId(projection.getMUnitId())
                 .build();
+    }
+
+    public List<ClassResponse> getAll() {
+        return this.classRepository.findAll().stream()
+            .map(c -> ClassResponse.builder()
+            .id(c.getId())
+            .name(c.getName())
+            .shortName(c.getShortName())
+            .mUnitId(c.getMeasure() != null ? c.getMeasure().getId() : null)
+            .baseClassId(c.getBaseClass() != null ? c.getBaseClass().getId() : null)
+            .build())
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void deleteClassMeasure(Integer classId) {
+        ClassEntity classEntity = this.classRepository.findById(classId)
+            .orElseThrow(() -> new EntityNotFoundException("Class not found"));
+        classEntity.setMeasure(null);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBaseClass(Integer classId) {
+        ClassEntity classEntity = this.classRepository.findById(classId)
+            .orElseThrow(() -> new EntityNotFoundException("Class not found"));
+        classEntity.setBaseClass(null);
     }
 }

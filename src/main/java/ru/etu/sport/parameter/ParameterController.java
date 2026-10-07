@@ -3,7 +3,6 @@ package ru.etu.sport.parameter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +13,7 @@ import ru.etu.sport.model.dto.request.CreateParamDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ParameterGroupDto;
+import ru.etu.sport.model.dto.response.ParameterResponse;
 
 
 @RestController
@@ -60,4 +60,9 @@ public class ParameterController {
         return ResponseEntity.ok(groups);
     }
     
+    @GetMapping
+    public ResponseEntity<List<ParameterResponse>> getAll() {
+        log.info("List of parameters provided");
+        return ResponseEntity.ok(this.parameterService.getAll());
+    } 
 }

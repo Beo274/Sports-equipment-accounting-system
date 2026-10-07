@@ -7,10 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ru.etu.sport.model.dto.request.ClassParamBindingDto;
+import ru.etu.sport.model.dto.response.ClassParamBindingResponseDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/param/class")
@@ -26,8 +27,11 @@ public class ClassParameterController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAll() {
-        return ResponseEntity.ok(Map.of("items", service.getAllClassParams()));
+    public ResponseEntity<List<ClassParamBindingResponseDto>> getClassParams(@RequestParam(value = "classId", required = false) Integer classId) {
+        if (classId == null) {
+            return ResponseEntity.ok(service.getAllClassParams());
+        }
+        return ResponseEntity.ok(service.getClassParamsById(classId));
     }
 
     @DeleteMapping("/{id}")

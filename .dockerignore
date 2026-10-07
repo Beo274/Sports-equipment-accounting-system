@@ -8,3 +8,11 @@ target/
 .idea/
 *.iml
 .DS_Store
+web/node_modules/
+web/.next/
+web/out/
+web/.cache/
+web/.turbo/
+web/*.tsbuildinfo
+web/next-env.d.ts
+npm-debug.log

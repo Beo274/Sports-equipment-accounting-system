@@ -3,7 +3,6 @@ package ru.etu.sport.parameter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.category.ClassRepository;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
@@ -83,12 +82,24 @@ public class ClassProductParameterService {
         return classParameterRepository.findAll().stream().map(cp -> ClassParamBindingResponseDto.builder()
                 .id(cp.getId())
                 .classId(cp.getClassEntity().getId())
-                .paramId(cp.getParameter().getId())
-                .enumValueId(cp.getEnumerationValue() != null ? cp.getEnumerationValue().getId() : null)
+                .param(cp.getParameter())
+                .enumValue(cp.getEnumerationValue())
                 .maxVal(cp.getMaxVal())
                 .minVal(cp.getMinVal())
                 .intVal(cp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
+    }
+
+    public List<ClassParamBindingResponseDto> getClassParamsById(Integer classId) {
+        return classParameterRepository.findByClassId(classId).stream().map(cp -> ClassParamBindingResponseDto.builder()
+                .id(cp.getId())
+                .classId(cp.getClassEntity().getId())
+                .param(cp.getParameter())
+                .enumValue(cp.getEnumerationValue())
+                .maxVal(cp.getMaxVal())
+                .minVal(cp.getMinVal())
+                .intVal(cp.getIntVal())
+                .build()).toList();
     }
 
     @Transactional
@@ -127,12 +138,12 @@ public class ClassProductParameterService {
         return productParameterRepository.findAll().stream().map(pp -> ProductParamBindingResponseDto.builder()
                 .id(pp.getId())
                 .productId(pp.getProduct().getId())
-                .paramId(pp.getParameter().getId())
-                .enumValueId(pp.getEnumerationValue() != null ? pp.getEnumerationValue().getId() : null)
+                .param(pp.getParameter())
+                .enumValue(pp.getEnumerationValue())
                 .maxVal(pp.getMaxVal())
                 .minVal(pp.getMinVal())
                 .intVal(pp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     public List<ProductParamBindingResponseDto> getProductParams(Integer productId) {
@@ -140,12 +151,12 @@ public class ClassProductParameterService {
             .map(pp -> ProductParamBindingResponseDto.builder()
                 .id(pp.getId())
                 .productId(pp.getProduct().getId())
-                .paramId(pp.getParameter().getId())
-                .enumValueId(pp.getEnumerationValue() != null ? pp.getEnumerationValue().getId() : null)
+                .param(pp.getParameter())
+                .enumValue(pp.getEnumerationValue())
                 .maxVal(pp.getMaxVal())
                 .minVal(pp.getMinVal())
                 .intVal(pp.getIntVal())
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     public void deleteProductParam(Integer id) {
@@ -182,12 +193,12 @@ public class ClassProductParameterService {
             List<ProductParamBindingResponseDto> params = entry.getValue().stream().map(pp -> ProductParamBindingResponseDto.builder()
                     .id(pp.getId())
                     .productId(pp.getProduct().getId())
-                    .paramId(pp.getParameter().getId())
-                    .enumValueId(pp.getEnumerationValue() != null ? pp.getEnumerationValue().getId() : null)
+                    .param(pp.getParameter())
+                    .enumValue(pp.getEnumerationValue())
                     .maxVal(pp.getMaxVal())
                     .minVal(pp.getMinVal())
                     .intVal(pp.getIntVal())
-                    .build()).collect(Collectors.toList());
+                    .build()).toList();
             productInfo.put("params", params);
             items.add(productInfo);
         }
@@ -212,7 +223,7 @@ public class ClassProductParameterService {
                     map.put("short_name", p.getShortName());
                     map.put("class_id", p.getProductClass().getId());
                     return map;
-                }).collect(Collectors.toList());
+                }).toList();
 
         return Map.of("items", items);
     }

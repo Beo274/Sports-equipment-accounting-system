@@ -2,6 +2,8 @@ package ru.etu.sport.model.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import ru.etu.sport.model.entity.EnumerationValue;
+import ru.etu.sport.model.entity.Parameter;
 
 @Data
 @Builder
@@ -10,9 +12,9 @@ public class ProductParamBindingResponseDto {
 
     private Integer productId;
 
-    private Integer paramId;
+    private Parameter param;
 
-    private Integer enumValueId;
+    private EnumerationValue enumValue;
 
     private Integer maxVal;
 
