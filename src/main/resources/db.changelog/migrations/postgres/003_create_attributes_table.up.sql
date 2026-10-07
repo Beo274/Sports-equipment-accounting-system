@@ -1,7 +1,3 @@
---liquibase formatted sql
-
---changeset artem:003
-
 CREATE TABLE IF NOT EXISTS enumeration (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL UNIQUE,

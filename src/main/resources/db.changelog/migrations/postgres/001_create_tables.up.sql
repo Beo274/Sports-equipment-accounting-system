@@ -1,7 +1,3 @@
---liquibase formatted sql
-
---changeset artem:001
-
 CREATE TABLE IF NOT EXISTS measure_unit (
     id SERIAL PRIMARY KEY,
     name VARCHAR(128) NOT NULL UNIQUE,

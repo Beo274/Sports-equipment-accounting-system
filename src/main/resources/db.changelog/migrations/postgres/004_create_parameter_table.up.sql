@@ -1,7 +1,3 @@
---liquibase formatted sql
-
---changeset artem:004
-
 CREATE TABLE IF NOT EXISTS parameter (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE ,
