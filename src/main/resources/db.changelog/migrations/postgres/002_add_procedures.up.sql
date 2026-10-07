@@ -1,3 +1,7 @@
+--liquibase formatted sql
+
+--changeset artem:002 splitStatements:false
+
 -- Managing
 CREATE OR REPLACE FUNCTION insert_class(
     p_name VARCHAR(256),

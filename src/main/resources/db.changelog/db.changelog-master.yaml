@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include:
+      file: migrations/postgres/001_create_tables.up.sql
+  - include:
+      file: migrations/postgres/002_add_procedures.up.sql
+  - include:
+      file: migrations/postgres/003_create_attributes_table.up.sql
+  - include:
+      file: migrations/postgres/004_create_parameter_table.up.sql
+  - include:
+      file: migrations/postgres/005_create_class_and_product_parameters.up.sql

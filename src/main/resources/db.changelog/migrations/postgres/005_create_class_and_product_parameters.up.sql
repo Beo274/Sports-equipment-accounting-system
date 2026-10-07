@@ -1,3 +1,7 @@
+--liquibase formatted sql
+
+--changeset edward:005
+
 CREATE TABLE IF NOT EXISTS class_parameter (
     id SERIAL PRIMARY KEY,
     class_id INTEGER NOT NULL REFERENCES class(id) ON DELETE CASCADE,
