@@ -1,0 +1,58 @@
+databaseChangeLog:
+    - changeSet:
+        id: 001_create_tables
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/001_create_tables.up.sql
+                relativeToChangelogFile: true
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/001_create_tables.down.sql
+                relativeToChangelogFile: true
+    - changeSet:
+        id: 002_add_procedures
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/002_add_procedures.up.sql
+                relativeToChangelogFile: true
+                splitStatements: false
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/002_add_procedures.down.sql
+                relativeToChangelogFile: true
+                splitStatements: false
+    - changeSet:
+        id: 003_create_attributes_table
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/003_create_attributes_table.up.sql
+                relativeToChangelogFile: true
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/003_create_attributes_table.down.sql
+                relativeToChangelogFile: true
+    - changeSet:
+        id: 004_create_parameter_table
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/004_create_parameter_table.up.sql
+                relativeToChangelogFile: true
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/004_create_parameter_table.down.sql
+                relativeToChangelogFile: true
+    - changeSet:
+        id: 005_create_class_and_product_parameters
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/005_create_class_and_product_parameters.up.sql
+                relativeToChangelogFile: true
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/005_create_class_and_product_parameters.down.sql
+                relativeToChangelogFile: true

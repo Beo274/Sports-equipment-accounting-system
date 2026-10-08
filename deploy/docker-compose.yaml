@@ -8,8 +8,34 @@ services:
       - 5432:5432
     volumes:
       - sports_pgdata:/var/lib/postgresql/data
-      - ../migrations/postgres:/docker-entrypoint-initdb.d
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - data_network
+
+  liquibase:
+    image: liquibase/liquibase:4.31.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ../src/main/resources/db.changelog:/liquibase/changelog
+    env_file:
+      - .env
+
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER}
+      LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: db.changelog-master.yaml
+
+    command:
+      - --search-path=/liquibase/changelog
+      - update
     networks:
       - data_network
 
