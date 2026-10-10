@@ -4,14 +4,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.category.projection.ClassHierarchyProjection;
 import ru.etu.sport.model.dto.response.ClassResponse;
 
 import java.util.List;
 
-@Repository
 public interface ClassRepository extends JpaRepository<ClassEntity, Integer> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM find_children(:id)")
