@@ -14,19 +14,20 @@ import ru.etu.sport.model.dto.response.ProductParamBindingResponseDto;
 import java.util.List;
 import java.util.Map;
 
-@RestController
+@RestController 
+@RequestMapping("/param")
 @RequiredArgsConstructor
 @Tag(name = "product parameters", description = "Managing product parameters")
 public class ProductParameterController {
 
     private final ClassProductParameterService service;
 
-    @PostMapping("/param/product")
+    @PostMapping("/product")
     public ResponseEntity<IdResponse> create(@RequestBody ProductParamBindingDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(service.createProductParam(dto)));
     }
 
-    @GetMapping("/param/product")
+    @GetMapping("/product")
     public ResponseEntity<List<ProductParamBindingResponseDto>> getProductParams(@RequestParam(required = false) Integer productId) {
         if (productId == null) {
             return ResponseEntity.ok(service.getAllProductParams());
@@ -35,19 +36,19 @@ public class ProductParameterController {
         }
     }
 
-    @DeleteMapping("/param/product/{id}")
+    @DeleteMapping("/product/{id}")
     public ResponseEntity<MessageResponse> delete(@PathVariable Integer id) {
         service.deleteProductParam(id);
         return ResponseEntity.ok(new MessageResponse("deleted"));
     }
 
-    @PatchMapping("/param/product/{id}")
+    @PatchMapping("/product/{id}")
     public ResponseEntity<MessageResponse> update(@PathVariable Integer id, @RequestBody ProductParamBindingDto dto) {
         service.updateProductParam(id, dto);
         return ResponseEntity.ok(new MessageResponse("updated"));
     }
 
-    @GetMapping("/param/{id}/products")
+    @GetMapping("/{id}/products")
     public ResponseEntity<Map<String, Object>> getProductsByParamValue(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getProductsByParamValue(id));
     }
