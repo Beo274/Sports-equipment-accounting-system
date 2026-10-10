@@ -3,12 +3,10 @@ package ru.etu.sport.parameter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.etu.sport.model.entity.ProductParameter;
 
 import java.util.List;
 
-@Repository
 public interface ProductParameterRepository extends JpaRepository<ProductParameter, Integer> {
     List<ProductParameter> findByParameterId(Integer paramId);
 
