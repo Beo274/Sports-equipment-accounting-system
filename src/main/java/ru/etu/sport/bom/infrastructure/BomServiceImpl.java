@@ -53,7 +53,7 @@ public class BomServiceImpl implements BomService {
         changeService.create(new ProductChangeRequest(
                 LocalDate.now(),
                 Long.valueOf(parent.getId()),
-                "DOM was created with parent ID = " + parent.getId().toString()
+                "BOM was created with parent ID = " + parent.getId().toString()
         ));
 
         return BomResponse.from(bomRepository.save(entity));

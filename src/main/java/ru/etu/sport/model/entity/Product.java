@@ -26,6 +26,6 @@ public class Product {
     private ClassEntity productClass;
 
     @JoinColumn(name = "base_product_id")
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private Product baseProduct;
 }
