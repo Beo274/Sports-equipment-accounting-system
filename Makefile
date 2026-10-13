@@ -2,7 +2,7 @@ DB_USER ?= default
 DB_PASSWORD ?= default_pass
 DB_NAME ?= sportsdb
 
-OUTPUT_FILE_ENV = ./deploy/.env
+OUTPUT_FILE_ENV = .env
 
 add_test_env:
 	@echo "POSTGRES_USER=$(DB_USER)" > $(OUTPUT_FILE_ENV)

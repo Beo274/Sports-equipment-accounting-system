@@ -6,10 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.etu.sport.model.entity.ClassParameter;
 
-@Repository
 public interface ClassParameterRepository extends JpaRepository<ClassParameter, Integer> {
 
     @Query("SELECT cp FROM ClassParameter cp " +

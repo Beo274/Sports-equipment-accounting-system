@@ -56,3 +56,16 @@ databaseChangeLog:
             - sqlFile:
                 path: migrations/postgres/005_create_class_and_product_parameters.down.sql
                 relativeToChangelogFile: true
+    - changeSet:
+        id: 006_create_bom_table
+        author: ogurchiki
+        changes:
+            - sqlFile:
+                path: migrations/postgres/006_create_bom_table.up.sql
+                relativeToChangelogFile: true
+        rollback:
+            - sqlFile:
+                path: migrations/postgres/006_create_bom_table.down.sql
+                relativeToChangelogFile: true
+
+

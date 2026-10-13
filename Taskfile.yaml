@@ -1,0 +1,120 @@
+version: '3'
+
+vars:
+  COMPOSE_FILE: docker-compose.yaml
+  DC: docker compose -f {{.COMPOSE_FILE}}
+
+tasks:
+  default:
+    desc: "Показать список доступных команд"
+    cmds:
+      - task --list-all
+
+  # ================== ПОЛНЫЙ СТЕК ==================
+
+  up:
+    desc: "Поднять все сервисы"
+    cmds:
+      - "{{.DC}} up --build"
+
+  up-detach:
+    desc: "Поднять все сервисы в фоне"
+    cmds:
+      - "{{.DC}} up -d --build"
+
+  down:
+    desc: "Остановить и удалить все контейнеры"
+    cmds:
+      - "{{.DC}} down"
+
+  restart:
+    desc: "Перезапустить все сервисы"
+    cmds:
+      - "{{.DC}} restart"
+
+  logs:
+    desc: "Смотреть логи всех сервисов"
+    cmds:
+      - "{{.DC}} logs -f --tail=200"
+
+  ps:
+    desc: "Показать статус всех контейнеров"
+    cmds:
+      - "{{.DC}} ps"
+
+  # ================== BACKEND + INFRA ==================
+
+  up-backend:
+    desc: "Поднять только postgres, liquibase и sports-api"
+    cmds:
+      - "{{.DC}} up --build postgres liquibase sports-api"
+
+  up-backend-detach:
+    desc: "Поднять только postgres, liquibase и sports-api в фоне"
+    cmds:
+      - "{{.DC}} up -d --build postgres liquibase sports-api"
+
+  down-backend:
+    desc: "Остановить backend и инфраструктуру"
+    cmds:
+      - "{{.DC}} stop postgres liquibase sports-api"
+
+  logs-backend:
+    desc: "Логи backend-стека"
+    cmds:
+      - "{{.DC}} logs -f --tail=200 postgres liquibase sports-api"
+
+  rebuild-api:
+    desc: "Пересобрать и перезапустить только sports-api"
+    cmds:
+      - "{{.DC}} up --build --no-deps sports-api"
+
+  # ================== FRONTEND ==================
+
+  up-web:
+    desc: "Поднять только web-app (без пересборки зависимостей)"
+    cmds:
+      - "{{.DC}} up --build --no-deps web-app"
+  
+  up-web-detach:
+    desc: "Поднять только web в фоне"
+    cmds:
+      - "{{.DC}} up -d --build --no-deps web-app"
+
+  down-web:
+    desc: "Остановить только web-app"
+    cmds:
+      - "{{.DC}} stop web-app"
+
+  logs-web:
+    desc: "Логи фронтенда"
+    cmds:
+      - "{{.DC}} logs -f --tail=200 web-app"
+
+  rebuild-web:
+    desc: "Пересобрать и перезапустить только web-app"
+    cmds:
+      - "{{.DC}} up --build --no-deps web-app"
+
+  # ================== УТИЛИТЫ ==================
+
+  clean:
+    desc: "Полная очистка: стоп, удаление контейнеров, сетей и volumes"
+    prompt: "Удалить volumes с данными БД?"
+    cmds:
+      - "{{.DC}} down -v --remove-orphans"
+
+  migrate:
+    desc: "Прогнать только Liquibase-миграции"
+    cmds:
+      - "{{.DC}} run --rm liquibase update"
+
+  sh-api:
+    desc: "Зайти внутрь контейнера sports-api"
+    cmds:
+      - "docker exec -it sports_eq_api sh"
+
+  sh-postgres:
+    desc: "Зайти в psql внутри postgres"
+    cmds:
+      - "docker exec -it sports_eq_postgres psql -U $POSTGRES_USER -d $POSTGRES_DB"
