@@ -82,3 +82,11 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/008_create_product_change_table.up.sql
               relativeToChangelogFile: true
+
+    - changeSet:
+        id: 009
+        author: roman
+        changes:
+          - sqlFile:
+              path: migrations/postgres/009_change_base_product_id_type.sql
+              relativeToChangelogFile: true

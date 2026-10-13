@@ -41,7 +41,7 @@ public class BomServiceImpl implements BomService {
                 .measure(measure)
                 .quantity(request.getQuantity())
                 .forQuantity(request.getForQuantity())
-                .isBase(Boolean.TRUE.equals(request.getIsBase()))
+                .isBase(parent.getBaseProduct() == null ? Boolean.TRUE : Boolean.FALSE)
                 .build();
 
         return BomResponse.from(bomRepository.save(entity));

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.etu.sport.model.entity.Product;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -17,10 +18,10 @@ public class ProductChange {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @Column(name = "date")
-    private Date date;
+    @Column(name = "change_date")
+    private LocalDate date;
 
     @JoinColumn(name = "product_id")
     @ManyToOne(fetch = FetchType.LAZY)

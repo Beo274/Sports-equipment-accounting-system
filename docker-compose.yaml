@@ -47,7 +47,7 @@ services:
     environment:
       - JAVA_OPTS=-Xmx512m -Xms512m
     ports:
-      - 8080:8080
+      - "8080:8080"
     networks:
       - data_network
     depends_on:

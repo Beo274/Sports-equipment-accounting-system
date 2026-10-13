@@ -12,6 +12,7 @@ public class ProductWithParamDto {
     private String name;
     private String shortName;
     private Integer classId;
+    private Integer baseProductId;
 
     // Теперь это списки, чтобы хранить все параметры одного продукта вместе
     private List<EnumerationValueDto> paramEnumValue; // Укажите ваш точный тип для Enum DTO
