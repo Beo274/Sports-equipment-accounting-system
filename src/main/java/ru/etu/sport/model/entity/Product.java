@@ -2,12 +2,14 @@ package ru.etu.sport.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "Product")
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

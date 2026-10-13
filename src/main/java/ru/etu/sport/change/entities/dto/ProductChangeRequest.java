@@ -1,12 +1,12 @@
 package ru.etu.sport.change.entities.dto;
 
-
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.etu.sport.model.entity.Product;
 
 import java.time.LocalDate;
 
 @Data
+@AllArgsConstructor
 public class ProductChangeRequest {
     private LocalDate date;
     private Long product;
