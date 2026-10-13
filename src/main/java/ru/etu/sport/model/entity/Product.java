@@ -22,4 +22,8 @@ public class Product {
     @JoinColumn(name = "class_id", nullable = false)
     @OneToOne(fetch = FetchType.LAZY)
     private ClassEntity productClass;
+
+    @JoinColumn(name = "base_product_id")
+    @OneToOne
+    private Product baseProduct;
 }

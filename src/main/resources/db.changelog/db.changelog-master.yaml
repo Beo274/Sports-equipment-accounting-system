@@ -67,5 +67,11 @@ databaseChangeLog:
             - sqlFile:
                 path: migrations/postgres/006_create_bom_table.down.sql
                 relativeToChangelogFile: true
-
+    - changeSet:
+        id: 007_add_base_product_to_product_table
+        author: roman
+        changes:
+            - sqlFile:
+                path: migrations/postgres/007_add_base_product_to_product_table.up.sql
+                relativeToChangelogFile: true
 
