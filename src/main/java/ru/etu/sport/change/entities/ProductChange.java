@@ -1,4 +1,4 @@
-package ru.etu.sport.mods.entities;
+package ru.etu.sport.change.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import ru.etu.sport.model.entity.Product;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Table(name = "product_change")
@@ -29,5 +28,4 @@ public class ProductChange {
 
     @Column(name = "description")
     private String description;
-
 }

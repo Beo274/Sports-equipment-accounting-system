@@ -1,9 +1,0 @@
-package ru.etu.sport.mods.controllers;
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequestMapping
-public class ModsController {
-}
