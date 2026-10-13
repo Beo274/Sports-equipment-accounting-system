@@ -2,6 +2,7 @@ package ru.etu.sport.product;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import ru.etu.sport.category.ClassRepository;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -72,6 +74,12 @@ public class ProductServiceImpl implements ProductService {
         ClassEntity baseClass = this.classRepository.getReferenceById(createProductDto.getClassId());
         product.setProductClass(baseClass);
 
+        if (createProductDto.getBaseProductId() != null) {
+            Product baseProduct = this.productRepository.findById(createProductDto.getBaseProductId()).orElse(null);
+            product.setBaseProduct(baseProduct);
+        } else {
+            product.setBaseProduct(null);
+        }
         return productRepository.save(product).getId();
     }
 }

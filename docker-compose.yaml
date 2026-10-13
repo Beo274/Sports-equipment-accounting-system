@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - sports_pgdata:/var/lib/postgresql/data
     restart: unless-stopped
@@ -26,13 +26,11 @@ services:
       - ./src/main/resources/db.changelog:/liquibase/changelog
     env_file:
       - .env
-
     environment:
       LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
       LIQUIBASE_COMMAND_CHANGELOG_FILE: db.changelog-master.yaml
-
     command:
       - --search-path=/liquibase/changelog
       - update
@@ -49,7 +47,7 @@ services:
     environment:
       - JAVA_OPTS=-Xmx512m -Xms512m
     ports:
-      - 8080:8080
+      - "8080:8080"
     networks:
       - data_network
     depends_on:

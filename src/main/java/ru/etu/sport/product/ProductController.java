@@ -40,6 +40,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<IdResponse> addProduct(@Valid @RequestBody CreateProductDto createProductDto) {
         Integer id = productService.addProduct(createProductDto);
+        log.info("adding modification of {}", createProductDto.getBaseProductId());
         log.info("Product created");
         this.classProductParameterService.inheritParametersForProduct(id);
         return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(id));

@@ -16,4 +16,6 @@ public class CreateProductDto {
 
     @NotNull
     private Integer classId;
+
+    private Long baseProductId;
 }

@@ -11,13 +11,15 @@ public class ProductResponse {
     private String name;
     private String shortName;
     private Integer classId;
+    private Integer baseProductId;
 
     public static ProductResponse from(Product e) {
         return new ProductResponse(
             e.getId(), 
             e.getName(), 
             e.getShortName(), 
-            e.getClass() != null ? e.getProductClass().getId() : null
+            e.getClass() != null ? e.getProductClass().getId() : null,
+            e.getBaseProduct() != null ? e.getBaseProduct().getId() : null
         );
     }
 }
