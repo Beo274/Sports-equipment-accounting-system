@@ -26,13 +26,11 @@ services:
       - ./src/main/resources/db.changelog:/liquibase/changelog
     env_file:
       - .env
-
     environment:
       LIQUIBASE_COMMAND_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USER}
       LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD}
       LIQUIBASE_COMMAND_CHANGELOG_FILE: db.changelog-master.yaml
-
     command:
       - --search-path=/liquibase/changelog
       - update

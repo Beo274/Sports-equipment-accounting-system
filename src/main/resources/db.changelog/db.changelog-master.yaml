@@ -75,3 +75,10 @@ databaseChangeLog:
                 path: migrations/postgres/007_add_base_product_to_product_table.up.sql
                 relativeToChangelogFile: true
 
+    - changeSet:
+        id: 008_create_product_change_table
+        author: roman
+        changes:
+          - sqlFile:
+              path: migrations/postgres/008_create_product_change_table.up.sql
+              relativeToChangelogFile: true
