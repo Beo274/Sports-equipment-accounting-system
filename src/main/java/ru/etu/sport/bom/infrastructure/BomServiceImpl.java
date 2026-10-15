@@ -1,7 +1,7 @@
 package ru.etu.sport.bom.infrastructure;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 
@@ -74,8 +74,11 @@ public class BomServiceImpl implements BomService {
                     .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getParentProductId())));
         }
         if (request.getComponentId() != null) {
-            entity.setComponent(productRepository.findById(request.getComponentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getComponentId())));
+            Product newComponent = productRepository.findById(request.getComponentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getComponentId()));
+            entity.setComponent(newComponent);
+
+            propagateComponentChange(request.getParentProductId(), oldComponent.getId().longValue(), newComponent.getId().longValue());
         }
         if (request.getMeasureUnitId() != null) {
             entity.setMeasure(measureRepository.findById(request.getMeasureUnitId())
@@ -157,6 +160,53 @@ public class BomServiceImpl implements BomService {
         BomEntity found = bomRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Bom not find with id: "+ id));
         return BomResponse.from(found);
+    }
+
+
+    @Transactional
+    public void propagateComponentChange(
+            Long baseProductId,
+            Long oldComponentId,
+            Long newComponentId
+    ) {
+        Product baseProduct = productRepository.findById(baseProductId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Product not found: " + baseProductId));
+
+        Product newComponent = productRepository
+                .findById(newComponentId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Component not found: " + newComponentId));
+
+        Queue<Product> queue = new ArrayDeque<>();
+        Set<Integer> visited = new HashSet<>();
+
+        queue.add(baseProduct);
+
+        while (!queue.isEmpty()) {
+            Product current = queue.poll();
+
+            if (!visited.add(current.getId())) {
+                continue;
+            }
+
+            List<BomEntity> boms =
+                    bomRepository.findAllByParentProductAndComponent_Id(
+                            current,
+                            oldComponentId
+                    );
+
+            for (BomEntity bom : boms) {
+                bom.setComponent(newComponent);
+            }
+
+            List<Product> children =
+                    productRepository.findAllByBaseProduct(current);
+
+            queue.addAll(children);
+        }
     }
 
     @Override

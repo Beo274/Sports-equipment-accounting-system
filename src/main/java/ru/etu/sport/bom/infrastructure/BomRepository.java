@@ -10,4 +10,6 @@ import java.util.List;
 public interface BomRepository extends JpaRepository<BomEntity, Integer> {
 
     List<BomEntity> findAllByParentProduct(Product product);
+
+    List<BomEntity> findAllByParentProductAndComponent_Id(Product current, Long oldComponentId);
 }

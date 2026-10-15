@@ -31,4 +31,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     void delete(Integer id);
 
     List<Product> findByProductClass_IdIn(List<Integer> classIds);
+
+    List<Product> findAllByBaseProduct(Product current);
 }
