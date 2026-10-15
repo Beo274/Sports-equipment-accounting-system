@@ -18,4 +18,6 @@ public interface BomService {
     List<BomResponse> list(List<Integer> ids);
 
     BomResponse getById(Integer id);
+
+    void copyBom(Long baseProductId, Long newProductId);
 }

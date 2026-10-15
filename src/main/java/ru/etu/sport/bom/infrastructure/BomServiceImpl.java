@@ -1,7 +1,7 @@
 package ru.etu.sport.bom.infrastructure;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 import org.springframework.stereotype.Service;
 
@@ -74,8 +74,11 @@ public class BomServiceImpl implements BomService {
                     .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getParentProductId())));
         }
         if (request.getComponentId() != null) {
-            entity.setComponent(productRepository.findById(request.getComponentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getComponentId())));
+            Product newComponent = productRepository.findById(request.getComponentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getComponentId()));
+            entity.setComponent(newComponent);
+
+            propagateComponentChange(request.getParentProductId(), oldComponent.getId().longValue(), newComponent.getId().longValue());
         }
         if (request.getMeasureUnitId() != null) {
             entity.setMeasure(measureRepository.findById(request.getMeasureUnitId())
@@ -157,5 +160,74 @@ public class BomServiceImpl implements BomService {
         BomEntity found = bomRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Bom not find with id: "+ id));
         return BomResponse.from(found);
+    }
+
+
+    @Transactional
+    public void propagateComponentChange(
+            Long baseProductId,
+            Long oldComponentId,
+            Long newComponentId
+    ) {
+        Product baseProduct = productRepository.findById(baseProductId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Product not found: " + baseProductId));
+
+        Product newComponent = productRepository
+                .findById(newComponentId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Component not found: " + newComponentId));
+
+        Queue<Product> queue = new ArrayDeque<>();
+        Set<Integer> visited = new HashSet<>();
+
+        queue.add(baseProduct);
+
+        while (!queue.isEmpty()) {
+            Product current = queue.poll();
+
+            if (!visited.add(current.getId())) {
+                continue;
+            }
+
+            List<BomEntity> boms =
+                    bomRepository.findAllByParentProductAndComponent_Id(
+                            current,
+                            oldComponentId
+                    );
+
+            for (BomEntity bom : boms) {
+                bom.setComponent(newComponent);
+            }
+
+            List<Product> children =
+                    productRepository.findAllByBaseProduct(current);
+
+            queue.addAll(children);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void copyBom(Long baseProductId, Long newProductId) {
+        Product baseProduct = productRepository.findById(baseProductId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + baseProductId));
+        Product newProduct = productRepository.findById(newProductId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + newProductId));
+        // Находим все BOM для основного продукта
+        List<BomEntity> baseBoms = bomRepository.findAllByParentProduct(baseProduct);
+        // Копируем все BOM для модификации
+        for (BomEntity bomEntity : baseBoms) {
+            BomEntity newProductBom = new BomEntity();
+            newProductBom.setParentProduct(newProduct);
+            newProductBom.setComponent(bomEntity.getComponent());
+            newProductBom.setQuantity(bomEntity.getQuantity());
+            newProductBom.setForQuantity(bomEntity.getForQuantity());
+            newProductBom.setMeasure(bomEntity.getMeasure());
+            newProductBom.setIsBase(bomEntity.getIsBase());
+            bomRepository.save(newProductBom);
+        }
     }
 }
