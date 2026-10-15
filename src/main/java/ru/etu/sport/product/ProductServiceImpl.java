@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import ru.etu.sport.bom.application.BomService;
 import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.dto.response.ProductResponse;
@@ -24,6 +25,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final ClassRepository classRepository;
+    private final BomService bomService;
 
     @Override
     @Transactional
@@ -77,9 +79,16 @@ public class ProductServiceImpl implements ProductService {
         if (createProductDto.getBaseProductId() != null) {
             Product baseProduct = this.productRepository.findById(createProductDto.getBaseProductId()).orElse(null);
             product.setBaseProduct(baseProduct);
+
         } else {
             product.setBaseProduct(null);
         }
-        return productRepository.save(product).getId();
+        Integer newProductId = productRepository.save(product).getId();
+
+        if (product.getBaseProduct() != null) {
+            bomService.copyBom(createProductDto.getBaseProductId(), newProductId.longValue());
+        }
+
+        return newProductId;
     }
 }

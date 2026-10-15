@@ -158,4 +158,26 @@ public class BomServiceImpl implements BomService {
                 .orElseThrow(() -> new EntityNotFoundException("Bom not find with id: "+ id));
         return BomResponse.from(found);
     }
+
+    @Override
+    @Transactional
+    public void copyBom(Long baseProductId, Long newProductId) {
+        Product baseProduct = productRepository.findById(baseProductId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + baseProductId));
+        Product newProduct = productRepository.findById(newProductId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + newProductId));
+        // Находим все BOM для основного продукта
+        List<BomEntity> baseBoms = bomRepository.findAllByParentProduct(baseProduct);
+        // Копируем все BOM для модификации
+        for (BomEntity bomEntity : baseBoms) {
+            BomEntity newProductBom = new BomEntity();
+            newProductBom.setParentProduct(newProduct);
+            newProductBom.setComponent(bomEntity.getComponent());
+            newProductBom.setQuantity(bomEntity.getQuantity());
+            newProductBom.setForQuantity(bomEntity.getForQuantity());
+            newProductBom.setMeasure(bomEntity.getMeasure());
+            newProductBom.setIsBase(bomEntity.getIsBase());
+            bomRepository.save(newProductBom);
+        }
+    }
 }
