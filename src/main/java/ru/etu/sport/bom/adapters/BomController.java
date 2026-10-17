@@ -23,6 +23,12 @@ import ru.etu.sport.bom.dto.BomResponse;
 import ru.etu.sport.bom.dto.CreateBomRequest;
 import ru.etu.sport.bom.dto.UpdateBomRequest;
 
+import ru.etu.sport.bom.dto.BomItemDto;
+import ru.etu.sport.bom.dto.BomTreeDto;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/bom")
 @RequiredArgsConstructor
@@ -69,5 +75,19 @@ public class BomController {
     public ResponseEntity<BomResponse> getById(@PathVariable Integer id) {
         log.debug("Get bom request for id: {}", id);
         return ResponseEntity.ok(bomService.getById(id));
+    }
+
+    @GetMapping("/tree/{productId}")
+    public ResponseEntity<BomTreeDto> getTree(@PathVariable Integer productId) {
+        return ResponseEntity.ok(bomService.findBomTree(productId));
+    }
+
+    @GetMapping("/calc")
+    public ResponseEntity<List<BomItemDto>> calculateBom(
+            @RequestParam Integer productId,
+            @RequestParam(defaultValue = "1") Double quantity,
+            @RequestParam(required = false) Integer classId
+    ) {
+        return ResponseEntity.ok(bomService.calcBom(productId, quantity, classId));
     }
 }

@@ -1,7 +1,15 @@
 package ru.etu.sport.bom.infrastructure;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -10,17 +18,19 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.bom.application.BomService;
+import ru.etu.sport.bom.dto.BomItemDto;
 import ru.etu.sport.bom.dto.BomResponse;
+import ru.etu.sport.bom.dto.BomTreeDto;
 import ru.etu.sport.bom.dto.CreateBomRequest;
 import ru.etu.sport.bom.dto.UpdateBomRequest;
 import ru.etu.sport.bom.persistence.BomEntity;
 import ru.etu.sport.change.entities.dto.ProductChangeRequest;
 import ru.etu.sport.change.services.ChangeService;
 import ru.etu.sport.measure.MeasureRepository;
+import ru.etu.sport.model.dto.response.ProductResponse;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -220,6 +230,175 @@ public class BomServiceImpl implements BomService {
             newProductBom.setMeasure(bomEntity.getMeasure());
             newProductBom.setIsBase(bomEntity.getIsBase());
             bomRepository.save(newProductBom);
+        }
+    }
+
+    @Override
+    public BomTreeDto findBomTree(Integer productId) {
+        Product root = productRepository.findById(Long.valueOf(productId))
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+        return buildBomTreeRecursive(root, 1.0, null, new LinkedHashSet<>());
+    }
+
+    private BomTreeDto buildBomTreeRecursive(
+            Product currentProduct,
+            double currentQty,
+            Measure measure,
+            Set<Integer> currentPath
+    ) {
+        if (currentPath.contains(currentProduct.getId())) {
+            throw new IllegalStateException("Циклическая зависимость обнаружена: "
+                    + currentPath + " -> " + currentProduct.getId());
+        }
+
+        currentPath.add(currentProduct.getId());
+
+        List<BomEntity> childrenBoms = bomRepository.findAllByParentProduct(currentProduct);
+        List<BomTreeDto> children = new ArrayList<>();
+
+        for (BomEntity bom : childrenBoms) {
+            double componentQty = (double) bom.getQuantity() / bom.getForQuantity();
+            children.add(buildBomTreeRecursive(
+                    bom.getComponent(),
+                    componentQty,
+                    bom.getMeasure(),
+                    new LinkedHashSet<>(currentPath)
+            ));
+        }
+
+        return new BomTreeDto(
+                ru.etu.sport.model.dto.response.ProductResponse.from(currentProduct),
+                currentQty,
+                measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(measure) : null,
+                children
+        );
+    }
+
+    @Override
+    public List<BomItemDto> findBomLeaves(Integer productId) {
+        Product root = productRepository.findById(Long.valueOf(productId))
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+
+        List<BomItemDto> leaves = new ArrayList<>();
+        collectLeavesRecursive(root, 1.0, null, new HashSet<>(), leaves);
+        return leaves;
+    }
+
+    private void collectLeavesRecursive(
+            Product currentProduct,
+            double multiplier,
+            Measure measure,
+            Set<Integer> currentPath,
+            List<BomItemDto> leaves
+    ) {
+        if (currentPath.contains(currentProduct.getId())) {
+            throw new IllegalStateException("Цикл в структуре изделия для ID = " + currentProduct.getId());
+        }
+
+        currentPath.add(currentProduct.getId());
+        List<BomEntity> directBoms = bomRepository.findAllByParentProduct(currentProduct);
+
+        if (directBoms.isEmpty()) {
+            leaves.add(new BomItemDto(
+                    ru.etu.sport.model.dto.response.ProductResponse.from(currentProduct),
+                    multiplier,
+                    measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(measure) : null
+            ));
+        } else {
+            for (BomEntity bom : directBoms) {
+                double factor = (double) bom.getQuantity() / bom.getForQuantity();
+                collectLeavesRecursive(
+                        bom.getComponent(),
+                        multiplier * factor,
+                        bom.getMeasure(),
+                        new HashSet<>(currentPath),
+                        leaves
+                );
+            }
+        }
+    }
+
+
+    @Override
+    public List<BomItemDto> calcBom(Integer productId, double quantity) {
+        return calcBom(productId, quantity, null);
+    }
+
+
+    @Override
+    public List<BomItemDto> calcBom(Integer productId, double quantity, Integer classId) {
+        Product root = productRepository.findById(Long.valueOf(productId))
+                .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
+
+        Map<Integer, BomAccumulator> aggregatedMap = new LinkedHashMap<>();
+
+        calculateBOMRecursive(root, quantity, new HashSet<>(), aggregatedMap, classId);
+
+        return aggregatedMap.values().stream()
+                .map(acc -> new BomItemDto(
+                        ru.etu.sport.model.dto.response.ProductResponse.from(acc.product),
+                        acc.totalQuantity,
+                        acc.measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(acc.measure) : null
+                ))
+                .toList();
+    }
+
+    private void calculateBOMRecursive(
+            Product currentProduct,
+            double currentMultiplier,
+            Set<Integer> currentPath,
+            Map<Integer, BomAccumulator> aggregatedMap,
+            Integer targetClassId
+    ) {
+        if (currentPath.contains(currentProduct.getId())) {
+            throw new IllegalStateException("Обнаружен цикл в BOM для продукта: " + currentProduct.getId());
+        }
+
+        currentPath.add(currentProduct.getId());
+        List<BomEntity> directBoms = bomRepository.findAllByParentProduct(currentProduct);
+
+        for (BomEntity bom : directBoms) {
+            Product component = bom.getComponent();
+            double factor = (double) bom.getQuantity() / bom.getForQuantity();
+            double neededForCurrentLevel = currentMultiplier * factor;
+
+            List<BomEntity> subBoms = bomRepository.findAllByParentProduct(component);
+
+            if (subBoms.isEmpty()) {
+                boolean matchesClass = (targetClassId == null) ||
+                        (component.getProductClass() != null && component.getProductClass().getId().equals(targetClassId));
+
+                if (matchesClass) {
+                    aggregatedMap.compute(component.getId(), (id, existing) -> {
+                        if (existing == null) {
+                            return new BomAccumulator(component, neededForCurrentLevel, bom.getMeasure());
+                        } else {
+                            existing.totalQuantity += neededForCurrentLevel;
+                            return existing;
+                        }
+                    });
+                }
+            } else {
+                calculateBOMRecursive(
+                        component,
+                        neededForCurrentLevel,
+                        new HashSet<>(currentPath),
+                        aggregatedMap,
+                        targetClassId
+                );
+            }
+        }
+    }
+
+    private static class BomAccumulator {
+        Product product;
+        double totalQuantity;
+        Measure measure;
+
+        BomAccumulator(Product product, double totalQuantity, Measure measure) {
+            this.product = product;
+            this.totalQuantity = totalQuantity;
+            this.measure = measure;
         }
     }
 }
