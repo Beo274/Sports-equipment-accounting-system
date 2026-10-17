@@ -1,6 +1,8 @@
 package ru.etu.sport.change.services.impls;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.change.entities.ProductChange;
@@ -11,31 +13,30 @@ import ru.etu.sport.change.entities.repository.ProductChangeRepository;
 import ru.etu.sport.change.services.ChangeService;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
-
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ChangeServiceImpl implements ChangeService {
     private final ProductChangeRepository productChangeRepository;
     private final ProductRepository productRepository;
 
     public ChangeServiceImpl(ProductChangeRepository productChangeRepository,
-                             ProductRepository productRepository) {
+            ProductRepository productRepository) {
         this.productChangeRepository = productChangeRepository;
-        this.productRepository =  productRepository;
+        this.productRepository = productRepository;
     }
-
 
     @Override
     public ProductChangeResponse create(ProductChangeRequest request) {
         ProductChange change = new ProductChange();
         change.setDate(request.getDate());
         if (request.getProduct() != null) {
-            change.setProduct(productRepository.findById(request.getProduct()).orElseThrow((NoSuchElementException::new)));
+            change.setProduct(
+                    productRepository.findById(request.getProduct()).orElseThrow((NoSuchElementException::new)));
         }
         change.setDescription(request.getDescription());
 
@@ -57,7 +58,8 @@ public class ChangeServiceImpl implements ChangeService {
         }
 
         if (change.getProduct() != null) {
-            Product product = productRepository.findById(request.getProduct()).orElseThrow((NoSuchElementException::new));
+            Product product = productRepository.findById(request.getProduct())
+                    .orElseThrow((NoSuchElementException::new));
             change.setProduct(product);
         }
 
@@ -74,16 +76,15 @@ public class ChangeServiceImpl implements ChangeService {
 
     @Override
     public List<ProductChangeResponse> getAll() {
-        return productChangeRepository.findAll(Sort.by("product_id","date"))
+        return productChangeRepository.findAll(Sort.by("product_id", "date"))
                 .stream()
                 .map(ProductChangeResponse::from)
-                .collect(Collectors.toList()
-        );
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<ProductChangeResponse> getForProduct(Long product_id) {
-        Product product =  productRepository.findById(product_id).orElseThrow((NoSuchElementException::new));
+        Product product = productRepository.findById(product_id).orElseThrow((NoSuchElementException::new));
         return productChangeRepository.findAllByProduct(product)
                 .stream()
                 .map(ProductChangeResponse::from)

@@ -8,22 +8,22 @@ import org.springframework.stereotype.Service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.etu.sport.bom.application.BomService;
 import ru.etu.sport.bom.dto.BomResponse;
 import ru.etu.sport.bom.dto.CreateBomRequest;
 import ru.etu.sport.bom.dto.UpdateBomRequest;
 import ru.etu.sport.bom.persistence.BomEntity;
-import ru.etu.sport.change.entities.ProductChange;
 import ru.etu.sport.change.entities.dto.ProductChangeRequest;
 import ru.etu.sport.change.services.ChangeService;
-import ru.etu.sport.change.services.impls.ChangeServiceImpl;
 import ru.etu.sport.measure.MeasureRepository;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
 
-@Service 
-@RequiredArgsConstructor 
+@Service
+@Slf4j
+@RequiredArgsConstructor
 public class BomServiceImpl implements BomService {
 
     private final BomRepository bomRepository;
@@ -53,8 +53,7 @@ public class BomServiceImpl implements BomService {
         changeService.create(new ProductChangeRequest(
                 LocalDate.now(),
                 Long.valueOf(parent.getId()),
-                "BOM was created with parent ID = " + parent.getId().toString()
-        ));
+                "BOM was created with parent ID = " + parent.getId().toString()));
 
         return BomResponse.from(bomRepository.save(entity));
     }
@@ -71,18 +70,21 @@ public class BomServiceImpl implements BomService {
 
         if (request.getParentProductId() != null) {
             entity.setParentProduct(productRepository.findById(request.getParentProductId())
-                    .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getParentProductId())));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Product not found: " + request.getParentProductId())));
         }
         if (request.getComponentId() != null) {
             Product newComponent = productRepository.findById(request.getComponentId())
                     .orElseThrow(() -> new EntityNotFoundException("Product not found: " + request.getComponentId()));
             entity.setComponent(newComponent);
 
-            propagateComponentChange(request.getParentProductId(), oldComponent.getId().longValue(), newComponent.getId().longValue());
+            propagateComponentChange(request.getParentProductId(), oldComponent.getId().longValue(),
+                    newComponent.getId().longValue());
         }
         if (request.getMeasureUnitId() != null) {
             entity.setMeasure(measureRepository.findById(request.getMeasureUnitId())
-                    .orElseThrow(() -> new EntityNotFoundException("Measure not found: " + request.getMeasureUnitId())));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Measure not found: " + request.getMeasureUnitId())));
         }
         if (request.getQuantity() != null) {
             entity.setQuantity(request.getQuantity());
@@ -96,45 +98,42 @@ public class BomServiceImpl implements BomService {
 
         if (!entity.getParentProduct().equals(oldParentProduct)) {
             changeService.create(new ProductChangeRequest(
-                LocalDate.now(),
-                request.getParentProductId(),
-                "BOM parent changed: old parent ID = "
-                    + oldParentProduct.getId()
-                    + "new parent ID = "
-                    + entity.getParentProduct().getId()
-        ));
+                    LocalDate.now(),
+                    Long.valueOf(entity.getParentProduct().getId()),
+                    "BOM parent changed: old parent ID = "
+                            + oldParentProduct.getId()
+                            + " new parent ID = "
+                            + entity.getParentProduct().getId()));
         }
 
         if (!entity.getComponent().equals(oldComponent)) {
             changeService.create(new ProductChangeRequest(
                     LocalDate.now(),
-                    request.getParentProductId(),
+                    Long.valueOf(entity.getParentProduct().getId()),
                     "BOM component changed: old component ID = "
                             + oldComponent.getId()
-                            + "new component ID = "
-                            + entity.getComponent().getId()
-            ));
+                            + " new component ID = "
+                            + entity.getComponent().getId()));
         }
 
         if (!entity.getQuantity().equals(oldQuantity)) {
             changeService.create(new ProductChangeRequest(
                     LocalDate.now(),
-                    request.getParentProductId(),
+                    Long.valueOf(entity.getParentProduct().getId()),
                     "BOM component's quantity changed: old quantity = "
                             + oldQuantity
-                            + "new quantity = "
-                            + entity.getQuantity()
-            ));
+                            + " new quantity = "
+                            + entity.getQuantity()));
         }
 
         return BomResponse.from(entity);
     }
 
     @Override
-    @Transactional 
+    @Transactional
     public void remove(Integer id) {
         if (!bomRepository.existsById(id)) {
-            throw new EntityNotFoundException("Bom not found with id: "+ id);
+            throw new EntityNotFoundException("Bom not found with id: " + id);
         }
         bomRepository.deleteById(id);
     }
@@ -142,43 +141,39 @@ public class BomServiceImpl implements BomService {
     @Override
     public List<BomResponse> list() {
         return bomRepository.findAll()
-            .stream()
-            .map(entity -> BomResponse.from(entity))
-            .toList();
+                .stream()
+                .map(entity -> BomResponse.from(entity))
+                .toList();
     }
 
     @Override
     public List<BomResponse> list(List<Integer> ids) {
         return bomRepository.findAllById(ids)
-            .stream()
-            .map(entity -> BomResponse.from(entity))
-            .toList();
+                .stream()
+                .map(entity -> BomResponse.from(entity))
+                .toList();
     }
 
     @Override
     public BomResponse getById(Integer id) {
         BomEntity found = bomRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Bom not find with id: "+ id));
+                .orElseThrow(() -> new EntityNotFoundException("Bom not find with id: " + id));
         return BomResponse.from(found);
     }
-
 
     @Transactional
     public void propagateComponentChange(
             Long baseProductId,
             Long oldComponentId,
-            Long newComponentId
-    ) {
+            Long newComponentId) {
         Product baseProduct = productRepository.findById(baseProductId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Product not found: " + baseProductId));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Product not found: " + baseProductId));
 
         Product newComponent = productRepository
                 .findById(newComponentId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Component not found: " + newComponentId));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Component not found: " + newComponentId));
 
         Queue<Product> queue = new ArrayDeque<>();
         Set<Integer> visited = new HashSet<>();
@@ -192,18 +187,15 @@ public class BomServiceImpl implements BomService {
                 continue;
             }
 
-            List<BomEntity> boms =
-                    bomRepository.findAllByParentProductAndComponent_Id(
-                            current,
-                            oldComponentId
-                    );
+            List<BomEntity> boms = bomRepository.findAllByParentProductAndComponent_Id(
+                    current,
+                    oldComponentId);
 
             for (BomEntity bom : boms) {
                 bom.setComponent(newComponent);
             }
 
-            List<Product> children =
-                    productRepository.findAllByBaseProduct(current);
+            List<Product> children = productRepository.findAllByBaseProduct(current);
 
             queue.addAll(children);
         }
