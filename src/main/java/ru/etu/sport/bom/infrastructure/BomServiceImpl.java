@@ -27,10 +27,10 @@ import ru.etu.sport.bom.persistence.BomEntity;
 import ru.etu.sport.change.entities.dto.ProductChangeRequest;
 import ru.etu.sport.change.services.ChangeService;
 import ru.etu.sport.measure.MeasureRepository;
-import ru.etu.sport.model.dto.response.ProductResponse;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -244,8 +244,7 @@ public class BomServiceImpl implements BomService {
             Product currentProduct,
             double currentQty,
             Measure measure,
-            Set<Integer> currentPath
-    ) {
+            Set<Integer> currentPath) {
         if (currentPath.contains(currentProduct.getId())) {
             throw new IllegalStateException("Циклическая зависимость обнаружена: "
                     + currentPath + " -> " + currentProduct.getId());
@@ -262,16 +261,14 @@ public class BomServiceImpl implements BomService {
                     bom.getComponent(),
                     componentQty,
                     bom.getMeasure(),
-                    new LinkedHashSet<>(currentPath)
-            ));
+                    new LinkedHashSet<>(currentPath)));
         }
 
         return new BomTreeDto(
                 ru.etu.sport.model.dto.response.ProductResponse.from(currentProduct),
                 currentQty,
                 measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(measure) : null,
-                children
-        );
+                children);
     }
 
     @Override
@@ -289,8 +286,7 @@ public class BomServiceImpl implements BomService {
             double multiplier,
             Measure measure,
             Set<Integer> currentPath,
-            List<BomItemDto> leaves
-    ) {
+            List<BomItemDto> leaves) {
         if (currentPath.contains(currentProduct.getId())) {
             throw new IllegalStateException("Цикл в структуре изделия для ID = " + currentProduct.getId());
         }
@@ -302,8 +298,7 @@ public class BomServiceImpl implements BomService {
             leaves.add(new BomItemDto(
                     ru.etu.sport.model.dto.response.ProductResponse.from(currentProduct),
                     multiplier,
-                    measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(measure) : null
-            ));
+                    measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(measure) : null));
         } else {
             for (BomEntity bom : directBoms) {
                 double factor = (double) bom.getQuantity() / bom.getForQuantity();
@@ -312,18 +307,15 @@ public class BomServiceImpl implements BomService {
                         multiplier * factor,
                         bom.getMeasure(),
                         new HashSet<>(currentPath),
-                        leaves
-                );
+                        leaves);
             }
         }
     }
-
 
     @Override
     public List<BomItemDto> calcBom(Integer productId, double quantity) {
         return calcBom(productId, quantity, null);
     }
-
 
     @Override
     public List<BomItemDto> calcBom(Integer productId, double quantity, Integer classId) {
@@ -338,8 +330,7 @@ public class BomServiceImpl implements BomService {
                 .map(acc -> new BomItemDto(
                         ru.etu.sport.model.dto.response.ProductResponse.from(acc.product),
                         acc.totalQuantity,
-                        acc.measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(acc.measure) : null
-                ))
+                        acc.measure != null ? ru.etu.sport.measure.dto.MeasureResponse.from(acc.measure) : null))
                 .toList();
     }
 
@@ -348,8 +339,7 @@ public class BomServiceImpl implements BomService {
             double currentMultiplier,
             Set<Integer> currentPath,
             Map<Integer, BomAccumulator> aggregatedMap,
-            Integer targetClassId
-    ) {
+            Integer targetClassId) {
         if (currentPath.contains(currentProduct.getId())) {
             throw new IllegalStateException("Обнаружен цикл в BOM для продукта: " + currentProduct.getId());
         }
@@ -366,7 +356,8 @@ public class BomServiceImpl implements BomService {
 
             if (subBoms.isEmpty()) {
                 boolean matchesClass = (targetClassId == null) ||
-                        (component.getProductClass() != null && component.getProductClass().getId().equals(targetClassId));
+                        (component.getProductClass() != null
+                                && component.getProductClass().getId().equals(targetClassId));
 
                 if (matchesClass) {
                     aggregatedMap.compute(component.getId(), (id, existing) -> {
@@ -384,8 +375,7 @@ public class BomServiceImpl implements BomService {
                         neededForCurrentLevel,
                         new HashSet<>(currentPath),
                         aggregatedMap,
-                        targetClassId
-                );
+                        targetClassId);
             }
         }
     }

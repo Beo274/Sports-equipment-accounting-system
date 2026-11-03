@@ -15,12 +15,12 @@ COPY src ./src
 RUN --mount=type=cache,id=maven-repo,target=/root/.m2,sharing=locked \
     mvn clean package -DskipTests -o
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:27-jre-ubi10-minimal
 
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd spring && useradd spring -g spring
 USER spring
 
 EXPOSE 8080

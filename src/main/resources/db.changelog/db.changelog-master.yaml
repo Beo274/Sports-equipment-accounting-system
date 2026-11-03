@@ -102,3 +102,15 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/009_change_base_product_id_type.down.sql
               relativeToChangelogFile: true
+
+    - changeSet:
+        id: 010_create_operations_tables
+        author: ogurchiki
+        changes:
+          - sqlFile:
+              path: migrations/postgres/010_create_operations_tables.up.sql
+              relativeToChangelogFile: true
+        rollback:
+          - sqlFile:
+              path: migrations/postgres/010_create_operations_tables.down.sql
+              relativeToChangelogFile: true
