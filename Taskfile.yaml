@@ -3,6 +3,7 @@ version: '3'
 vars:
   COMPOSE_FILE: docker-compose.yaml
   DC: docker compose -f {{.COMPOSE_FILE}}
+  N: 1
 
 tasks:
   default:
@@ -104,10 +105,15 @@ tasks:
     cmds:
       - "{{.DC}} down -v --remove-orphans"
 
-  migrate:
+  migrate-update:
     desc: "Прогнать только Liquibase-миграции"
     cmds:
-      - "{{.DC}} run --rm liquibase update"
+      - "{{.DC}} run --rm liquibase --search-path=/liquibase/changelog update"
+
+  migrate-rollback:
+    desc: "Откатить миграции, необходимо передать количество версий для отката (task migrate-rollback N=1)"
+    cmds:
+      - "{{.DC}} run --rm liquibase --search-path=/liquibase/changelog rollback-count ${{.N}}"
 
   sh-api:
     desc: "Зайти внутрь контейнера sports-api"

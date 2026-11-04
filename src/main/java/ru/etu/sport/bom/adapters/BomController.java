@@ -25,45 +25,40 @@ import ru.etu.sport.bom.dto.UpdateBomRequest;
 
 import ru.etu.sport.bom.dto.BomItemDto;
 import ru.etu.sport.bom.dto.BomTreeDto;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+
 @RestController
 @RequestMapping("/bom")
 @RequiredArgsConstructor
 @Tag(name = "bom", description = "Managing bom specification")
-@Slf4j 
+@Slf4j
 public class BomController {
     private final BomService bomService;
 
-    @PostMapping 
+    @PostMapping
     public ResponseEntity<BomResponse> create(@Valid @RequestBody CreateBomRequest request) {
         log.debug("Create bom request: {}", request);
         return ResponseEntity.status(HttpStatus.CREATED).body(bomService.create(request));
     }
 
     // Частичное обновление
-    @PatchMapping ("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<BomResponse> update(
             @PathVariable Integer id,
-            @Valid @RequestBody UpdateBomRequest request
-    ) {
+            @Valid @RequestBody UpdateBomRequest request) {
         log.debug("Patch bom request: {}", request);
         return ResponseEntity.ok(bomService.update(id, request));
     }
 
-    @DeleteMapping ("/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> remove(@PathVariable Integer id) {
         log.debug("Remove bom request for id: {}", id);
         bomService.remove(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping 
+    @GetMapping
     public ResponseEntity<List<BomResponse>> list(
-            @RequestParam (required = false) List<Integer> ids
-    ) {
+            @RequestParam(required = false) List<Integer> ids) {
         log.debug("List bom request");
         List<BomResponse> result = (ids == null || ids.isEmpty())
                 ? bomService.list()
@@ -86,8 +81,7 @@ public class BomController {
     public ResponseEntity<List<BomItemDto>> calculateBom(
             @RequestParam Integer productId,
             @RequestParam(defaultValue = "1") Double quantity,
-            @RequestParam(required = false) Integer classId
-    ) {
+            @RequestParam(required = false) Integer classId) {
         return ResponseEntity.ok(bomService.calcBom(productId, quantity, classId));
     }
 }
