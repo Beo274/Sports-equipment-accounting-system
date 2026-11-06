@@ -45,7 +45,8 @@ services:
     env_file:
       - .env
     environment:
-      - JAVA_OPTS=-Xmx512m -Xms512m
+      SPRING_PROFILES_ACTIVE: docker
+      JAVA_OPTS: -Xmx512m -Xms512m
     ports:
       - "8080:8080"
     networks:
