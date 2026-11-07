@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ru.etu.sport.operations.application.TechnologyRouteService;
@@ -21,6 +22,7 @@ import ru.etu.sport.operations.dto.OperationInputResponse;
 
 @RestController
 @RequestMapping("/product-operations/{operationId}/inputs")
+@Tag(name = "operation input", description = "managing operations' requirement tree")
 @RequiredArgsConstructor
 public class OperationInputController {
 

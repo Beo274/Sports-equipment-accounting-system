@@ -71,8 +71,9 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
         // Проверяем, не вернулись ли мы к операции,
         // которая уже находится в текущей цепочке зависимостей.
         if (!currentPath.add(operationId)) {
-            throw new IllegalStateException(
-                    "Обнаружен цикл в технологическом маршруте. Operation ID: "
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Cycle occured in tech. route, operation id: "
                             + operationId
             );
         }
@@ -222,7 +223,7 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
                 )) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Такая входная связь уже существует"
+                    "Input operation already exists"
             );
         }
 
@@ -234,7 +235,7 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
         )) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Изменение связи создаёт цикл в технологическом маршруте"
+                    "Creating cycle in technology route"
             );
         }
 
@@ -254,22 +255,14 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
 
         OperationInput input = operationInputRepository
                 .findByIdAndOutputOperation_Id(inputId, operationId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Входной ресурс не найден для указанной операции"
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Input operation not found for this operation"));
 
         operationInputRepository.delete(input);
     }
 
-    // Вспомогательные методы
-
     private ProductOperation getOperationOrThrow(Long operationId) {
         return productOperationRepository.findById(operationId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Технологическая операция не найдена"
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Product operation not found, id: " + operationId));
     }
 
     private void validateInput(
