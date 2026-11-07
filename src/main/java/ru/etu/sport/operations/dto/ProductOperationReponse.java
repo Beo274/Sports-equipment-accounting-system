@@ -1,6 +1,7 @@
 package ru.etu.sport.operations.dto;
 
 import ru.etu.sport.model.dto.response.ProductResponse;
+import ru.etu.sport.operations.domain.OperationKind;
 import ru.etu.sport.operations.persistence.ProductOperation;
 
 public record ProductOperationReponse(
@@ -13,7 +14,9 @@ public record ProductOperationReponse(
         QualificationResponse qualification,
         Long setupTime,
         Long pieceTime,
-        String description) {
+        String description,
+        OperationKind kind
+    ) {
     public static ProductOperationReponse fromEntity(ProductOperation e) {
         return new ProductOperationReponse(
                 e.getId(),
@@ -25,6 +28,8 @@ public record ProductOperationReponse(
                 QualificationResponse.fromEntity(e.getQualification()),
                 e.getSetupTime(),
                 e.getPieceTime(),
-                e.getDescription());
+                e.getDescription(),
+                e.getKind()
+        );
     }
 }

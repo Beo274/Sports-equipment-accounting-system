@@ -13,13 +13,13 @@ import ru.etu.sport.operations.dto.TechnologyRouteResponse;
 
 @RestController
 @Tag(name = "technology route", description = "technology route management")
-@RequestMapping({"/api/technology-routes", "/technology-routes"})
+@RequestMapping("/technology-routes")
 @RequiredArgsConstructor
 public class TechnologyRouteController {
 
     private final TechnologyRouteService technologyRouteService;
 
-    @GetMapping({"/{productId}", "/product/{productId}"})
+    @GetMapping("/{productId}")
     public ResponseEntity<TechnologyRouteResponse> getFullRoute(
             @PathVariable Long productId) {
         return ResponseEntity.ok(technologyRouteService.getFullRoute(productId));

@@ -1,5 +1,7 @@
 package ru.etu.sport.operations.dto;
 
+import ru.etu.sport.operations.domain.ResourceType;
+
 public record UpdateOperationResourceDto(
         Long productOperationId,
         Long resourceId,
