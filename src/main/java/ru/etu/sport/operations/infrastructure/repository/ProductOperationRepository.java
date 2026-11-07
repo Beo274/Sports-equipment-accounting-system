@@ -8,4 +8,8 @@ import ru.etu.sport.model.entity.Product;
 
 public interface ProductOperationRepository extends JpaRepository<ProductOperation, Long> {
     List<ProductOperation> findAllByProduct(Product product);
+
+    List<ProductOperation> findByProduct_IdOrderByOperationNumberAsc(
+        Long productId
+    );
 }

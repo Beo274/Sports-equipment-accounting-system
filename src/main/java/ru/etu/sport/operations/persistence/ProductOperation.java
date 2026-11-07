@@ -2,6 +2,8 @@ package ru.etu.sport.operations.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.etu.sport.model.entity.Product;
+import ru.etu.sport.operations.domain.OperationKind;
 
 @Entity
 @Table(name = "product_operation")
@@ -39,19 +42,19 @@ public class ProductOperation {
     @Column(name = "name", nullable = false)
     String name;
 
-    @JoinColumn(name = "operation_type_id", nullable = false)
+    @JoinColumn(name = "operation_type_id")
     @ManyToOne(fetch = FetchType.LAZY)
     OperationType operationType;
 
-    @JoinColumn(name = "workcenter_id", nullable = false)
+    @JoinColumn(name = "workcenter_id")
     @ManyToOne(fetch = FetchType.LAZY)
     WorkCenter workCenter;
 
-    @JoinColumn(name = "profession_id", nullable = false)
+    @JoinColumn(name = "profession_id")
     @ManyToOne(fetch = FetchType.LAZY)
     Profession profession;
 
-    @JoinColumn(name = "qualification_id", nullable = false)
+    @JoinColumn(name = "qualification_id")
     @ManyToOne(fetch = FetchType.LAZY)
     Qualification qualification;
 
@@ -68,4 +71,9 @@ public class ProductOperation {
     @Column(name = "description")
     @Builder.Default
     String description = "";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kind", nullable = false)
+    @Builder.Default
+    OperationKind kind = OperationKind.TECHNOLOGICAL;
 }
