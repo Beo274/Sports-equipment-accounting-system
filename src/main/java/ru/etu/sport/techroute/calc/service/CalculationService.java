@@ -190,7 +190,108 @@ public class CalculationService {
                 }
             }
         } finally {
-            // Убираем операцию из текущего пути обхода
+            currentPath.remove(operation.getId());
+        }
+    }
+
+    public Long getTotalLaborRates(Integer productId, Integer number) {
+        if (number == null || number <= 0) {
+            throw new IllegalArgumentException(
+                    "Количество изделий должно быть больше нуля"
+            );
+        }
+
+        List<ProductOperation> operations =
+                productOperationRepository
+                        .findByProduct_IdOrderByOperationNumberAsc(
+                                productId.longValue()
+                        );
+
+        if (operations.isEmpty()) {
+            throw new EntityNotFoundException(
+                    "Для изделия не найдены технологические операции"
+            );
+        }
+
+        ProductOperation finalOperation =
+                operations.get(operations.size() - 1);
+
+        return calculateLaborTime(
+                finalOperation,
+                BigDecimal.valueOf(number),
+                new HashSet<>()
+        );
+    }
+
+    private Long calculateLaborTime(
+            ProductOperation operation,
+            BigDecimal outputQuantity,
+            Set<Long> currentPath
+    ) {
+        if (!currentPath.add(operation.getId())) {
+            throw new IllegalStateException(
+                    "Обнаружена циклическая зависимость в технологическом маршруте"
+            );
+        }
+
+        try {
+            BigDecimal setupTime = BigDecimal.valueOf(
+                    operation.getSetupTime() == null
+                            ? 0L
+                            : operation.getSetupTime()
+            );
+
+            BigDecimal pieceTime = BigDecimal.valueOf(
+                    operation.getPieceTime() == null
+                            ? 0L
+                            : operation.getPieceTime()
+            );
+
+            BigDecimal totalTime = setupTime.add(
+                    pieceTime.multiply(outputQuantity)
+            );
+
+            List<OperationInput> inputs =
+                    operationInputRepository.findByOutputOperation(operation);
+
+            for (OperationInput input : inputs) {
+                ProductOperation inputOperation =
+                        input.getInputOperation();
+
+                if (inputOperation.getKind() == OperationKind.PURCHASE) {
+                    continue;
+                }
+
+
+                BigDecimal requiredQuantity = input.getQuantity()
+                        .multiply(outputQuantity)
+                        .divide(
+                                input.getBaseQuantity(),
+                                MathContext.DECIMAL128
+                        );
+
+
+                requiredQuantity = requiredQuantity.setScale(
+                        0,
+                        RoundingMode.CEILING
+                );
+
+                Long inputTime = calculateLaborTime(
+                        inputOperation,
+                        requiredQuantity,
+                        currentPath
+                );
+
+                totalTime = totalTime.add(
+                        BigDecimal.valueOf(inputTime)
+                );
+            }
+
+            return totalTime
+                    .setScale(0, RoundingMode.CEILING)
+                    .longValueExact();
+
+        } finally {
             currentPath.remove(operation.getId());
         }
     }

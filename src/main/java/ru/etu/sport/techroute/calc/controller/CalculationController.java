@@ -39,4 +39,19 @@ public class CalculationController {
         );
     }
 
+    @Operation(summary = "Расчёт суммарных трудозатрат на изготовление изделия")
+    @GetMapping("/products/{productId}/labor")
+    public ResponseEntity<Long> getTotalLabor(
+            @PathVariable Integer productId,
+            @RequestParam Integer quantity
+    ) {
+        return ResponseEntity.ok(
+                calculationService.getTotalLaborRates(
+                        productId,
+                        quantity
+                )
+        );
+    }
+
+
 }
