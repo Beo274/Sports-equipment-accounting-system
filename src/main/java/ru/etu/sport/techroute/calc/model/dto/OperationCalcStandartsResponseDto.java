@@ -7,9 +7,6 @@ public record OperationCalcStandartsResponseDto(
         Integer number,
         List<MaterialResponseDto> materials
 ) {
-//    public static OperationCalcStandartsResponseDto fromEntity(
-//
-//    )
 }
 
 
