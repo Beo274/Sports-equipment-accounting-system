@@ -39,36 +39,35 @@ public class CalculationService {
         ProductOperation operation = productOperationRepository.findById(operationId.longValue())
                 .orElseThrow(EntityNotFoundException::new);
 
-        Deque<ProductOperation> operationStack = operationInputRepository.findInputOperationByOutputOperation(operation);
-        operationStack.push(operation);
 
-        List<MaterialResponseDto> materials = new LinkedList<>();
-        while (!operationStack.isEmpty()) {
+        Map<String, Integer> materialQuantities = new LinkedHashMap<>();
 
-            ProductOperation op = operationStack.pop();
+        List<OperationInput> inputs =
+                operationInputRepository.findByOutputOperation(operation);
 
-            List<OperationInput> inputs =
-                    operationInputRepository.findByOutputOperation(op);
+        for (OperationInput input : inputs) {
 
-            for (OperationInput input : inputs) {
+            BigDecimal requiredQuantity = BigDecimal.valueOf(number)
+                    .multiply(input.getQuantity());
 
-                BigDecimal requiredQuantity = BigDecimal.valueOf(number)
-                        .multiply(input.getQuantity())
-                        .divide(
-                                input.getBaseQuantity(),
-                                0,
-                                RoundingMode.CEILING
-                        );
+            String materialName = input.getInputOperation()
+                    .getProduct()
+                    .getName();
 
-                ProductOperation inputOperation = input.getInputOperation();
-
-                materials.add(new MaterialResponseDto(
-                        inputOperation.getProduct().getName(),
-                        requiredQuantity.intValue()
-                ));
-
-            }
+            materialQuantities.merge(
+                    materialName,
+                    requiredQuantity.intValue(),
+                    Integer::sum
+            );
         }
+
+        List<MaterialResponseDto> materials = materialQuantities.entrySet()
+                .stream()
+                .map(entry -> new MaterialResponseDto(
+                        entry.getKey(),
+                        entry.getValue()
+                ))
+                .toList();
 
         return new OperationCalcStandartsResponseDto(
                 operation.getName(),
