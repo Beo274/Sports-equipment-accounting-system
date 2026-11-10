@@ -7,10 +7,14 @@ import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
 import ru.etu.sport.techroute.calc.model.dto.MaterialResponseDto;
 import ru.etu.sport.techroute.calc.model.dto.OperationCalcStandartsResponseDto;
+import ru.etu.sport.techroute.operations.domain.OperationKind;
 import ru.etu.sport.techroute.operations.infrastructure.repository.OperationInputRepository;
 import ru.etu.sport.techroute.operations.infrastructure.repository.ProductOperationRepository;
+import ru.etu.sport.techroute.operations.persistence.OperationInput;
 import ru.etu.sport.techroute.operations.persistence.ProductOperation;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,29 +46,36 @@ public class CalculationService {
 
         List<MaterialResponseDto> materials = new LinkedList<>();
         while (!operationStack.isEmpty()) {
+
             ProductOperation op = operationStack.pop();
-            materials.add(new MaterialResponseDto(
-                    op.getProduct().getName(),
-                    operationInputRepository.findQuantityByOutputOperation(op).orElse(1)
-                )
-            );
-            if (!op.equals(operation)) {
-                Deque<ProductOperation> deepOperations = operationInputRepository.findInputOperationByOutputOperation(op);
-                while (!deepOperations.isEmpty()) {
-                    operationStack.addLast(deepOperations.pop());
-                }
+
+            List<OperationInput> inputs =
+                    operationInputRepository.findByOutputOperation(op);
+
+            for (OperationInput input : inputs) {
+
+                BigDecimal requiredQuantity = BigDecimal.valueOf(number)
+                        .multiply(input.getQuantity())
+                        .divide(
+                                input.getBaseQuantity(),
+                                0,
+                                RoundingMode.CEILING
+                        );
+
+                ProductOperation inputOperation = input.getInputOperation();
+
+                materials.add(new MaterialResponseDto(
+                        inputOperation.getProduct().getName(),
+                        requiredQuantity.intValue()
+                ));
+
             }
         }
+
         return new OperationCalcStandartsResponseDto(
                 operation.getName(),
                 number,
                 materials
-                        .stream()
-                        .map(x -> {
-                            x.setQuantity(x.getQuantity() * number);
-                            return x;
-                        })
-                        .toList()
         );
     }
 

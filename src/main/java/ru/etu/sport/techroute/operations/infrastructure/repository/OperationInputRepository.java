@@ -41,4 +41,6 @@ public interface OperationInputRepository extends JpaRepository<OperationInput, 
             WHERE oi.outputOperation = :operation
        """)
     Optional<Integer> findBaseQuantityByOutputOperation(@Param("operation") ProductOperation op);
+
+    List<OperationInput> findByOutputOperation(ProductOperation op);
 }

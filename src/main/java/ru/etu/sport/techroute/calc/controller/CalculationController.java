@@ -19,9 +19,11 @@ public class CalculationController {
         this.calculationService = calculationService;
     }
 
-    @Operation(summary = "Расчёт норм расхода материалов")
+    @Operation(summary = "Расчёт норм расхода материалов для операции")
     @GetMapping("/operations/{operationId}/materials")
     public ResponseEntity<OperationCalcStandartsResponseDto> getOperations(@PathVariable Integer operationId, @RequestParam Integer quantity) {
         return ResponseEntity.ok().body(calculationService.getOperationRates(operationId, quantity));
     }
+
+
 }
