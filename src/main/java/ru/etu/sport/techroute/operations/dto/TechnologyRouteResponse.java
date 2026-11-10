@@ -1,0 +1,11 @@
+package ru.etu.sport.techroute.operations.dto;
+
+import java.util.List;
+
+import ru.etu.sport.model.dto.response.ProductResponse;
+
+public record TechnologyRouteResponse(
+    ProductResponse product,
+    List<TechnologyRouteNode> operations
+) {
+}

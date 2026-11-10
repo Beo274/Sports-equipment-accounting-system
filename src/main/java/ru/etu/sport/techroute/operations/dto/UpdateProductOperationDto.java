@@ -1,0 +1,31 @@
+package ru.etu.sport.techroute.operations.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.etu.sport.techroute.operations.domain.OperationKind;
+
+@Data
+@NoArgsConstructor
+public class UpdateProductOperationDto {
+    Long productId;
+
+    Long operationNumber;
+
+    Long operationTypeId;
+
+    Long workCenterId;
+
+    Long professionId;
+
+    Long qualificationId;
+
+    String name;
+
+    String description = "";
+
+    Long setupTime;
+
+    Long pieceTime;
+
+    OperationKind kind;
+}
