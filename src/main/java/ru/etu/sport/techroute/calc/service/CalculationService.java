@@ -14,11 +14,9 @@ import ru.etu.sport.techroute.operations.persistence.OperationInput;
 import ru.etu.sport.techroute.operations.persistence.ProductOperation;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -77,6 +75,124 @@ public class CalculationService {
                 number,
                 materials
         );
+    }
+
+    public OperationCalcStandartsResponseDto getTotalMaterialRates(Integer productId, Integer number) {
+        if (number == null || number <= 0) {
+            throw new IllegalArgumentException(
+                    "Количество изделий должно быть больше нуля"
+            );
+        }
+
+        Product product = productRepository.findById(productId.longValue())
+                .orElseThrow(EntityNotFoundException::new);
+
+        List<ProductOperation> operations =
+                productOperationRepository
+                        .findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
+
+        if (operations.isEmpty()) {
+            throw new EntityNotFoundException(
+                    "Для изделия не найдены технологические операции"
+            );
+        }
+
+        ProductOperation finalOperation =
+                operations.get(operations.size() - 1);
+
+        Map<Long, BigDecimal> materialTotals = new HashMap<>();
+
+        Map<Long, String> materialNames = new HashMap<>();
+
+        collectPurchasedMaterials(
+                finalOperation,
+                BigDecimal.valueOf(number),
+                materialTotals,
+                materialNames,
+                new HashSet<>()
+        );
+
+        List<MaterialResponseDto> materials = new LinkedList<>();
+
+        for (Map.Entry<Long, BigDecimal> entry : materialTotals.entrySet()) {
+
+            int requiredQuantity = entry.getValue()
+                    .setScale(0, RoundingMode.CEILING)
+                    .intValueExact();
+
+            materials.add(new MaterialResponseDto(
+                    materialNames.get(entry.getKey()),
+                    requiredQuantity
+            ));
+        }
+
+        return new OperationCalcStandartsResponseDto(
+                product.getName(),
+                number,
+                materials
+        );
+    }
+
+    private void collectPurchasedMaterials(
+            ProductOperation operation,
+            BigDecimal outputQuantity,
+            Map<Long, BigDecimal> materialTotals,
+            Map<Long, String> materialNames,
+            Set<Long> currentPath
+    ) {
+
+        if (!currentPath.add(operation.getId())) {
+            throw new IllegalStateException(
+                    "Обнаружена циклическая зависимость в технологическом маршруте"
+            );
+        }
+
+        try {
+            List<OperationInput> inputs =
+                    operationInputRepository.findByOutputOperation(operation);
+
+            for (OperationInput input : inputs) {
+
+                BigDecimal requiredQuantity = input.getQuantity()
+                        .multiply(outputQuantity)
+                        .divide(
+                                input.getBaseQuantity(),
+                                MathContext.DECIMAL128
+                        );
+
+                ProductOperation inputOperation =
+                        input.getInputOperation();
+
+                if (inputOperation.getKind() == OperationKind.PURCHASE) {
+
+                    Long materialId = inputOperation.getId();
+
+                    materialTotals.merge(
+                            materialId,
+                            requiredQuantity,
+                            BigDecimal::add
+                    );
+
+                    materialNames.putIfAbsent(
+                            materialId,
+                            inputOperation.getProduct().getName()
+                    );
+
+                } else {
+
+                    collectPurchasedMaterials(
+                            inputOperation,
+                            requiredQuantity,
+                            materialTotals,
+                            materialNames,
+                            currentPath
+                    );
+                }
+            }
+        } finally {
+            // Убираем операцию из текущего пути обхода
+            currentPath.remove(operation.getId());
+        }
     }
 
 }

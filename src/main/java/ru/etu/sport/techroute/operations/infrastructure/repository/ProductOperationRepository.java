@@ -12,4 +12,5 @@ public interface ProductOperationRepository extends JpaRepository<ProductOperati
     List<ProductOperation> findByProduct_IdOrderByOperationNumberAsc(
         Long productId
     );
+
 }

@@ -25,5 +25,18 @@ public class CalculationController {
         return ResponseEntity.ok().body(calculationService.getOperationRates(operationId, quantity));
     }
 
+    @Operation(summary = "Расчёт сводных норм расхода материалов для изделия")
+    @GetMapping("/products/{productId}/materials/summary")
+    public ResponseEntity<OperationCalcStandartsResponseDto> getTotalMaterials(
+            @PathVariable Integer productId,
+            @RequestParam Integer quantity
+    ) {
+        return ResponseEntity.ok(
+                calculationService.getTotalMaterialRates(
+                        productId,
+                        quantity
+                )
+        );
+    }
 
 }
