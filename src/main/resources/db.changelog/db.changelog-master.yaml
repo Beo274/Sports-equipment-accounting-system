@@ -114,3 +114,25 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/010_create_operations_tables.down.sql
               relativeToChangelogFile: true
+    - changeSet:
+        id: 011_create_operation_resource_table
+        author: Edward
+        changes:
+          - sqlFile:
+              path: migrations/postgres/011_create_operation_resource_table.up.sql
+              relativeToChangelogFile: true
+        rollback:
+          - sqlFile:
+              path: migrations/postgres/011_create_operation_resource_table.down.sql
+              relativeToChangelogFile: true
+    - changeSet:
+        id: 012_models_rework
+        author: ogurchiki
+        changes:
+          - sqlFile:
+              path: migrations/postgres/012_models_rework.up.sql
+              relativeToChangelogFile: true
+        rollback:
+          - sqlFile:
+              path: migrations/postgres/012_models_rework.down.sql
+              relativeToChangelogFile: true

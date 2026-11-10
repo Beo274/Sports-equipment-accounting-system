@@ -77,6 +77,7 @@ public class ProductOperationServiceImpl implements ProductOperationService {
                 .workCenter(workCenter)
                 .qualification(qualification)
                 .profession(profession)
+                .kind(dto.getKind())
                 .build();
 
         return ProductOperationReponse.fromEntity(this.productOperationRepository.save(productOperation));
@@ -165,6 +166,10 @@ public class ProductOperationServiceImpl implements ProductOperationService {
 
         if (dto.getPieceTime() != null) {
             productOperation.setPieceTime(dto.getPieceTime());
+        }
+
+        if (dto.getKind() != null) {
+            productOperation.setKind(dto.getKind());
         }
 
         return ProductOperationReponse.fromEntity(productOperation);

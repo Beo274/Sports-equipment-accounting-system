@@ -2,6 +2,7 @@ package ru.etu.sport.operations.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.etu.sport.operations.domain.OperationKind;
 
 @Data
 @NoArgsConstructor
@@ -25,4 +26,6 @@ public class UpdateProductOperationDto {
     Long setupTime;
 
     Long pieceTime;
+
+    OperationKind kind;
 }

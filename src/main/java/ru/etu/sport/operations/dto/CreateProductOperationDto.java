@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import ru.etu.sport.operations.domain.OperationKind;
 
 @Data
 @NoArgsConstructor
@@ -16,20 +17,12 @@ public class CreateProductOperationDto extends BaseCreateRequestDto {
 
     Long operationNumber = 1L;
 
-    @NotNull(message = "Operation type id required")
-    @Positive(message = "ID must be positive")
     Long operationTypeId;
 
-    @NotNull(message = "Work center id required")
-    @Positive(message = "ID must be positive")
     Long workCenterId;
 
-    @NotNull(message = "Profession id required")
-    @Positive(message = "ID must be positive")
     Long professionId;
 
-    @NotNull(message = "Qualification id required")
-    @Positive(message = "ID must be positive")
     Long qualificationId;
 
     @NotNull(message = "Setup time required")
@@ -39,4 +32,7 @@ public class CreateProductOperationDto extends BaseCreateRequestDto {
     @NotNull(message = "Piece time required")
     @Positive(message = "Time must be positive")
     Long pieceTime;
+
+    @NotNull(message = "Operation kind must be provided")
+    OperationKind kind;
 }

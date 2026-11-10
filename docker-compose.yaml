@@ -41,7 +41,6 @@ services:
     container_name: sports_eq_api
     build:
       dockerfile: ./deploy/api/Dockerfile
-    restart: unless-stopped
     env_file:
       - .env
     environment:
