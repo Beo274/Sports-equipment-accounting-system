@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreateOperationInputDto(
     @NotNull Long operationId,
-    @NotNull @DecimalMin(value = "0.000001") BigDecimal quantity,
-    @NotNull @DecimalMin(value = "0.000001") BigDecimal baseQuantity,
+    @NotNull Integer quantity,
+    @NotNull Integer baseQuantity,
     @NotNull Long measureId
 ) { 
 }

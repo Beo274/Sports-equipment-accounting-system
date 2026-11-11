@@ -1,5 +1,6 @@
 package ru.etu.sport.techroute.operations.infrastructure.services;
 
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -128,7 +129,6 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
     @Transactional(readOnly = true)
     public List<OperationInputResponse> getInputs(Long operationId) {
 
-        // Проверяем существование операции
         getOperationOrThrow(operationId);
 
         return operationInputRepository
@@ -138,7 +138,6 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
                 .toList();
     }
 
-    // Добавление входного ресурса
     @Transactional
     public OperationInputResponse addInput(
             Long operationId,
@@ -158,7 +157,6 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
 
         validateInput(outputOperation, inputOperation);
 
-        // Проверяем дублирование связи
         if (operationInputRepository
                 .existsByOutputOperation_IdAndInputOperation_Id(
                         operationId,
@@ -186,8 +184,8 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
 
         input.setOutputOperation(outputOperation);
         input.setInputOperation(inputOperation);
-        input.setQuantity(dto.quantity());
-        input.setBaseQuantity(dto.baseQuantity());
+        input.setQuantity(BigDecimal.valueOf(dto.quantity()));
+        input.setBaseQuantity(BigDecimal.valueOf(dto.baseQuantity()));
         input.setMeasure(measure);
 
         OperationInput saved = operationInputRepository.save(input);
@@ -195,14 +193,12 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
         return mapToResponse(saved);
     }
 
-    // Изменение входного ресурса
     @Transactional
     public OperationInputResponse updateInput(
             Long operationId,
             Long inputId,
             CreateOperationInputDto request
     ) {
-        // Находим связь именно в рамках указанной операции
         OperationInput input = operationInputRepository.findByIdAndOutputOperation_Id(inputId, operationId)
                 .orElseThrow(() -> new EntityNotFoundException("Input not found with id: " + inputId));
 
@@ -214,7 +210,6 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
 
         validateInput(input.getOutputOperation(), inputOperation);
 
-        // Проверяем дублирование, исключая текущую запись
         if (operationInputRepository
                 .existsByOutputOperation_IdAndInputOperation_IdAndIdNot(
                         operationId,
@@ -240,8 +235,8 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
         }
 
         input.setInputOperation(inputOperation);
-        input.setQuantity(request.quantity());
-        input.setBaseQuantity(request.baseQuantity());
+        input.setQuantity(BigDecimal.valueOf(request.quantity()));
+        input.setBaseQuantity(BigDecimal.valueOf(request.baseQuantity()));
         input.setMeasure(measure);
 
         OperationInput updated = operationInputRepository.save(input);
@@ -249,7 +244,6 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
         return mapToResponse(updated);
     }
 
-    // Удаление входного ресурса
     @Transactional
     public void deleteInput(Long operationId, Long inputId) {
 
@@ -287,8 +281,8 @@ public class TechnologyRouteServiceImpl implements TechnologyRouteService {
                 inputOperation.getId(),
                 ProductResponse.from(inputOperation.getProduct()),
                 inputOperation.getOperationNumber(),
-                input.getQuantity(),
-                input.getBaseQuantity(),
+                input.getQuantity().intValue(),
+                input.getBaseQuantity().intValue(),
                 MeasureResponse.from(input.getMeasure())
         );
     }
