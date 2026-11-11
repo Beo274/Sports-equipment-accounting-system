@@ -31,7 +31,7 @@ public class OperationInputController {
     @PostMapping
     public ResponseEntity<OperationInputResponse> addInput(
         @PathVariable Long operationId,
-        @RequestBody CreateOperationInputDto dto
+        @Valid @RequestBody CreateOperationInputDto dto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(technologyRouteService.addInput(operationId, dto));
     }

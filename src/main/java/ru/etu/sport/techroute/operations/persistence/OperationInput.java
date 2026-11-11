@@ -30,17 +30,14 @@ public class OperationInput {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    // Операция - потребитель ресурса (куда ресурс пойдёт дальше)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "output_operation_id", nullable = false)
     ProductOperation outputOperation;
 
-    // Операция, результат которой потребляется
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_operation_id", nullable = false)
     ProductOperation inputOperation;
 
-    // Норма расхода
     @Column(name = "quantity", nullable = false, precision = 19, scale = 6)
     BigDecimal quantity;
 

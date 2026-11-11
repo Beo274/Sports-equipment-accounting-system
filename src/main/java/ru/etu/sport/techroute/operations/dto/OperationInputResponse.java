@@ -12,8 +12,8 @@ public record OperationInputResponse(
     Long inputOperationId,
     ProductResponse inputProduct,
     Long inputOperationNumber,
-    BigDecimal quantity,
-    BigDecimal baseQuantity,
+    Integer quantity,
+    Integer baseQuantity,
     MeasureResponse measure
 ) {
     public static OperationInputResponse fromEntity(OperationInput e) {
@@ -23,8 +23,8 @@ public record OperationInputResponse(
             e.getInputOperation().getId(), 
             ProductResponse.from(e.getInputOperation().getProduct()), 
             e.getInputOperation().getOperationNumber(), 
-            e.getQuantity(), 
-            e.getBaseQuantity(), 
+            e.getQuantity().intValue(),
+            e.getBaseQuantity().intValue(),
             MeasureResponse.from(e.getMeasure())
         );
     }
