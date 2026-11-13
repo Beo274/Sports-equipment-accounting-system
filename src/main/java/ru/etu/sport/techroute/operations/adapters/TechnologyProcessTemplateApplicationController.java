@@ -2,6 +2,7 @@ package ru.etu.sport.techroute.operations.adapters;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ public class TechnologyProcessTemplateApplicationController {
     private final TechnologyProcessTemplateService templateService;
 
     @PostMapping("/{templateId}/apply")
+    @Operation(summary = "Применить шаблон к продукту")
     public ResponseEntity<List<ProductOperationReponse>> applyTemplate(
             @PathVariable Long productId,
             @PathVariable Long templateId

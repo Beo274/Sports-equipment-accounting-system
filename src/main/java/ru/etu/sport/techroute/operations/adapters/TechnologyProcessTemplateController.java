@@ -2,6 +2,7 @@ package ru.etu.sport.techroute.operations.adapters;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,6 +30,7 @@ public class TechnologyProcessTemplateController {
     private final TechnologyProcessTemplateService templateService;
 
     @PostMapping("/from-product/{productId}")
+    @Operation(summary = "Создать шаблон на основе маршрута изделия")
     public ResponseEntity<TechnologyProcessTemplateResponse> createFromProduct(
             @PathVariable Long productId,
             @RequestBody(required = false) CreateTechnologyProcessTemplateDto dto
@@ -38,11 +40,13 @@ public class TechnologyProcessTemplateController {
     }
 
     @GetMapping
+    @Operation(summary = "Получить список шаблонов")
     public ResponseEntity<List<TechnologyProcessTemplateShortResponse>> getAll() {
         return ResponseEntity.ok(templateService.getAll());
     }
 
     @GetMapping("/{templateId}")
+    @Operation(summary = "Получить шаблон со всеми операциями")
     public ResponseEntity<TechnologyProcessTemplateResponse> getById(
             @PathVariable Long templateId
     ) {
@@ -50,6 +54,7 @@ public class TechnologyProcessTemplateController {
     }
 
     @PutMapping("/{templateId}")
+    @Operation(summary  = "Изменить название и описание шаблона")
     public ResponseEntity<TechnologyProcessTemplateResponse> update(
             @PathVariable Long templateId,
             @RequestBody CreateTechnologyProcessTemplateDto dto
@@ -58,6 +63,7 @@ public class TechnologyProcessTemplateController {
     }
 
     @DeleteMapping("/{templateId}")
+    @Operation(summary  = "Удалить шаблон")
     public ResponseEntity<Void> delete(
             @PathVariable Long templateId
     ) {
