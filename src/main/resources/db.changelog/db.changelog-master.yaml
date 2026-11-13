@@ -136,3 +136,10 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/012_models_rework.down.sql
               relativeToChangelogFile: true
+    - changeSet:
+        id: 013_create_technology_process_templates
+        author: konekrad
+        changes:
+          - sqlFile:
+              path: migrations/postgres/013_create_technology_process_templates.up.sql
+              relativeToChangelogFile: true
