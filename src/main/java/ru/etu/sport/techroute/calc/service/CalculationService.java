@@ -33,10 +33,6 @@ public class CalculationService {
         this.productOperationRepository = productOperationRepository;
     }
 
-    /**
-     * Нормы материалов, непосредственно и косвенно необходимых для операции.
-     * Вложенные технологические операции раскрываются до конечных ресурсов.
-     */
     public OperationCalcStandartsResponseDto getOperationRates(Integer operationId, Integer number) {
         validateQuantity(number);
 
@@ -62,10 +58,6 @@ public class CalculationService {
         );
     }
 
-    /**
-     * Сводные нормы материалов для изделия: расчёт начинается с последней
-     * операции изделия и проходит по всем её входным зависимостям.
-     */
     public OperationCalcStandartsResponseDto getTotalMaterialRates(Integer productId, Integer number) {
         validateQuantity(number);
 
@@ -99,15 +91,6 @@ public class CalculationService {
         );
     }
 
-    /**
-     * Если вход — PURCHASE, он является покупным материалом.
-     * Если вход — TECHNOLOGICAL, раскрываем его входы. Важный случай:
-     * технологическая операция без собственных входов тоже является конечным
-     * ресурсом маршрута, поэтому учитываем её продукт как материал.
-     *
-     * rootOperation=false для исходной операции запроса: сама операция не
-     * должна попадать в список собственных материалов, даже если она листовая.
-     */
     private void collectPurchasedMaterials(
             ProductOperation operation,
             BigDecimal outputQuantity,
@@ -161,13 +144,10 @@ public class CalculationService {
                         operationInputRepository.findByOutputOperation(inputOperation);
 
                 if (nestedInputs.isEmpty()) {
-                    // Конечная технологическая операция — конечный ресурс графа.
                     addMaterial(inputOperation, requiredQuantity, materialTotals, materialNames);
                     continue;
                 }
 
-                // Производственная операция неделима: округляем число её
-                // выполнений вверх на каждом переходе графа.
                 BigDecimal operationCount = requiredQuantity.setScale(0, RoundingMode.CEILING);
 
                 collectPurchasedMaterials(
