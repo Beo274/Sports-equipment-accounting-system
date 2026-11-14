@@ -1,7 +1,6 @@
 package ru.etu.sport.techroute.calc.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
@@ -19,11 +18,10 @@ import java.math.RoundingMode;
 import java.util.*;
 
 @Service
-@Slf4j
 public class CalculationService {
-    public final ProductRepository productRepository;
-    public final ProductOperationRepository productOperationRepository;
-    public final OperationInputRepository operationInputRepository;
+    private final ProductRepository productRepository;
+    private final ProductOperationRepository productOperationRepository;
+    private final OperationInputRepository operationInputRepository;
 
     public CalculationService(
             ProductRepository productRepository,
@@ -36,99 +34,60 @@ public class CalculationService {
     }
 
     public OperationCalcStandartsResponseDto getOperationRates(Integer operationId, Integer number) {
+        validateQuantity(number);
+
         ProductOperation operation = productOperationRepository.findById(operationId.longValue())
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Операция не найдена: " + operationId));
 
+        Map<Long, BigDecimal> materialTotals = new LinkedHashMap<>();
+        Map<Long, String> materialNames = new LinkedHashMap<>();
 
-        Map<String, Integer> materialQuantities = new LinkedHashMap<>();
-
-        List<OperationInput> inputs =
-                operationInputRepository.findByOutputOperation(operation);
-
-        for (OperationInput input : inputs) {
-
-            BigDecimal requiredQuantity = BigDecimal.valueOf(number)
-                    .multiply(input.getQuantity());
-
-            String materialName = input.getInputOperation()
-                    .getProduct()
-                    .getName();
-
-            materialQuantities.merge(
-                    materialName,
-                    requiredQuantity.intValue(),
-                    Integer::sum
-            );
-        }
-
-        List<MaterialResponseDto> materials = materialQuantities.entrySet()
-                .stream()
-                .map(entry -> new MaterialResponseDto(
-                        entry.getKey(),
-                        entry.getValue()
-                ))
-                .toList();
+        collectPurchasedMaterials(
+                operation,
+                BigDecimal.valueOf(number),
+                materialTotals,
+                materialNames,
+                new HashSet<>(),
+                false
+        );
 
         return new OperationCalcStandartsResponseDto(
                 operation.getName(),
                 number,
-                materials
+                toMaterialResponses(materialTotals, materialNames)
         );
     }
 
     public OperationCalcStandartsResponseDto getTotalMaterialRates(Integer productId, Integer number) {
-        if (number == null || number <= 0) {
-            throw new IllegalArgumentException(
-                    "Количество изделий должно быть больше нуля"
-            );
-        }
+        validateQuantity(number);
 
         Product product = productRepository.findById(productId.longValue())
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("Изделие не найдено: " + productId));
 
         List<ProductOperation> operations =
-                productOperationRepository
-                        .findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
+                productOperationRepository.findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
 
         if (operations.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "Для изделия не найдены технологические операции"
-            );
+            throw new EntityNotFoundException("Для изделия не найдены технологические операции");
         }
 
-        ProductOperation finalOperation =
-                operations.get(operations.size() - 1);
-
-        Map<Long, BigDecimal> materialTotals = new HashMap<>();
-
-        Map<Long, String> materialNames = new HashMap<>();
+        ProductOperation finalOperation = operations.get(operations.size() - 1);
+        Map<Long, BigDecimal> materialTotals = new LinkedHashMap<>();
+        Map<Long, String> materialNames = new LinkedHashMap<>();
 
         collectPurchasedMaterials(
                 finalOperation,
                 BigDecimal.valueOf(number),
                 materialTotals,
                 materialNames,
-                new HashSet<>()
+                new HashSet<>(),
+                false
         );
-
-        List<MaterialResponseDto> materials = new LinkedList<>();
-
-        for (Map.Entry<Long, BigDecimal> entry : materialTotals.entrySet()) {
-
-            int requiredQuantity = entry.getValue()
-                    .setScale(0, RoundingMode.CEILING)
-                    .intValueExact();
-
-            materials.add(new MaterialResponseDto(
-                    materialNames.get(entry.getKey()),
-                    requiredQuantity
-            ));
-        }
 
         return new OperationCalcStandartsResponseDto(
                 product.getName(),
                 number,
-                materials
+                toMaterialResponses(materialTotals, materialNames)
         );
     }
 
@@ -137,89 +96,117 @@ public class CalculationService {
             BigDecimal outputQuantity,
             Map<Long, BigDecimal> materialTotals,
             Map<Long, String> materialNames,
-            Set<Long> currentPath
+            Set<Long> currentPath,
+            boolean leafIsMaterial
     ) {
-
         if (!currentPath.add(operation.getId())) {
             throw new IllegalStateException(
-                    "Обнаружена циклическая зависимость в технологическом маршруте"
+                    "Обнаружена циклическая зависимость в технологическом маршруте, операция: "
+                            + operation.getId()
             );
         }
 
         try {
-            List<OperationInput> inputs =
-                    operationInputRepository.findByOutputOperation(operation);
+            List<OperationInput> inputs = operationInputRepository.findByOutputOperation(operation);
+
+            if (inputs.isEmpty()) {
+                if (leafIsMaterial) {
+                    addMaterial(operation, outputQuantity, materialTotals, materialNames);
+                }
+                return;
+            }
 
             for (OperationInput input : inputs) {
+                BigDecimal baseQuantity = input.getBaseQuantity();
+                if (baseQuantity == null || baseQuantity.signum() <= 0) {
+                    throw new IllegalStateException(
+                            "Базовое количество должно быть больше нуля. Вход операции: " + input.getId()
+                    );
+                }
 
                 BigDecimal requiredQuantity = input.getQuantity()
                         .multiply(outputQuantity)
-                        .divide(
-                                input.getBaseQuantity(),
-                                MathContext.DECIMAL128
-                        );
+                        .divide(baseQuantity, MathContext.DECIMAL128);
 
-                ProductOperation inputOperation =
-                        input.getInputOperation();
-
-                if (inputOperation.getKind() == OperationKind.PURCHASE) {
-
-                    Long materialId = inputOperation.getId();
-
-                    materialTotals.merge(
-                            materialId,
-                            requiredQuantity,
-                            BigDecimal::add
-                    );
-
-                    materialNames.putIfAbsent(
-                            materialId,
-                            inputOperation.getProduct().getName()
-                    );
-
-                } else {
-
-                    collectPurchasedMaterials(
-                            inputOperation,
-                            requiredQuantity,
-                            materialTotals,
-                            materialNames,
-                            currentPath
+                ProductOperation inputOperation = input.getInputOperation();
+                if (inputOperation == null) {
+                    throw new IllegalStateException(
+                            "Не задана входная операция для связи: " + input.getId()
                     );
                 }
+
+                if (inputOperation.getKind() == OperationKind.PURCHASE) {
+                    addMaterial(inputOperation, requiredQuantity, materialTotals, materialNames);
+                    continue;
+                }
+
+                List<OperationInput> nestedInputs =
+                        operationInputRepository.findByOutputOperation(inputOperation);
+
+                if (nestedInputs.isEmpty()) {
+                    addMaterial(inputOperation, requiredQuantity, materialTotals, materialNames);
+                    continue;
+                }
+
+                BigDecimal operationCount = requiredQuantity.setScale(0, RoundingMode.CEILING);
+
+                collectPurchasedMaterials(
+                        inputOperation,
+                        operationCount,
+                        materialTotals,
+                        materialNames,
+                        currentPath,
+                        true
+                );
             }
         } finally {
             currentPath.remove(operation.getId());
         }
     }
 
-    public Long getTotalLaborRates(Integer productId, Integer number) {
-        if (number == null || number <= 0) {
-            throw new IllegalArgumentException(
-                    "Количество изделий должно быть больше нуля"
+    private void addMaterial(
+            ProductOperation materialOperation,
+            BigDecimal quantity,
+            Map<Long, BigDecimal> materialTotals,
+            Map<Long, String> materialNames
+    ) {
+        Product material = materialOperation.getProduct();
+        if (material == null || material.getId() == null) {
+            throw new IllegalStateException(
+                    "У входной операции не задан продукт. ID операции: " + materialOperation.getId()
             );
         }
+
+        Long productId = material.getId().longValue();
+        materialTotals.merge(productId, quantity, BigDecimal::add);
+        materialNames.putIfAbsent(productId, material.getName());
+    }
+
+    private List<MaterialResponseDto> toMaterialResponses(
+            Map<Long, BigDecimal> materialTotals,
+            Map<Long, String> materialNames
+    ) {
+        return materialTotals.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> new MaterialResponseDto(
+                        materialNames.get(entry.getKey()),
+                        entry.getValue().setScale(0, RoundingMode.CEILING).intValueExact()
+                ))
+                .toList();
+    }
+
+    public Long getTotalLaborRates(Integer productId, Integer number) {
+        validateQuantity(number);
 
         List<ProductOperation> operations =
-                productOperationRepository
-                        .findByProduct_IdOrderByOperationNumberAsc(
-                                productId.longValue()
-                        );
+                productOperationRepository.findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
 
         if (operations.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "Для изделия не найдены технологические операции"
-            );
+            throw new EntityNotFoundException("Для изделия не найдены технологические операции");
         }
 
-        ProductOperation finalOperation =
-                operations.get(operations.size() - 1);
-
-        return calculateLaborTime(
-                finalOperation,
-                BigDecimal.valueOf(number),
-                new HashSet<>()
-        );
+        ProductOperation finalOperation = operations.get(operations.size() - 1);
+        return calculateLaborTime(finalOperation, BigDecimal.valueOf(number), new HashSet<>());
     }
 
     private Long calculateLaborTime(
@@ -235,64 +222,48 @@ public class CalculationService {
 
         try {
             BigDecimal setupTime = BigDecimal.valueOf(
-                    operation.getSetupTime() == null
-                            ? 0L
-                            : operation.getSetupTime()
+                    operation.getSetupTime() == null ? 0L : operation.getSetupTime()
             );
-
             BigDecimal pieceTime = BigDecimal.valueOf(
-                    operation.getPieceTime() == null
-                            ? 0L
-                            : operation.getPieceTime()
+                    operation.getPieceTime() == null ? 0L : operation.getPieceTime()
             );
+            BigDecimal totalTime = setupTime.add(pieceTime.multiply(outputQuantity));
 
-            BigDecimal totalTime = setupTime.add(
-                    pieceTime.multiply(outputQuantity)
-            );
-
-            List<OperationInput> inputs =
-                    operationInputRepository.findByOutputOperation(operation);
-
+            List<OperationInput> inputs = operationInputRepository.findByOutputOperation(operation);
             for (OperationInput input : inputs) {
-                ProductOperation inputOperation =
-                        input.getInputOperation();
-
+                ProductOperation inputOperation = input.getInputOperation();
                 if (inputOperation.getKind() == OperationKind.PURCHASE) {
                     continue;
                 }
 
+                BigDecimal baseQuantity = input.getBaseQuantity();
+                if (baseQuantity == null || baseQuantity.signum() <= 0) {
+                    throw new IllegalStateException(
+                            "Базовое количество должно быть больше нуля. Вход операции: " + input.getId()
+                    );
+                }
 
                 BigDecimal requiredQuantity = input.getQuantity()
                         .multiply(outputQuantity)
-                        .divide(
-                                input.getBaseQuantity(),
-                                MathContext.DECIMAL128
-                        );
+                        .divide(baseQuantity, MathContext.DECIMAL128)
+                        .setScale(0, RoundingMode.CEILING);
 
-
-                requiredQuantity = requiredQuantity.setScale(
-                        0,
-                        RoundingMode.CEILING
-                );
-
-                Long inputTime = calculateLaborTime(
-                        inputOperation,
-                        requiredQuantity,
-                        currentPath
-                );
-
-                totalTime = totalTime.add(
-                        BigDecimal.valueOf(inputTime)
-                );
+                totalTime = totalTime.add(BigDecimal.valueOf(
+                        calculateLaborTime(inputOperation, requiredQuantity, currentPath)
+                ));
             }
 
-            return totalTime
-                    .setScale(0, RoundingMode.CEILING)
-                    .longValueExact();
-
+            return totalTime.setScale(0, RoundingMode.CEILING).longValueExact();
         } finally {
             currentPath.remove(operation.getId());
         }
     }
 
+    private void validateQuantity(Integer number) {
+        if (number == null || number <= 0) {
+            throw new IllegalArgumentException(
+                    "Количество изделий/операций должно быть больше нуля"
+            );
+        }
+    }
 }
