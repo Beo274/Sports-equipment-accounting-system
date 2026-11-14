@@ -7,7 +7,7 @@ import ru.etu.sport.techroute.operations.persistence.TechnologyProcessTemplateOp
 
 public record TechnologyProcessTemplateOperationResponse(
         Long id,
-        Integer operationNumber,
+        Long operationNumber,
         String name,
         String description,
         OperationKind kind,

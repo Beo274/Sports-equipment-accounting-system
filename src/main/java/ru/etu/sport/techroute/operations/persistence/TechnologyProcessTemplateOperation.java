@@ -52,7 +52,7 @@ public class TechnologyProcessTemplateOperation {
 
     @Column(name = "operation_number", nullable = false)
     @Builder.Default
-    private Integer operationNumber = 1;
+    private Long operationNumber = 1L;
 
     @Column(name = "setup_time", nullable = false)
     @Builder.Default

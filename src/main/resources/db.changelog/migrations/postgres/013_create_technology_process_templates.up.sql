@@ -10,7 +10,7 @@ CREATE TABLE technology_process_template_operation (
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL DEFAULT '',
     kind operation_kind NOT NULL DEFAULT 'TECHNOLOGICAL',
-    operation_number INTEGER NOT NULL DEFAULT 1,
+    operation_number BIGINT NOT NULL DEFAULT 1,
     setup_time BIGINT NOT NULL DEFAULT 0,
     piece_time BIGINT NOT NULL DEFAULT 0,
     operation_type_id BIGINT REFERENCES operation_type(id),

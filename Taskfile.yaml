@@ -113,7 +113,7 @@ tasks:
   migrate-rollback:
     desc: "Откатить миграции, необходимо передать количество версий для отката (task migrate-rollback N=1)"
     cmds:
-      - "{{.DC}} run --rm liquibase --search-path=/liquibase/changelog rollback-count ${{.N}}"
+      - "{{.DC}} run --rm liquibase --search-path=/liquibase/changelog rollback-count {{.N}}"
 
   sh-api:
     desc: "Зайти внутрь контейнера sports-api"

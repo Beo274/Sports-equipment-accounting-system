@@ -1,11 +1,17 @@
 package ru.etu.sport.techroute.operations.infrastructure.services;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +20,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
+import ru.etu.sport.measure.dto.MeasureResponse;
 import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
@@ -55,13 +62,21 @@ public class TechnologyProcessTemplateServiceImpl implements TechnologyProcessTe
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found: " + productId));
 
-        List<ProductOperation> productOperations = new ArrayList<>(
-                productOperationRepository.findAllByProduct(product)
+        List<ProductOperation> rootOperations = new ArrayList<>(
+            productOperationRepository.findAllByProduct(product)
         );
-        productOperations.sort(Comparator.comparingLong(ProductOperation::getOperationNumber));
 
-        if (productOperations.isEmpty()) {
-            throw new ValidationException("Product has no operations to create template from: " + productId);
+        rootOperations.sort(
+            Comparator.comparing(
+                ProductOperation::getOperationNumber,
+                Comparator.nullsLast(Comparator.naturalOrder())
+            )
+        );
+
+        if (rootOperations.isEmpty()) {
+            throw new ValidationException(
+                "Product has no operations to create template from: " + productId
+            );
         }
 
         String templateName = (dto != null && dto.name() != null && !dto.name().isBlank())
@@ -72,83 +87,80 @@ public class TechnologyProcessTemplateServiceImpl implements TechnologyProcessTe
                 ? dto.description()
                 : "Типовой процесс на основе изделия " + product.getName();
 
-        TechnologyProcessTemplate template = TechnologyProcessTemplate.builder()
+        TechnologyProcessTemplate template = templateRepository.save(TechnologyProcessTemplate.builder()
                 .name(templateName)
                 .description(templateDescription)
+                .build()
+        );
+
+        // все достижимые операции (по инпутам тоже)
+        Map<Long, ProductOperation> sourceOperations = collectAllOperations(rootOperations);
+
+        Map<Long, TechnologyProcessTemplateOperation> operationMapping = new LinkedHashMap<>();
+        List<TechnologyProcessTemplateOperation> savedTemplateOperations = new ArrayList<>();
+
+        // добавляем все операции (пока без связей)
+        for (ProductOperation sourceOperation : sourceOperations.values()) {
+            TechnologyProcessTemplateOperation templateOperation = TechnologyProcessTemplateOperation.builder()
+                .template(template)
+                .name(sourceOperation.getName())
+                .description(sourceOperation.getDescription() != null ? sourceOperation.getDescription() : "")
+                .kind(sourceOperation.getKind())
+                .operationNumber(sourceOperation.getOperationNumber() != null ? sourceOperation.getOperationNumber() : 1L)
+                .setupTime(sourceOperation.getSetupTime() != null ? sourceOperation.getSetupTime() : 0L)
+                .pieceTime(sourceOperation.getPieceTime() != null ? sourceOperation.getPieceTime() : 0L)
+                .operationType(sourceOperation.getOperationType())
+                .workCenter(sourceOperation.getWorkCenter())
+                .profession(sourceOperation.getProfession())
+                .qualification(sourceOperation.getQualification())
                 .build();
-        template = templateRepository.save(template);
 
-        Map<Long, TechnologyProcessTemplateOperation> opMapping = new HashMap<>();
-        List<TechnologyProcessTemplateOperation> savedTemplateOps = new ArrayList<>();
+            templateOperation = templateOperationRepository.save(templateOperation);
 
-        for (ProductOperation prodOp : productOperations) {
-            TechnologyProcessTemplateOperation templateOp = TechnologyProcessTemplateOperation.builder()
-                    .template(template)
-                    .name(prodOp.getName())
-                    .description(prodOp.getDescription() != null ? prodOp.getDescription() : "")
-                    .kind(prodOp.getKind())
-                    .operationNumber(prodOp.getOperationNumber() != null ? prodOp.getOperationNumber().intValue() : 1)
-                    .setupTime(prodOp.getSetupTime() != null ? prodOp.getSetupTime() : 0L)
-                    .pieceTime(prodOp.getPieceTime() != null ? prodOp.getPieceTime() : 0L)
-                    .operationType(prodOp.getOperationType())
-                    .workCenter(prodOp.getWorkCenter())
-                    .profession(prodOp.getProfession())
-                    .qualification(prodOp.getQualification())
-                    .build();
+            operationMapping.put(sourceOperation.getId(), templateOperation);
 
-            templateOp = templateOperationRepository.save(templateOp);
-            opMapping.put(prodOp.getId(), templateOp);
-            savedTemplateOps.add(templateOp);
+            savedTemplateOperations.add(templateOperation);
         }
 
-        for (ProductOperation prodOp : productOperations) {
-            List<OperationInput> inputs = operationInputRepository.findByOutputOperation_IdOrderByIdAsc(prodOp.getId());
-            TechnologyProcessTemplateOperation outTemplateOp = opMapping.get(prodOp.getId());
+        // добавление связей
+        for (ProductOperation sourceOperation : sourceOperations.values()) {
+            TechnologyProcessTemplateOperation outputTemplateOperation = operationMapping.get(sourceOperation.getId());
 
-            for (OperationInput input : inputs) {
-                TechnologyProcessTemplateOperation inTemplateOp =
-                        opMapping.get(input.getInputOperation().getId());
+            List<OperationInput> sourceInputs = operationInputRepository.findByOutputOperation_IdOrderByIdAsc(sourceOperation.getId());
 
-                // Если входная операция также принадлежит этому изделию — связываем внутри шаблона.
-                // Если это операция внешнего полуфабриката, дополнительно клонируем или сохраняем ссылку.
-                if (inTemplateOp == null) {
-                    ProductOperation extOp = input.getInputOperation();
-                    inTemplateOp = TechnologyProcessTemplateOperation.builder()
-                            .template(template)
-                            .name(extOp.getName())
-                            .description(extOp.getDescription() != null ? extOp.getDescription() : "")
-                            .kind(extOp.getKind())
-                            .operationNumber(extOp.getOperationNumber() != null ? extOp.getOperationNumber().intValue() : 1)
-                            .setupTime(extOp.getSetupTime() != null ? extOp.getSetupTime() : 0L)
-                            .pieceTime(extOp.getPieceTime() != null ? extOp.getPieceTime() : 0L)
-                            .operationType(extOp.getOperationType())
-                            .workCenter(extOp.getWorkCenter())
-                            .profession(extOp.getProfession())
-                            .qualification(extOp.getQualification())
-                            .build();
-                    inTemplateOp = templateOperationRepository.save(inTemplateOp);
-                    opMapping.put(extOp.getId(), inTemplateOp);
-                    savedTemplateOps.add(inTemplateOp);
+            for (OperationInput sourceInput : sourceInputs) {
+                ProductOperation sourceInputOperation = sourceInput.getInputOperation();
+
+                if (sourceInputOperation == null) {
+                    throw new ValidationException(
+                        "Input operation is null for OperationInput: "
+                                + sourceInput.getId()
+                    );
+                }
+
+                TechnologyProcessTemplateOperation inputTemplateOperation = operationMapping.get(sourceInputOperation.getId());
+
+                if (inputTemplateOperation == null) {
+                    throw new IllegalStateException(
+                         "Operation was not copied to template. Source operation ID: "
+                                + sourceInputOperation.getId()
+                    );
                 }
 
                 TechnologyProcessTemplateInput templateInput = TechnologyProcessTemplateInput.builder()
-                        .outputTemplateOperation(outTemplateOp)
-                        .inputTemplateOperation(inTemplateOp)
-                        .externalInputOperation(
-                                input.getInputOperation().getProduct().getId().equals(product.getId())
-                                        ? null
-                                        : input.getInputOperation()
-                        )
-                        .quantity(input.getQuantity())
-                        .baseQuantity(input.getBaseQuantity())
-                        .measure(input.getMeasure())
-                        .build();
-
+                    .outputTemplateOperation(outputTemplateOperation)
+                    .inputTemplateOperation(inputTemplateOperation)
+                    .externalInputOperation(sourceInputOperation)
+                    .quantity(sourceInput.getQuantity())
+                    .baseQuantity(sourceInput.getBaseQuantity())
+                    .measure(sourceInput.getMeasure())
+                    .build();
+                
                 templateInputRepository.save(templateInput);
             }
         }
 
-        return buildTemplateResponse(template, savedTemplateOps);
+        return buildTemplateResponse(template, savedTemplateOperations);
     }
 
     @Override
@@ -222,85 +234,306 @@ public class TechnologyProcessTemplateServiceImpl implements TechnologyProcessTe
         List<TechnologyProcessTemplateInput> templateInputs =
                 templateInputRepository.findAllByOutputTemplateOperation_IdInOrderByIdAsc(templateOpIds);
 
-        Map<Long, ProductOperation> createdOpMap = new HashMap<>();
-        List<ProductOperation> createdOperations = new ArrayList<>();
+        Set<Long> inputOperationIds = templateInputs.stream()
+            .map(TechnologyProcessTemplateInput::getInputTemplateOperation)
+            .filter(Objects::nonNull)
+            .map(TechnologyProcessTemplateOperation::getId)
+            .collect(Collectors.toSet());
 
-        // Шаг 1–3: создаём новые записи ProductOperation для целевого изделия
-        for (TechnologyProcessTemplateOperation templateOp : templateOperations) {
-            ProductOperation newProdOp = ProductOperation.builder()
-                    .product(targetProduct)
-                    .operationNumber(templateOp.getOperationNumber() != null
-                            ? templateOp.getOperationNumber().longValue()
-                            : 1L)
-                    .name(templateOp.getName())
-                    .description(templateOp.getDescription() != null ? templateOp.getDescription() : "")
-                    .kind(templateOp.getKind())
-                    .setupTime(templateOp.getSetupTime() != null ? templateOp.getSetupTime() : 0L)
-                    .pieceTime(templateOp.getPieceTime() != null ? templateOp.getPieceTime() : 0L)
-                    .operationType(templateOp.getOperationType())
-                    .workCenter(templateOp.getWorkCenter())
-                    .profession(templateOp.getProfession())
-                    .qualification(templateOp.getQualification())
-                    .build();
+        Map<Long, Product> productMapping = new HashMap<>();
 
-            newProdOp = productOperationRepository.save(newProdOp);
-            createdOpMap.put(templateOp.getId(), newProdOp);
-            createdOperations.add(newProdOp);
+        // маппинг операций к изделиям
+        for (TechnologyProcessTemplateOperation templateOperation : templateOperations) {
+            Long templateOperationId = templateOperation.getId();
+
+            // Если корневоая операция - меняем изделие
+            if (!inputOperationIds.contains(templateOperationId)) {
+                productMapping.put(templateOperationId, targetProduct);
+                continue;
+            }
+
+            List<TechnologyProcessTemplateInput> matchingInputs = templateInputs.stream()
+                .filter(input -> 
+                    input.getInputTemplateOperation() != null 
+                    && input.getInputTemplateOperation().getId().equals(templateOperationId)
+                )
+                .toList();
+            
+            if (matchingInputs.isEmpty()) {
+                throw new IllegalStateException(
+                    "Cannot determine source Product for template operation: " + templateOperationId
+                );
+            }
+
+            Product sourceProduct = null;
+
+            for (TechnologyProcessTemplateInput input : matchingInputs) {
+                ProductOperation externalOperation = input.getExternalInputOperation();
+
+                if (externalOperation == null || externalOperation.getProduct() == null) {
+                    throw new IllegalStateException(
+                        "External source operation or its product is missing: input ID: " + input.getId()
+                    );
+                }
+
+                Product currentSourceProduct = externalOperation.getProduct();
+                if (sourceProduct == null) {
+                    sourceProduct = currentSourceProduct;
+                } else if (!sourceProduct.getId().equals(currentSourceProduct.getId())) {
+                    throw new IllegalStateException(
+                        "Conflicting source Products for template operations: " + templateOperationId
+                    );
+                }
+            }
+            
+            productMapping.put(templateOperationId, sourceProduct);
         }
 
-        // Шаг 4–5: создаём новые записи OperationInput, связывая созданные ProductOperation
-        Measure defaultMeasure = targetProduct.getProductClass() != null
-                ? null
-                : null;
+        Map<Long, ProductOperation> createdOpMap = new LinkedHashMap<>();
 
-        for (TechnologyProcessTemplateInput tInput : templateInputs) {
-            ProductOperation outOp = createdOpMap.get(tInput.getOutputTemplateOperation().getId());
-            ProductOperation inOp = tInput.getInputTemplateOperation() != null
-                    ? createdOpMap.get(tInput.getInputTemplateOperation().getId())
-                    : tInput.getExternalInputOperation();
+        List<ProductOperation> createdOperations = new ArrayList<>();
 
-            if (outOp != null && inOp != null && tInput.getMeasure() != null) {
-                OperationInput newInput = OperationInput.builder()
-                        .outputOperation(outOp)
-                        .inputOperation(inOp)
-                        .quantity(tInput.getQuantity())
-                        .baseQuantity(tInput.getBaseQuantity())
-                        .measure(tInput.getMeasure())
-                        .build();
+        // создание операций
+        for (TechnologyProcessTemplateOperation templateOperation : templateOperations) {
+            Product operationProduct = productMapping.get(templateOperation.getId());
 
-                operationInputRepository.save(newInput);
+            if (operationProduct == null) {
+                throw new IllegalStateException(
+                    "Product mapping not found for template operation: "
+                         + templateOperation.getId()
+                );
             }
+
+            ProductOperation newProductOperation = ProductOperation.builder()
+                .product(operationProduct)
+                .operationNumber(
+                    templateOperation.getOperationNumber() != null
+                            ? templateOperation.getOperationNumber().longValue()
+                            : 1L
+                )
+                .name(templateOperation.getName())
+                .description(
+                        templateOperation.getDescription() != null
+                                ? templateOperation.getDescription()
+                                : ""
+                )
+                .kind(templateOperation.getKind())
+                .setupTime(
+                        templateOperation.getSetupTime() != null
+                                ? templateOperation.getSetupTime()
+                                : 0L
+                )
+                .pieceTime(
+                        templateOperation.getPieceTime() != null
+                                ? templateOperation.getPieceTime()
+                                : 0L
+                )
+                .operationType(templateOperation.getOperationType())
+                .workCenter(templateOperation.getWorkCenter())
+                .profession(templateOperation.getProfession())
+                .qualification(templateOperation.getQualification())
+                .build();
+
+            newProductOperation = productOperationRepository.save(newProductOperation);
+
+            createdOpMap.put(templateOperation.getId(), newProductOperation);
+            createdOperations.add(newProductOperation);
+        }
+
+        // создание OperationInput
+        for (TechnologyProcessTemplateInput templateInput : templateInputs) {
+            ProductOperation outputOperation = createdOpMap.get(templateInput.getOutputTemplateOperation().getId());
+
+            ProductOperation inputOperation;
+
+            if (templateInput.getInputTemplateOperation() != null) {
+                inputOperation = createdOpMap.get(templateInput.getInputTemplateOperation().getId());
+            } else {
+                inputOperation = templateInput.getExternalInputOperation();
+            }
+
+            if (outputOperation == null || inputOperation == null) {
+                throw new IllegalStateException("Cannot restore OperationInput. Template input: " + templateInput.getId());
+            }
+
+            OperationInput newInput = OperationInput.builder()
+                .outputOperation(outputOperation)
+                .inputOperation(inputOperation)
+                .quantity(templateInput.getQuantity())
+                .baseQuantity(templateInput.getBaseQuantity())
+                .measure(templateInput.getMeasure())
+                .build();
+
+            operationInputRepository.save(newInput); 
         }
 
         return createdOperations.stream()
-                .map(ProductOperationReponse::fromEntity)
-                .toList();
+            .map(ProductOperationReponse::fromEntity)
+            .toList();
     }
 
     private TechnologyProcessTemplateResponse buildTemplateResponse(
             TechnologyProcessTemplate template,
             List<TechnologyProcessTemplateOperation> operations
     ) {
-        List<Long> opIds = operations.stream()
-                .map(TechnologyProcessTemplateOperation::getId)
-                .toList();
+        if (operations.isEmpty()) {
+            return TechnologyProcessTemplateResponse.fromEntity(template, Collections.emptyList());
+        }
 
-        Map<Long, List<TechnologyProcessTemplateInputResponse>> inputsByOutOpId = opIds.isEmpty()
-                ? Collections.emptyMap()
-                : templateInputRepository.findAllByOutputTemplateOperation_IdInOrderByIdAsc(opIds)
-                .stream()
-                .map(TechnologyProcessTemplateInputResponse::fromEntity)
+        List<Long> operationsIds = operations.stream()
+            .map(TechnologyProcessTemplateOperation::getId)
+            .toList();
+        
+        List<TechnologyProcessTemplateInput> allInputs = 
+            templateInputRepository.findAllByOutputTemplateOperation_IdInOrderByIdAsc(operationsIds);
+
+        Map<Long, List<TechnologyProcessTemplateInput>> inputsByOutputOperarion = 
+            allInputs.stream()
                 .collect(Collectors.groupingBy(
-                        TechnologyProcessTemplateInputResponse::outputTemplateOperationId
+                    input -> input.getOutputTemplateOperation().getId(),
+                    LinkedHashMap::new,
+                    Collectors.toList()
                 ));
+        
+        Set<Long> inputOperationIds = allInputs.stream()
+            .map(TechnologyProcessTemplateInput::getInputTemplateOperation)
+            .filter(Objects::nonNull)
+            .map(TechnologyProcessTemplateOperation::getId)
+            .collect(Collectors.toSet());
+        
+        List<TechnologyProcessTemplateOperation> rootOperations = operations.stream()
+                .filter(operation -> !inputOperationIds.contains(operation.getId()))
+                .sorted(
+                    Comparator.comparing(
+                        TechnologyProcessTemplateOperation::getOperationNumber,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    ).thenComparing(
+                        TechnologyProcessTemplateOperation::getId
+                    )
+                )
+                .toList();
+        
+        if (rootOperations.isEmpty()) {
+            throw new IllegalStateException(
+                "Technology process template has no root operations: " + template.getId()
+            );
+        }
 
-        List<TechnologyProcessTemplateOperationResponse> opResponses = operations.stream()
-                .map(op -> TechnologyProcessTemplateOperationResponse.fromEntity(
-                        op,
-                        inputsByOutOpId.getOrDefault(op.getId(), Collections.emptyList())
+        List<TechnologyProcessTemplateOperationResponse> operationResponses = 
+            rootOperations.stream()
+                .map(operation -> buildOperationGraph(
+                    operation,
+                    inputsByOutputOperarion,
+                    new HashSet<>()
                 ))
                 .toList();
+        return TechnologyProcessTemplateResponse.fromEntity(template, operationResponses);
+    }
 
-        return TechnologyProcessTemplateResponse.fromEntity(template, opResponses);
+    private Map<Long, ProductOperation> collectAllOperations(List<ProductOperation> rootOperations) {
+        Map<Long, ProductOperation> result = new LinkedHashMap<>();
+
+        Queue<ProductOperation> queue = new ArrayDeque<>(rootOperations);
+
+        while (!queue.isEmpty()) {
+            ProductOperation current = queue.poll();
+
+            if (current == null) {
+                continue;
+            }
+
+            Long operationId = current.getId();
+            
+            if (result.containsKey(operationId)) {
+                continue;
+            }
+
+            result.put(operationId, current);
+
+            List<OperationInput> inputs = operationInputRepository.findByOutputOperation_IdOrderByIdAsc(operationId);
+
+            for (OperationInput input : inputs) {
+                ProductOperation inputOperation = input.getInputOperation();
+
+                if (inputOperation == null) {
+                    throw new ValidationException("Input operation is null for input: " + input.getId());
+                }
+
+                if (!result.containsKey(inputOperation.getId())) {
+                    queue.add(inputOperation);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private TechnologyProcessTemplateOperationResponse buildOperationGraph(
+        TechnologyProcessTemplateOperation operation,
+        Map<Long, List<TechnologyProcessTemplateInput>> inputsByOutputOperation,
+        Set<Long> visitedPath
+    ) {
+        Long operationId = operation.getId();
+
+        // Защита от циклических зависимостей.
+        if (!visitedPath.add(operationId)) {
+            throw new IllegalStateException(
+                    "Circular dependency detected in technology process template. "
+                            + "Operation ID: " + operationId
+            );
+        }
+
+        try {
+            List<TechnologyProcessTemplateInput> inputs =
+                    inputsByOutputOperation.getOrDefault(
+                            operationId,
+                            Collections.emptyList()
+                    );
+
+            List<TechnologyProcessTemplateInputResponse> inputResponses =
+                    inputs.stream()
+                            .map(input -> {
+
+                                TechnologyProcessTemplateOperation inputOperation =
+                                        input.getInputTemplateOperation();
+
+                                if (inputOperation == null) {
+                                    throw new IllegalStateException(
+                                            "Template input has no internal operation. "
+                                                    + "Input ID: " + input.getId()
+                                    );
+                                }
+
+                                // Рекурсивно строим входную операцию.
+                                TechnologyProcessTemplateOperationResponse
+                                        nestedOperation =
+                                        buildOperationGraph(
+                                                inputOperation,
+                                                inputsByOutputOperation,
+                                                visitedPath
+                                        );
+
+                                return new TechnologyProcessTemplateInputResponse(
+                                        input.getId(),
+                                        operationId,
+                                        input.getQuantity(),
+                                        input.getBaseQuantity(),
+                                        input.getMeasure() != null
+                                                ? MeasureResponse.from(input.getMeasure())
+                                                : null,
+                                        nestedOperation
+                                );
+                            })
+                            .toList();
+
+            return TechnologyProcessTemplateOperationResponse.fromEntity(
+                    operation,
+                    inputResponses
+            );
+
+        } finally {
+            // Убираем операцию из текущего пути обхода.
+            visitedPath.remove(operationId);
+        }
     }
 }

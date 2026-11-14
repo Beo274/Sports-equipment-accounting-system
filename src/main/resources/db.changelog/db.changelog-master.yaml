@@ -143,3 +143,7 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/013_create_technology_process_templates.up.sql
               relativeToChangelogFile: true
+        rollback:
+          - sqlFile:
+              path: migrations/postgres/013_create_technology_process_templates.down.sql
+              relativeToChangelogFile: true
