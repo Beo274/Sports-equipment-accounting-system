@@ -17,9 +17,6 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 
-/**
- * Расчёт материальных и трудовых норм по графу технологического маршрута.
- */
 @Service
 public class CalculationService {
     private final ProductRepository productRepository;
@@ -37,16 +34,14 @@ public class CalculationService {
     }
 
     /**
-     * Материальные нормы для операции с учётом всех вложенных технологических
-     * операций. Промежуточные операции раскрываются до закупаемых материалов.
+     * Нормы материалов, непосредственно и косвенно необходимых для операции.
+     * Вложенные технологические операции раскрываются до конечных ресурсов.
      */
     public OperationCalcStandartsResponseDto getOperationRates(Integer operationId, Integer number) {
         validateQuantity(number);
 
         ProductOperation operation = productOperationRepository.findById(operationId.longValue())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Операция не найдена: " + operationId
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Операция не найдена: " + operationId));
 
         Map<Long, BigDecimal> materialTotals = new LinkedHashMap<>();
         Map<Long, String> materialNames = new LinkedHashMap<>();
@@ -56,7 +51,8 @@ public class CalculationService {
                 BigDecimal.valueOf(number),
                 materialTotals,
                 materialNames,
-                new HashSet<>()
+                new HashSet<>(),
+                false
         );
 
         return new OperationCalcStandartsResponseDto(
@@ -67,24 +63,20 @@ public class CalculationService {
     }
 
     /**
-     * Сводные материальные нормы изделия. Расчёт начинается с последней
-     * (выпускающей изделие) операции маршрута и рекурсивно раскрывает её входы.
+     * Сводные нормы материалов для изделия: расчёт начинается с последней
+     * операции изделия и проходит по всем её входным зависимостям.
      */
     public OperationCalcStandartsResponseDto getTotalMaterialRates(Integer productId, Integer number) {
         validateQuantity(number);
 
         Product product = productRepository.findById(productId.longValue())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Изделие не найдено: " + productId
-                ));
+                .orElseThrow(() -> new EntityNotFoundException("Изделие не найдено: " + productId));
 
         List<ProductOperation> operations =
                 productOperationRepository.findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
 
         if (operations.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "Для изделия не найдены технологические операции"
-            );
+            throw new EntityNotFoundException("Для изделия не найдены технологические операции");
         }
 
         ProductOperation finalOperation = operations.get(operations.size() - 1);
@@ -96,7 +88,8 @@ public class CalculationService {
                 BigDecimal.valueOf(number),
                 materialTotals,
                 materialNames,
-                new HashSet<>()
+                new HashSet<>(),
+                false
         );
 
         return new OperationCalcStandartsResponseDto(
@@ -107,20 +100,21 @@ public class CalculationService {
     }
 
     /**
-     * Обходит входы операции.
+     * Если вход — PURCHASE, он является покупным материалом.
+     * Если вход — TECHNOLOGICAL, раскрываем его входы. Важный случай:
+     * технологическая операция без собственных входов тоже является конечным
+     * ресурсом маршрута, поэтому учитываем её продукт как материал.
      *
-     * Норма входного ресурса = quantity * требуемый выпуск / baseQuantity.
-     * Для технологической входной операции количество выполнений округляется
-     * вверх сразу на этом переходе: технологическую операцию нельзя выполнить
-     * дробное число раз. Для закупаемого материала дробные нормы суммируются,
-     * а округление вверх выполняется только в итоговом результате.
+     * rootOperation=false для исходной операции запроса: сама операция не
+     * должна попадать в список собственных материалов, даже если она листовая.
      */
     private void collectPurchasedMaterials(
             ProductOperation operation,
             BigDecimal outputQuantity,
             Map<Long, BigDecimal> materialTotals,
             Map<Long, String> materialNames,
-            Set<Long> currentPath
+            Set<Long> currentPath,
+            boolean leafIsMaterial
     ) {
         if (!currentPath.add(operation.getId())) {
             throw new IllegalStateException(
@@ -130,15 +124,20 @@ public class CalculationService {
         }
 
         try {
-            List<OperationInput> inputs =
-                    operationInputRepository.findByOutputOperation(operation);
+            List<OperationInput> inputs = operationInputRepository.findByOutputOperation(operation);
+
+            if (inputs.isEmpty()) {
+                if (leafIsMaterial) {
+                    addMaterial(operation, outputQuantity, materialTotals, materialNames);
+                }
+                return;
+            }
 
             for (OperationInput input : inputs) {
                 BigDecimal baseQuantity = input.getBaseQuantity();
                 if (baseQuantity == null || baseQuantity.signum() <= 0) {
                     throw new IllegalStateException(
-                            "Базовое количество должно быть больше нуля. Вход операции: "
-                                    + input.getId()
+                            "Базовое количество должно быть больше нуля. Вход операции: " + input.getId()
                     );
                 }
 
@@ -154,37 +153,53 @@ public class CalculationService {
                 }
 
                 if (inputOperation.getKind() == OperationKind.PURCHASE) {
-                    Product material = inputOperation.getProduct();
-                    if (material == null || material.getId() == null) {
-                        throw new IllegalStateException(
-                                "У закупаемой операции не задан продукт. Операция: "
-                                        + inputOperation.getId()
-                        );
-                    }
-
-                    Long materialId = material.getId().longValue();
-                    materialTotals.merge(materialId, requiredQuantity, BigDecimal::add);
-                    materialNames.putIfAbsent(materialId, material.getName());
-                } else {
-                    // Производственная операция неделима — требуется целое
-                    // количество её выполнений на каждом уровне маршрута.
-                    BigDecimal operationCount = requiredQuantity.setScale(
-                            0,
-                            RoundingMode.CEILING
-                    );
-
-                    collectPurchasedMaterials(
-                            inputOperation,
-                            operationCount,
-                            materialTotals,
-                            materialNames,
-                            currentPath
-                    );
+                    addMaterial(inputOperation, requiredQuantity, materialTotals, materialNames);
+                    continue;
                 }
+
+                List<OperationInput> nestedInputs =
+                        operationInputRepository.findByOutputOperation(inputOperation);
+
+                if (nestedInputs.isEmpty()) {
+                    // Конечная технологическая операция — конечный ресурс графа.
+                    addMaterial(inputOperation, requiredQuantity, materialTotals, materialNames);
+                    continue;
+                }
+
+                // Производственная операция неделима: округляем число её
+                // выполнений вверх на каждом переходе графа.
+                BigDecimal operationCount = requiredQuantity.setScale(0, RoundingMode.CEILING);
+
+                collectPurchasedMaterials(
+                        inputOperation,
+                        operationCount,
+                        materialTotals,
+                        materialNames,
+                        currentPath,
+                        true
+                );
             }
         } finally {
             currentPath.remove(operation.getId());
         }
+    }
+
+    private void addMaterial(
+            ProductOperation materialOperation,
+            BigDecimal quantity,
+            Map<Long, BigDecimal> materialTotals,
+            Map<Long, String> materialNames
+    ) {
+        Product material = materialOperation.getProduct();
+        if (material == null || material.getId() == null) {
+            throw new IllegalStateException(
+                    "У входной операции не задан продукт. ID операции: " + materialOperation.getId()
+            );
+        }
+
+        Long productId = material.getId().longValue();
+        materialTotals.merge(productId, quantity, BigDecimal::add);
+        materialNames.putIfAbsent(productId, material.getName());
     }
 
     private List<MaterialResponseDto> toMaterialResponses(
@@ -195,9 +210,7 @@ public class CalculationService {
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> new MaterialResponseDto(
                         materialNames.get(entry.getKey()),
-                        entry.getValue()
-                                .setScale(0, RoundingMode.CEILING)
-                                .intValueExact()
+                        entry.getValue().setScale(0, RoundingMode.CEILING).intValueExact()
                 ))
                 .toList();
     }
@@ -206,23 +219,14 @@ public class CalculationService {
         validateQuantity(number);
 
         List<ProductOperation> operations =
-                productOperationRepository.findByProduct_IdOrderByOperationNumberAsc(
-                        productId.longValue()
-                );
+                productOperationRepository.findByProduct_IdOrderByOperationNumberAsc(productId.longValue());
 
         if (operations.isEmpty()) {
-            throw new EntityNotFoundException(
-                    "Для изделия не найдены технологические операции"
-            );
+            throw new EntityNotFoundException("Для изделия не найдены технологические операции");
         }
 
         ProductOperation finalOperation = operations.get(operations.size() - 1);
-
-        return calculateLaborTime(
-                finalOperation,
-                BigDecimal.valueOf(number),
-                new HashSet<>()
-        );
+        return calculateLaborTime(finalOperation, BigDecimal.valueOf(number), new HashSet<>());
     }
 
     private Long calculateLaborTime(
@@ -243,12 +247,9 @@ public class CalculationService {
             BigDecimal pieceTime = BigDecimal.valueOf(
                     operation.getPieceTime() == null ? 0L : operation.getPieceTime()
             );
-
             BigDecimal totalTime = setupTime.add(pieceTime.multiply(outputQuantity));
 
-            List<OperationInput> inputs =
-                    operationInputRepository.findByOutputOperation(operation);
-
+            List<OperationInput> inputs = operationInputRepository.findByOutputOperation(operation);
             for (OperationInput input : inputs) {
                 ProductOperation inputOperation = input.getInputOperation();
                 if (inputOperation.getKind() == OperationKind.PURCHASE) {
@@ -258,8 +259,7 @@ public class CalculationService {
                 BigDecimal baseQuantity = input.getBaseQuantity();
                 if (baseQuantity == null || baseQuantity.signum() <= 0) {
                     throw new IllegalStateException(
-                            "Базовое количество должно быть больше нуля. Вход операции: "
-                                    + input.getId()
+                            "Базовое количество должно быть больше нуля. Вход операции: " + input.getId()
                     );
                 }
 
@@ -268,12 +268,9 @@ public class CalculationService {
                         .divide(baseQuantity, MathContext.DECIMAL128)
                         .setScale(0, RoundingMode.CEILING);
 
-                Long inputTime = calculateLaborTime(
-                        inputOperation,
-                        requiredQuantity,
-                        currentPath
-                );
-                totalTime = totalTime.add(BigDecimal.valueOf(inputTime));
+                totalTime = totalTime.add(BigDecimal.valueOf(
+                        calculateLaborTime(inputOperation, requiredQuantity, currentPath)
+                ));
             }
 
             return totalTime.setScale(0, RoundingMode.CEILING).longValueExact();
