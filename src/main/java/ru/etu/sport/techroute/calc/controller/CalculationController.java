@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.etu.sport.techroute.calc.model.dto.OperationCalcStandartsResponseDto;
+import ru.etu.sport.techroute.calc.model.dto.TotalLaborDto;
 import ru.etu.sport.techroute.calc.service.CalculationService;
 
 @RestController
@@ -41,15 +42,17 @@ public class CalculationController {
 
     @Operation(summary = "Расчёт суммарных трудозатрат на изготовление изделия")
     @GetMapping("/products/{productId}/labor")
-    public ResponseEntity<Long> getTotalLabor(
+    public ResponseEntity<TotalLaborDto> getTotalLabor(
             @PathVariable Integer productId,
             @RequestParam Integer quantity
     ) {
         return ResponseEntity.ok(
+            new TotalLaborDto(
                 calculationService.getTotalLaborRates(
-                        productId,
-                        quantity
+                    productId,
+                    quantity
                 )
+            )
         );
     }
 
