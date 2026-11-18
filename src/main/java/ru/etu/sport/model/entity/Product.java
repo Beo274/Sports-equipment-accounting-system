@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import ru.etu.sport.product.model.ProductType;
 
 @Entity
 @Table(name = "Product")
@@ -22,10 +23,14 @@ public class Product {
     private String shortName;
 
     @JoinColumn(name = "class_id", nullable = false)
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private ClassEntity productClass;
 
     @JoinColumn(name = "base_product_id")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Product baseProduct;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_type", nullable = false)
+    private ProductType type = ProductType.SIMPLE;
 }

@@ -44,6 +44,10 @@ public class ProductParameter {
     @Column(name = "int_val")
     private Integer intVal;
 
+    @Column(name = "is_configuration", nullable = false)
+    @Builder.Default
+    private Boolean isConfiguration = false;
+
     public static List<ProductWithParamDto> mapProductParameter(List<ProductParameter> productParameters) {
         if (productParameters == null || productParameters.isEmpty()) {
             return List.of();
