@@ -1,5 +1,8 @@
 package ru.etu.sport.model.entity;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +34,7 @@ public class Product {
     private Product baseProduct;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "product_type", nullable = false)
     private ProductType type = ProductType.SIMPLE;
 }
