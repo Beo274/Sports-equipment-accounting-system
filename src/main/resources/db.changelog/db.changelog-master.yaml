@@ -169,3 +169,14 @@ databaseChangeLog:
           - sqlFile:
               path: migrations/postgres/015_orders_constraints.down.sql
               relativeToChangelogFile: true
+    - changeSet:
+        id: 016_allowed_enums
+        author: noname
+        changes:
+          - sqlFile:
+              path: migrations/postgres/016_allowed_enums.up.sql
+              relativeToChangelogFile: true
+        rollback:
+          - sqlFile:
+              path: migrations/postgres/016_allowed_enums.down.sql
+              relativeToChangelogFile: true

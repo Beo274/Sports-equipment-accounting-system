@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import ru.etu.sport.model.entity.Measure;
+import ru.etu.sport.model.entity.Parameter;
 
 @Data
 @Builder
@@ -13,4 +14,13 @@ public class ParameterResponse {
     private String name;
     private String shortName;
     private Measure measure;
+
+    public static ParameterResponse fromEntity(Parameter e) {
+        return new ParameterResponse(
+            e.getId(), 
+            e.getName(), 
+            e.getShortName(),
+            e.getMeasure()
+        );
+    }
 }
