@@ -1,7 +1,9 @@
 package ru.etu.sport.model.entity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.*;
@@ -44,6 +46,19 @@ public class ProductParameter {
     @Column(name = "int_val")
     private Integer intVal;
 
+    @Column(name = "is_configuration", nullable = false)
+    @Builder.Default
+    private Boolean isConfiguration = false;
+
+    @ManyToMany
+    @JoinTable(
+        name = "product_parameter_allowed_enum_values",
+        joinColumns = @JoinColumn(name = "product_parameter_id"),
+        inverseJoinColumns = @JoinColumn(name = "enumeration_value_id")
+    )
+    @Builder.Default
+    Set<EnumerationValue> allowedEnumValues = new HashSet<>();
+
     public static List<ProductWithParamDto> mapProductParameter(List<ProductParameter> productParameters) {
         if (productParameters == null || productParameters.isEmpty()) {
             return List.of();
@@ -84,5 +99,17 @@ public class ProductParameter {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    public Boolean validateBounds(Integer intVal) {
+        if (maxVal != null && minVal != null && intVal != null) {
+            return intVal <= maxVal && intVal >= minVal;
+        }
+
+        throw new IllegalStateException("Integer bounds are null"); 
+    }
+
+    public Boolean validateEnum(EnumerationValue enumValueToValidate) {
+        return allowedEnumValues.contains(enumValueToValidate);
     }
 }

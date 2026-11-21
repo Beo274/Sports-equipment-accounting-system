@@ -1,6 +1,7 @@
 package ru.etu.sport.product;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import ru.etu.sport.model.entity.Product;
+import ru.etu.sport.product.model.ProductType;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
@@ -33,4 +35,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByProductClass_IdIn(List<Integer> classIds);
 
     List<Product> findAllByBaseProduct(Product current);
+
+    Optional<Product> findByIdAndType(Integer id, ProductType type);
+
+    List<Product> findAllByType(ProductType type);
 }

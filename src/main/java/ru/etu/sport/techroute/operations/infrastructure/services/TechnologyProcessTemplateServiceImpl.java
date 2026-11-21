@@ -21,7 +21,6 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import ru.etu.sport.measure.dto.MeasureResponse;
-import ru.etu.sport.model.entity.Measure;
 import ru.etu.sport.model.entity.Product;
 import ru.etu.sport.product.ProductRepository;
 import ru.etu.sport.techroute.operations.application.TechnologyProcessTemplateService;

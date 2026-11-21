@@ -1,0 +1,1 @@
+ALTER TABLE order_item DROP CONSTRAINT order_id_position_unique;
