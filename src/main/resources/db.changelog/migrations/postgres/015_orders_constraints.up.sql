@@ -1,0 +1,1 @@
+ALTER TABLE order_item ADD CONSTRAINT order_id_position_unique UNIQUE (order_id, position_number);

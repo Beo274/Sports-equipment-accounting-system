@@ -49,4 +49,5 @@ public interface ProductParameterRepository extends JpaRepository<ProductParamet
             @Param("paramCount") Long paramCount
     );
 
+    List<ProductParameter> findAllByProductIdAndParameterId(Integer productId, Integer parameterId);
 }
