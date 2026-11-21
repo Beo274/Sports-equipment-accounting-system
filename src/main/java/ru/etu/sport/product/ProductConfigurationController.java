@@ -90,9 +90,16 @@ public class ProductConfigurationController {
                         summary = "Integer variant parameter",
                         value = """
                             {
-                                "type": "INTEGER",
-                                "parameterId": 1,
-                                "intVal": 150
+                                "configurableId": 1,
+                                "variantLabel": "brand new",
+                                "parameters": [
+                                    {
+                                        "type": "INTEGER",
+                                        "parameterId": 1,
+                                        "intVal": 150
+                                    }
+                                ]
+                                
                             }
                             """
                     ),
@@ -101,9 +108,16 @@ public class ProductConfigurationController {
                         summary = "Enum variant parameter",
                         value = """
                             {
-                                "type": "ENUM",
-                                "parameterId": 2,
-                                "enumValueId": 3
+                                "configurableId": 1,
+                                "variantLabel": "brand new",
+                                "parameters": [
+                                    {
+                                        "type": "ENUM",
+                                        "parameterId": 2,
+                                        "enumValueId": 3
+                                    }
+                                ]
+                                
                             }
                             """
                     )
