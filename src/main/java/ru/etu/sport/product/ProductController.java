@@ -24,7 +24,9 @@ import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.IdResponse;
 import ru.etu.sport.model.dto.response.MessageResponse;
 import ru.etu.sport.model.dto.response.ProductList;
+import ru.etu.sport.model.dto.response.ProductResponse;
 import ru.etu.sport.model.dto.response.ProductWithParamDto;
+import ru.etu.sport.model.dto.response.ProductWithParamsResponse;
 import ru.etu.sport.parameter.ClassProductParameterService;
 
 
@@ -107,4 +109,9 @@ public class ProductController {
         return ResponseEntity.ok(classProductParameterService.getProductsBySeveralParams(paramIds));
     }
     
+    @GetMapping("/{id}")
+    @Operation(summary = "get by id with params")
+    public ResponseEntity<ProductWithParamsResponse> getById(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getByIdWithParams(id));
+    }
 }

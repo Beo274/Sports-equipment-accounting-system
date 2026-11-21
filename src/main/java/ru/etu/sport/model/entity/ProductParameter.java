@@ -101,19 +101,15 @@ public class ProductParameter {
                 .collect(Collectors.toList());
     }
 
-    public Boolean validateBounds(Integer intVal, Integer enumValueId) {
+    public Boolean validateBounds(Integer intVal) {
         if (maxVal != null && minVal != null && intVal != null) {
             return intVal <= maxVal && intVal >= minVal;
         }
 
-        if (allowedEnumValues.size() != 0 && enumValueId != null) {
-            for (EnumerationValue enumValue : allowedEnumValues) {
-                if (enumValue.getId() == enumValueId) {
-                    return true;
-                }
-            }
-        }
+        throw new IllegalStateException("Integer bounds are null"); 
+    }
 
-        return false;
+    public Boolean validateEnum(EnumerationValue enumValueToValidate) {
+        return allowedEnumValues.contains(enumValueToValidate);
     }
 }

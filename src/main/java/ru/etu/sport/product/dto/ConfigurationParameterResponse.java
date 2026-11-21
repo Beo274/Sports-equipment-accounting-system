@@ -1,15 +1,28 @@
 package ru.etu.sport.product.dto;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import ru.etu.sport.enumeration.dto.EnumerationValueResponse;
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(
+        value = IntegerConfigurationParameterResponse.class,
+        name = "INTEGER"
+    ),
+    @JsonSubTypes.Type(
+        value = EnumConfigurationParameterResponse.class,
+        name = "ENUM"
+    )
+})
+public sealed interface ConfigurationParameterResponse
+    permits IntegerConfigurationParameterResponse,
+            EnumConfigurationParameterResponse {
 
-public record ConfigurationParameterResponse(
-    Integer id,
-    Integer parameterId,
-    Integer maxVal,
-    Integer minVal,
-    Set<EnumerationValueResponse> allowedEnums 
-) {
+    Integer id();
 
+    Integer parameterId();
 }

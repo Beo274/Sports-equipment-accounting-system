@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +41,76 @@ public class ProductConfigurationController {
     }
 
     @PatchMapping("/configuration/{id}")
-    @Operation( summary = "overrides or extends configuration parameters list")
+    @Operation(
+        summary = "overrides or extends configuration parameters",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "INTEGER",
+                        summary = "Integer configuration parameter",
+                        value = """
+                            {
+                                "type": "INTEGER",
+                                "parameterId": 1,
+                                "minVal": 100,
+                                "maxVal": 200
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "ENUM",
+                        summary = "Enum configuration parameter",
+                        value = """
+                            {
+                                "type": "ENUM",
+                                "parameterId": 2,
+                                "allowedEnumValuesIds": [1, 2, 3]
+                            }
+                            """
+                    )
+                }
+            )
+        )
+    )
     public ResponseEntity<ConfigurationResponse> extendConfiguration(@PathVariable Integer id, @Valid @RequestBody ConfigurationParameterDto dto) {
         return ResponseEntity.ok(productConfigurationService.extendConfiguration(id, dto));
     }
 
     @PostMapping("/variant")
-    @Operation( summary = "creates variant product by configurable")
+    @Operation(
+        summary = "creates variant by configurable",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                mediaType = "application/json",
+                examples = {
+                    @ExampleObject(
+                        name = "INTEGER",
+                        summary = "Integer variant parameter",
+                        value = """
+                            {
+                                "type": "INTEGER",
+                                "parameterId": 1,
+                                "intVal": 150
+                            }
+                            """
+                    ),
+                    @ExampleObject(
+                        name = "ENUM",
+                        summary = "Enum variant parameter",
+                        value = """
+                            {
+                                "type": "ENUM",
+                                "parameterId": 2,
+                                "enumValueId": 3
+                            }
+                            """
+                    )
+                }
+            )
+        )
+    )
     public ResponseEntity<VariantResponse> createVariant(@Valid @RequestBody CreateVariantDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productConfigurationService.createVariant(dto));
     }

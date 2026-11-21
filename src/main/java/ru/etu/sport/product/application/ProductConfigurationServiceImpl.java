@@ -32,6 +32,12 @@ import ru.etu.sport.product.dto.ConfigurationParameterResponse;
 import ru.etu.sport.product.dto.ConfigurationResponse;
 import ru.etu.sport.product.dto.CreateConfigurableDto;
 import ru.etu.sport.product.dto.CreateVariantDto;
+import ru.etu.sport.product.dto.EnumConfigurationParameterDto;
+import ru.etu.sport.product.dto.EnumConfigurationParameterResponse;
+import ru.etu.sport.product.dto.EnumVariantParameterDto;
+import ru.etu.sport.product.dto.IntegerConfigurationParameterDto;
+import ru.etu.sport.product.dto.IntegerConfigurationParameterResponse;
+import ru.etu.sport.product.dto.IntegerVariantParameterDto;
 import ru.etu.sport.product.dto.VariantParameterDto;
 import ru.etu.sport.product.dto.VariantParameterResponse;
 import ru.etu.sport.product.dto.VariantResponse;
@@ -40,7 +46,6 @@ import ru.etu.sport.product.model.ProductType;
 @Service
 @RequiredArgsConstructor
 public class ProductConfigurationServiceImpl implements ProductConfigurationService {
-    private final Logger logger = Logger.getLogger(ProductConfigurationServiceImpl.class.getName());
 
     private final ProductRepository productRepository;
     private final ProductParameterRepository productParameterRepository;
@@ -100,35 +105,43 @@ public class ProductConfigurationServiceImpl implements ProductConfigurationServ
             .collect(Collectors.toMap(ProductParameter::getParameter, Function.identity()));
         List<ProductParameter> created = new LinkedList<>();
 
-        for (VariantParameterDto variantParam : dto.getParameters()) {
-            Parameter param = parameterRepository.findById(variantParam.getParameterId())
-                .orElseThrow(() -> new EntityNotFoundException("Variant parameter not found: " + variantParam.getParameterId()));
+        variant = productRepository.save(variant);
+
+        for (VariantParameterDto variantParamDto : dto.getParameters()) {
+            Parameter param = parameterRepository.findById(variantParamDto.getParameterId())
+                .orElseThrow(() -> new EntityNotFoundException("Variant parameter not found: " + variantParamDto.getParameterId()));
 
             ProductParameter confParam = parameters.get(param);
 
-            if (!confParam.validateBounds(variantParam.getIntVal(), variantParam.getEnumValueId())) {
-                throw new ValidationException("Variant param values out of bounds");
+            ProductParameter variantParam = new ProductParameter();
+            variantParam.setParameter(param);
+            variantParam.setProduct(variant);
+
+            if (variantParamDto instanceof IntegerVariantParameterDto integerDto) {
+                if (!confParam.validateBounds(integerDto.getIntVal())) {
+                    throw new ValidationException("Int value out of bounds: " + integerDto.getIntVal());
+                }
+                variantParam.setIntVal(integerDto.getIntVal());
+            } else if (variantParamDto instanceof EnumVariantParameterDto enumDto) {
+                EnumerationValue enumValue = enumerationValueRepository.findById(enumDto.getEnumValueId())
+                    .orElseThrow(() -> new EntityNotFoundException("Enumeration value not found: " + enumDto.getEnumValueId()));
+                
+                if (!confParam.validateEnum(enumValue)) {
+                    throw new ValidationException("Enum value not allowed: "+enumValue.getId());
+                }
+
+                variantParam.setEnumerationValue(enumValue);
+            } else {
+                throw new IllegalStateException("Unsupported parameter type: " + variantParamDto.getClass().getName());
             }
-
-            ProductParameter newVariantParam = ProductParameter.builder()
-                .product(variant)
-                .parameter(param)
-                .intVal(variantParam.getIntVal())
-                .enumerationValue(variantParam.getEnumValueId() != null ?
-                    enumerationValueRepository.getReferenceById(variantParam.getEnumValueId())
-                    : null
-                )
-                .build();
             
-            created.add(newVariantParam);
+            created.add(variantParam);
         }
-
-        variant = productRepository.save(variant);
         created.forEach(param -> productParameterRepository.save(param));
 
         return new VariantResponse(
             ProductResponse.from(variant), 
-            created.stream().map(param -> VariantParameterResponse.fromProductParameter(param)).toList()
+            created.stream().map(param -> VariantParameterResponse.fromEntity(param)).toList()
         );
     }
 
@@ -156,6 +169,8 @@ public class ProductConfigurationServiceImpl implements ProductConfigurationServ
         Parameter parameter = parameterRepository.findById(dto.getParameterId())
             .orElseThrow(() -> new EntityNotFoundException("Parameter not found: " + dto.getParameterId()));
 
+        System.out.println(dto.getClass().getName());
+        System.out.println(dto);
         // Нужно обеспечить однозначность конфигурации по одному параметру:
         // мы не будем создавать параметр конфигурации, если у типового изделия
         // уже есть запись с переданным parameterId, но перезапишем уже имеющуюся новыми ограничениями
@@ -164,20 +179,19 @@ public class ProductConfigurationServiceImpl implements ProductConfigurationServ
             .stream()
             .filter(param -> param.getIsConfiguration() == true)
             .toList();
-        
-        Set<EnumerationValue> enumValues = 
-            dto.getAllowedEnumValuesIds() != null
-                ? new HashSet<>(enumerationValueRepository.findAllById(dto.getAllowedEnumValuesIds()))
-                : null;
 
         Boolean exists = false;
 
         for (ProductParameter param : parameters) {
             if (param.getParameter().getId() == parameter.getId()) {
-                param.setMaxVal(dto.getMaxVal());
-                param.setMinVal(dto.getMinVal());
-                if (enumValues != null) {
+                if (dto instanceof IntegerConfigurationParameterDto integerDto) {
+                    param.setMaxVal(integerDto.getMaxVal());
+                    param.setMinVal(integerDto.getMinVal());
+                } else if (dto instanceof EnumConfigurationParameterDto enumDto) {
+                    List<EnumerationValue> enumValues = enumerationValueRepository.findAllById(enumDto.getAllowedEnumValuesIds()); 
                     param.setAllowedEnumValues(new HashSet<>(enumValues));
+                } else {
+                    throw new IllegalStateException("Unsupported config param type: " + dto.getClass().getName());
                 }
 
                 productParameterRepository.save(param);
@@ -187,14 +201,23 @@ public class ProductConfigurationServiceImpl implements ProductConfigurationServ
         }
 
         if (!exists) {
-            ProductParameter param = ProductParameter.builder()
-                .product(configurable)
-                .parameter(parameter)
-                .maxVal(dto.getMaxVal())
-                .minVal(dto.getMinVal())
-                .allowedEnumValues(enumValues)
-                .isConfiguration(true)
-                .build();
+            ProductParameter param = new ProductParameter();
+             if (dto instanceof IntegerConfigurationParameterDto integerDto) {
+                param.setMaxVal(integerDto.getMaxVal());
+                param.setMinVal(integerDto.getMinVal());
+            } else if (dto instanceof EnumConfigurationParameterDto enumDto) {
+                List<EnumerationValue> enumValues = enumerationValueRepository.findAllById(enumDto.getAllowedEnumValuesIds()); 
+                if (enumValues.size() == 0) {
+                    throw new ValidationException("Unexists enum values: " + enumDto.getAllowedEnumValuesIds());
+                }
+                param.setAllowedEnumValues(new HashSet<>(enumValues));
+            } else {
+                throw new IllegalStateException("Unsupported config param type: " + dto.getClass().getName());
+            }
+            param.setProduct(configurable);
+            param.setParameter(parameter);
+            param.setIsConfiguration(true);
+
             productParameterRepository.save(param);
         }
 
@@ -227,22 +250,24 @@ public class ProductConfigurationServiceImpl implements ProductConfigurationServ
 
         for (ProductParameter param : parameters) {
             if (param.getIsConfiguration()) {
-                Set<EnumerationValueResponse> allowedEnums = param.getAllowedEnumValues() != null 
-                    ? param.getAllowedEnumValues()
-                        .stream()
-                        .map(enumValue -> EnumerationValueResponse.fromEntity(enumValue))
-                        .collect(Collectors.toSet())
-                    : null;
+                Set<EnumerationValue> allowedEnums = param.getAllowedEnumValues();
 
-                result.add(
-                    new ConfigurationParameterResponse(
+                if (allowedEnums.size() != 0) {
+                    result.add(new EnumConfigurationParameterResponse(
                         param.getId(),
                         param.getParameter().getId(),
-                        param.getMaxVal(), 
-                        param.getMinVal(), 
-                        allowedEnums
-                    )
-                );
+                        allowedEnums.stream().map(e -> EnumerationValueResponse.fromEntity(e)).collect(Collectors.toSet())
+                    ));
+                } else if (param.getMaxVal() != null && param.getMinVal() != null) {
+                    result.add(new IntegerConfigurationParameterResponse(
+                        param.getId(),
+                        param.getParameter().getId(),
+                        param.getMinVal(),
+                        param.getMaxVal()
+                    ));
+                } else {
+                    throw new IllegalStateException("Parameter has neither enums nor int bounds: " + param.getId());
+                }
             }
         }
 

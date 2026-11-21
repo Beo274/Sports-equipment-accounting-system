@@ -7,14 +7,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import ru.etu.sport.bom.application.BomService;
 import ru.etu.sport.model.dto.request.CreateProductDto;
 import ru.etu.sport.model.dto.response.ProductList;
 import ru.etu.sport.model.dto.response.ProductResponse;
+import ru.etu.sport.model.dto.response.ProductWithParamsResponse;
 import ru.etu.sport.model.entity.ClassEntity;
 import ru.etu.sport.model.entity.Product;
+import ru.etu.sport.model.entity.ProductParameter;
+import ru.etu.sport.parameter.ProductParameterRepository;
+import ru.etu.sport.product.model.ProductType;
 import ru.etu.sport.category.ClassRepository;
 
 
@@ -26,6 +31,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ClassRepository classRepository;
     private final BomService bomService;
+    private final ProductParameterRepository productParameterRepository;
 
     @Override
     @Transactional
@@ -79,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
         if (createProductDto.getBaseProductId() != null) {
             Product baseProduct = this.productRepository.findById(createProductDto.getBaseProductId()).orElse(null);
             product.setBaseProduct(baseProduct);
-
+            product.setType(ProductType.VARIANT);
         } else {
             product.setBaseProduct(null);
         }
@@ -90,5 +96,15 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return newProductId;
+    }
+
+    @Override 
+    public ProductWithParamsResponse getByIdWithParams(Integer id) {
+        Product product = productRepository.findById(id.longValue())
+            .orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
+
+        List<ProductParameter> params = productParameterRepository.findByProductId(product.getId());
+
+        return ProductWithParamsResponse.from(product, params);
     }
 }
