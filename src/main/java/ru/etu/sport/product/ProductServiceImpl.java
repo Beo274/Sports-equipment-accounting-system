@@ -56,12 +56,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         List<ProductResponse> mappedProducts = products.stream()
-            .map(p -> ProductResponse.builder()
-                .id(p.getId())
-                .name(p.getName())
-                .shortName(p.getShortName())
-                .classId(p.getProductClass() != null ? p.getProductClass().getId() : null)
-                .build())
+            .map(p -> ProductResponse.from(p))
             .toList();
 
         return new ProductList(count, limit, offset, mappedProducts);

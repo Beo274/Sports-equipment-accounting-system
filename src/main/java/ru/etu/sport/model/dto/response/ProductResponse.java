@@ -11,7 +11,7 @@ public class ProductResponse {
     private Integer id;
     private String name;
     private String shortName;
-    private Integer classId;
+    private ClassResponse baseClass;
     private Integer baseProductId;
     private ProductType type;
 
@@ -20,7 +20,7 @@ public class ProductResponse {
             e.getId(), 
             e.getName(), 
             e.getShortName(), 
-            e.getClass() != null ? e.getProductClass().getId() : null,
+            e.getClass() != null ? ClassResponse.from(e.getProductClass()) : null,
             e.getBaseProduct() != null ? e.getBaseProduct().getId() : null,
             e.getType()
         );

@@ -3,6 +3,7 @@ package ru.etu.sport.model.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import ru.etu.sport.measure.dto.MeasureResponse;
 import ru.etu.sport.model.entity.ClassEntity;
 
 @Data
@@ -13,7 +14,7 @@ public class ClassResponse {
     private String name;
     private String shortName;
     private Integer baseClassId;
-    private Integer mUnitId;
+    private MeasureResponse measure;
 
     public static ClassResponse from(ClassEntity e) {
         return new ClassResponse(
@@ -21,7 +22,7 @@ public class ClassResponse {
                 e.getName(),
                 e.getShortName(),
                 e.getBaseClass() != null ? e.getBaseClass().getId() : null,
-                e.getMeasure() != null ? e.getMeasure().getId() : null
+                e.getMeasure() != null ? MeasureResponse.from(e.getMeasure()) : null
         );
     }
 }

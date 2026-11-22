@@ -119,13 +119,7 @@ public class ClassServiceImpl implements ClassService {
 
     public List<ClassResponse> getAll() {
         return this.classRepository.findAll().stream()
-            .map(c -> ClassResponse.builder()
-            .id(c.getId())
-            .name(c.getName())
-            .shortName(c.getShortName())
-            .mUnitId(c.getMeasure() != null ? c.getMeasure().getId() : null)
-            .baseClassId(c.getBaseClass() != null ? c.getBaseClass().getId() : null)
-            .build())
+            .map(c -> ClassResponse.from(c))
             .collect(Collectors.toList());
     }
 
